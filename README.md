@@ -19,6 +19,7 @@ Use at your own risk and remember to [back up your SPI memory](https://github.co
 - Removed / unbugged:
     - Removed "[DISABLE]" options in menu
     - Fixed "If CurrentDial ("CurrentVfo" in the repos) is "B" and the incoming signal enters on "A", the AM fix does not apply".
+    - Corrected FM modulation depth for Wide/Narrow modes
 
 ## GPS Receiver HW Implementation
 
