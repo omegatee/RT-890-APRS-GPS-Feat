@@ -11,15 +11,14 @@ Use at your own risk and remember to [back up your SPI memory](https://github.co
 
 ## omegatee Features / Modifications
 - All OEFW features plus:
-
--- Full rewrite of UART code to support the new command shell and the GPS Receiver.
--- New keyaction to send Position by APRS (not working yet).
--- Personal ID (editable with CHIRP) used as "myCALL" for APRS. SSID is fixed to 7.
--- GPS Time shown on display.
+    -Full rewrite of UART code to support the new command shell and the GPS Receiver.
+    - New keyaction to send Position by APRS (not working yet).
+    - Personal ID (editable with CHIRP) used as "myCALL" for APRS. SSID is fixed to 7.
+    - GPS Time shown on display.
 
 - Removed / unbugged:
--- Removed "[DISABLE]" options in menu
--- Fixed "If CurrentDial ("CurrentVfo" in the repos) is "B" and the incoming signal enters on "A", the AM fix does not apply".
+    - Removed "[DISABLE]" options in menu
+    - Fixed "If CurrentDial ("CurrentVfo" in the repos) is "B" and the incoming signal enters on "A", the AM fix does not apply".
 
 ## GPS Receiver HW Implementation
 
