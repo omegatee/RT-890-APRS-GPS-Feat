@@ -25,7 +25,9 @@
 #include "task/scanner.h"
 #include "task/vox.h"
 #include "ui/helper.h"
-#include "ui/noaa.h"
+#ifdef ENABLE_NOAA
+	#include "ui/noaa.h"
+#endif
 
 enum {
 	STATUS_NO_TONE = 0,
@@ -39,10 +41,12 @@ static uint8_t GetToneStatus(uint8_t CodeType, bool bMuteEnabled)
 	
 	Value = BK4819_ReadRegister(0x0C);
 
+#ifdef ENABLE_NOAA
 	if (gNoaaMode) {
 		// Checks CTC1
 		return (Value & 0x0400U) ? STATUS_GOT_TONE : STATUS_NO_TONE;
 	}
+#endif
 
 	// Check Interrupt Request
 	if (Value & 0x0001U && gRadioMode == RADIO_MODE_RX) {
@@ -88,21 +92,38 @@ static uint8_t GetToneStatus(uint8_t CodeType, bool bMuteEnabled)
 
 static void CheckRSSI(void)
 {
-	if (gVoxRssiUpdateTimer == 0 && !gDataDisplay && !gDTMF_InputMode && !gFrequencyDetectMode && !gReceptionMode && !gFskDataReceived && gScreenMode == SCREEN_MAIN) {
+	if (gVoxRssiUpdateTimer == 0 && !gDataDisplay && !gDTMF_InputMode && !gFrequencyDetectMode && !gReceptionMode
+			&& !gFskDataReceived && gScreenMode == SCREEN_MAIN ) {
 		uint16_t RSSI;
+		uint16_t Power;
 
+#ifdef ENABLE_SLOWER_RSSI_TIMER
 		gVoxRssiUpdateTimer = 500;
-		RSSI = BK4819_ReadRegister(0x67) & 0x1FF;
-		if (RSSI < 98U) {
-			RSSI = 0U;
+#else
+		gVoxRssiUpdateTimer = 100;
+#endif
+
+		RSSI = BK4819_GetRSSI();
+
+		//Valid range is 72 - 330
+		if (RSSI < 72) {
+			Power = 0;
+		} else if (RSSI > 330) {
+			Power = 100;
 		} else {
-			RSSI -= 97U;
+			Power = ((RSSI-72)*100)/258;
 		}
-		RSSI = (RSSI * 9U) / 5U;
-		if (RSSI > 100) {
-			RSSI = 100;
-		}
-		UI_DrawBar(RSSI, gCurrentVfo);
+#ifdef ENABLE_RX_BAR	
+		UI_DrawBar(Power, gCurrentDial);
+#endif		
+		ConvertRssiToDbm(RSSI);
+#ifdef ENABLE_RX_BAR		
+		UI_DrawRxDBM(gCurrentDial, false);
+#endif
+		ConvertRssiToSmeter(RSSI);
+#ifdef ENABLE_RX_BAR		
+		UI_DrawRxSmeter(!gCurrentDial, false);
+#endif
 	}
 }
 
@@ -112,7 +133,7 @@ void Task_CheckRSSI(void)
 		uint8_t Status;
 
 		SCHEDULER_ClearTask(TASK_CHECK_RSSI);
-		Status = GetToneStatus(gVfoInfo[gCurrentVfo].CodeType, gMainVfo->bMuteEnabled);
+		Status = GetToneStatus(gVfoInfo[gCurrentDial].CodeType, gMainVfo->bMuteEnabled);
 		if (gRadioMode != RADIO_MODE_INCOMING) {
 			if (Status == STATUS_TAIL_TONE) {
 				gTailToneCounter++;
@@ -123,21 +144,29 @@ void Task_CheckRSSI(void)
 				gNoToneCounter++;
 			}
 			if (gTailToneCounter <= 10 && gNoToneCounter <= 1000) {
-				SCANNER_Countdown = 0;
 				gNoToneCounter = 0;
 				CheckRSSI();
+				UI_DrawVoltage(!gCurrentDial);
 			} else if (!gReceptionMode) {
 				RADIO_EndRX();
 			} else {
 				RADIO_EndAudio();
 			}
-		} else if (!gNoaaMode) {
+		}
+		else
+#ifdef ENABLE_NOAA
+		if (!gNoaaMode)
+#endif
+		{
 			if (gReceptionMode) {
 				RADIO_StartAudio();
-			} else if ((gVfoInfo[gCurrentVfo].CodeType == CODE_TYPE_OFF && !gMainVfo->bMuteEnabled) || gMainVfo->bIsAM || Status == STATUS_GOT_TONE) {
+			}
+			else if ((gVfoInfo[gCurrentDial].CodeType == CODE_TYPE_OFF && !gMainVfo->bMuteEnabled) || gMainVfo->gModulationType > 0 || Status == STATUS_GOT_TONE) {
 				RADIO_StartRX();
 			}
-		} else if (Status == STATUS_GOT_TONE) {
+#ifdef ENABLE_NOAA
+		}
+		else if (Status == STATUS_GOT_TONE) {
 			gReceptionMode = true;
 			gNoaaMode = false;
 			gNOAA_ChannelNow = gNOAA_ChannelNext;
@@ -146,6 +175,7 @@ void Task_CheckRSSI(void)
 			gReceivingAudio = true;
 			SCREEN_TurnOn();
 			BK4819_StartAudio();
+#endif
 		}
 	}
 }

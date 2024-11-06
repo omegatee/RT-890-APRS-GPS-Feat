@@ -156,6 +156,7 @@ void CRM_InitPeripherals(void)
 	crm_periph_clock_enable(CRM_DMA1_PERIPH_CLOCK, TRUE);
 	crm_periph_clock_enable(CRM_ADC1_PERIPH_CLOCK, TRUE);
 	crm_periph_clock_enable(CRM_USART1_PERIPH_CLOCK, TRUE);
+	crm_periph_clock_enable(CRM_USART2_PERIPH_CLOCK, TRUE);///WT
 	crm_periph_clock_enable(CRM_TMR1_PERIPH_CLOCK, TRUE);
 	crm_periph_clock_enable(CRM_TMR3_PERIPH_CLOCK, TRUE);
 	crm_periph_clock_enable(CRM_TMR6_PERIPH_CLOCK, TRUE);

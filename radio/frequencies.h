@@ -56,10 +56,12 @@ extern uint8_t gCurrentFrequencyBand;
 
 extern uint8_t gTxPowerLevelLow;
 extern uint8_t gTxPowerLevelHigh;
+#ifndef ENABLE_ALT_SQUELCH
 extern uint8_t gSquelchNoiseWide;
 extern uint8_t gSquelchRSSIWide;
 extern uint8_t gSquelchNoiseNarrow;
 extern uint8_t gSquelchRSSINarrow;
+#endif
 
 uint32_t FREQUENCY_GetStep(uint8_t StepSetting);
 void FREQUENCY_SelectBand(uint32_t Frequency);

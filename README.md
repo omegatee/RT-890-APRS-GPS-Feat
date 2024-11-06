@@ -1,43 +1,36 @@
-** THIS REPO IS NOT WORKING **
-Just used as backup
-
-
-
-## Radtel RT-890 Custom APRS&GPS Firmware
+# Radtel RT-890 Custom Firmware
 
 This project is an effort to improve the firmware of the Radtel RT-890 in terms of features and radio performance.
 
 It is based on [DualTachyon's OEFW](https://github.com/OEFW-community/radtel-rt-890-oefw) which is reversed from the original Radtel 1.34 firmware.  
 Thanks to him for making this possible!
 
-And on [Wiki in this repository](https://github.com/OEFW-community/RT-890-custom-firmware)
-
 ## Disclaimer
 This firmware is a work in progress and could be unstable; it could alter your radio and its data.  
 Use at your own risk and remember to [back up your SPI memory](https://github.com/OEFW-community/RT-890-custom-firmware/wiki/SPI) before installing any custom firmware.  DO NOT SKIP THIS STEP.
 
-## Changes and new Features
-- RX & TX frequency can be set from 10 to 1300 MHz (results may vary).
-	- ### NOTE: Is your responsability to use this ability in accordance to your country laws ###
-- Removed unuseful functions such as FLashlight, Local Alrarm, etc.
-- Removed display icons hidding modulation mode indicators
-- Changed WorkMode to WorkModeA and WorkModeB, for future splitting of VFO/CHAN mode on both dials
-- Full rework of UART functions
-  - Added serial command prompt at UART1
-  - Added UART2 to manage the GPS Receiver communication
-- Modified "roll-on" selection (instead of calling menu) for keyactions Modulation, TX Power...
-- Personal ID (editable with CHIRP) used as source address in APRS (ssid fixed to 7)
-- Startup Label (editable with CHIRP) used as device serial number
-- Added channel templates for standard APRS frequencies in EUR and USA
-- Added GPS Time presentation on display (previous indicators displaced to get room)
-- Added keyaction to manually send position by APRS
-- Added task to implement APRS Beacon
-
-## Removed Bugs
-- If you set ENABLE_NOAA to 0, linker fails
-- If CurrentDial ("CurrentVfo" in the repos) is "B" and the incoming signal enters on "A", the AM fix does not apply
-- Removed annoying "[DISABLED]" items from menu options
-- Corrected modulation index to comply with 12,5/25 kHz bandwidth
+## Features
+- All stock features: [check user's manual](https://cdn.shopifycdn.net/s/files/1/0564/8855/8800/files/RT-890_user_manual.pdf?v=1670288968)
+- RX frequency can be set from 10 to 1300 MHz (results may vary)
+- SSB reception
+- Light theme
+- AM Fix (improvement in AM reception with strong signals, port of @OneOfEleven's excellent work on the Quansheng UV-K5)
+- Sensitivty improvements in gain and squelch 
+- Full control over side key and main key shortcuts
+- New configurable actions (FM Radio, Scanner, FLashlight)
+- 0.01K step
+- Displaying registers in single VFO mode
+- Displaying dBM when receiving
+- Reworked scanner
+  - 8 Scan lists
+  - Faster scanning
+  - Resume mode: Time, Carrier, No
+  - Change scan direction while scanning (up/down keys)
+  - Force scan resume (up/down keys)
+- Spectrum view with waterfall display
+- Reworked main menu
+- Ability to disable LED toggling when scanning
+- And much more!
 
 ## Usage and feature instructions
 See the [Wiki in this repository](https://github.com/OEFW-community/RT-890-custom-firmware/wiki) for detailed usage instructions.

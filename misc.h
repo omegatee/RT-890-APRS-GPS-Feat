@@ -19,11 +19,25 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "app/shell.h"
+
+#ifndef ARRAY_SIZE
+	#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
+#endif
+
+#define IFDBG if(gShellMode)
 
 enum SCREEN_Mode_t {
 	SCREEN_MAIN = 0,
 	SCREEN_MENU,
 	SCREEN_SETTING,
+	SCREEN_FREQ_DETECT,
+#ifdef ENABLE_REGISTER_EDIT
+	SCREEN_REGEDIT,
+#endif
+#ifdef ENABLE_NOAA
+	SCREEN_NOAA,
+#endif
 };
 
 typedef enum SCREEN_Mode_t SCREEN_Mode_t;
@@ -31,7 +45,9 @@ typedef enum SCREEN_Mode_t SCREEN_Mode_t;
 enum IDLE_Mode_t {
 	IDLE_MODE_OFF = 0,
 	IDLE_MODE_DUAL_STANDBY,
+#ifdef ENABLE_NOAA
 	IDLE_MODE_NOAA,
+#endif
 	IDLE_MODE_SAVE,
 };
 
@@ -76,6 +92,7 @@ extern bool gReceivingAudio;
 extern bool gMonitorMode;
 extern bool gEnableLocalAlarm;
 extern bool gSendTone;
+extern bool gStartupSoundPlaying;
 extern bool KEY_SideKeyLongPressed;
 extern PTT_Lock_t gPttLock;
 extern bool gSignalFound;
@@ -87,8 +104,12 @@ extern uint8_t gNOAA_ChannelNow;
 extern uint8_t gNOAA_ChannelNext;
 extern uint8_t gTailToneCounter;
 extern uint16_t gNoToneCounter;
-extern uint8_t gSettingsCount;
 extern bool gFrequencyReverse;
+extern bool gManualScanDirection;
+extern bool gForceScan;
+extern uint32_t gScanStartFreqOrChannel;	// Frequency or channel to restore after scan
+extern uint32_t gScanLastRxFreqOrChannel;	// Last RX frequency or channel during scan
+extern uint8_t gSlot;
 extern char gString[32];
 extern char gBigString[40];
 
@@ -96,5 +117,5 @@ extern uint32_t SFLASH_Offsets[20];
 extern uint32_t SFLASH_FontOffsets[32];
 extern uint8_t gFlashBuffer[8192];
 
-#endif
 
+#endif

@@ -19,9 +19,10 @@
 
 #include <stdint.h>
 
-extern char gShortString[10];
+extern char gShortString[14];
 
 void Int2Ascii(uint32_t Number, uint8_t Size);
+uint32_t Ascii2Int(char *String);
 uint16_t TIMER_Calculate(uint16_t Setting);
 void SCREEN_TurnOn(void);
 void STANDBY_BlinkGreen(void);

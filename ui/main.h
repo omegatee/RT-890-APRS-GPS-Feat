@@ -20,9 +20,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+void DrawStatusBar(void);
 void UI_DrawMain(bool bSkipStatus);
 void UI_DrawRepeaterMode(void);
-void UI_DrawBattery(void);
+void UI_DrawBattery(bool bDisplayVoltage);
 
 #endif
 

@@ -109,7 +109,7 @@ void FM_Disable(bool bStandby)
 		}
 		gFM_Mode = bStandby ? FM_MODE_STANDBY : FM_MODE_OFF;
 		if (gRadioMode != RADIO_MODE_RX && gRadioMode != RADIO_MODE_TX) {
-			RADIO_Tune(gSettings.CurrentVfo);
+			RADIO_Tune(gSettings.CurrentDial);
 		}
 		UI_DrawMain(true);
 	}

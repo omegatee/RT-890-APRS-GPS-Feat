@@ -74,8 +74,8 @@ typedef struct __attribute__((packed)) {
 	uint16_t ToneFrequency;
 	uint16_t FmFrequency;
 	// 0x0B
-	uint8_t Unknown1:1;
-	uint8_t WorkMode:1;
+	uint8_t WorkModeA:1;				///WT:
+	uint8_t WorkModeB:1;
 	uint8_t Unknown2:2;
 	uint8_t ScanDirection:1;
 	uint8_t StandbyArea:1;
@@ -90,7 +90,7 @@ typedef struct __attribute__((packed)) {
 	uint8_t Lock:1;
 	uint8_t Vox:1;
 	uint8_t TailTone:1;
-	uint8_t CurrentVfo:1;
+	uint8_t CurrentDial:1;
 	uint8_t bFLock:1;
 	uint8_t Unknown10:1;
 	// 0x15
@@ -156,11 +156,39 @@ typedef struct __attribute__((packed)) {
 	uint8_t _0x5F;
 } gSettings_t;
 
+// Extended settings added to the custom firmware
+// stored outside of the original settings area to avoid breaking something
+typedef struct __attribute__((packed)) {
+	// 0x00
+	uint8_t ScanResume: 2;	// Carrier=1, Time=2, No=3
+	uint8_t AmFixEnabled: 1;
+	uint8_t DarkMode: 1;
+	uint8_t ScanBlink: 1;
+	uint8_t CurrentScanList: 3;
+	// 0x01 - 0x0E
+	uint8_t KeyShortcut[14];
+	// 0x0F
+	uint8_t ScanAll: 1;
+	uint8_t MicGainLevel: 6;
+	uint8_t Undefined: 1;	// free for use
+	// 0x10
+	uint8_t SqRSSIBase;
+	// 0x12
+	uint8_t SqNoiseBase;
+	// 0x13
+	uint8_t SqGlitchBase;
+	//0x14
+	uint8_t SqMode: 2;
+	uint8_t ScanDelay: 6;
+	//0x15...
+} gExtendedSettings_t;
+
 extern Calibration_t gCalibration;
-extern char gDeviceName[16];
+extern char myCALL[16];
 extern gSettings_t gSettings;
 extern char WelcomeString[32];
 extern uint32_t gFrequencyStep;
+extern gExtendedSettings_t gExtendedSettings;
 
 void SETTINGS_BackupCalibration(void);
 void SETTINGS_LoadCalibration(void);

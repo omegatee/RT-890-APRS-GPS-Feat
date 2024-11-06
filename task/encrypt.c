@@ -28,7 +28,7 @@ void Task_Encrypt(void)
 				return;
 			}
 			gCode ^= 0x0083;
-			CSS_SetStandardCode(gVfoInfo[gCurrentVfo].CodeType, gCode, gMainVfo->Encrypt, gMainVfo->bIsNarrow);
+			CSS_SetStandardCode(gVfoInfo[gCurrentDial].CodeType, gCode, gMainVfo->Encrypt, gMainVfo->bIsNarrow);
 		}
 	}
 

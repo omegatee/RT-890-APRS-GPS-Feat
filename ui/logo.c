@@ -34,7 +34,7 @@ static void DrawImage(uint32_t Address)
 			SFLASH_Read(gFlashBuffer, Address + i, sizeof(gFlashBuffer));
 		}
 		Color = (gFlashBuffer[i & 0x1FFF] << 8) | gFlashBuffer[(i + 1) & 0x1FFF];
-		if (Color != COLOR_BLACK) {
+		if (Color != 0) {
 			ST7735S_SetPixel(X, Y, Color);
 		}
 		X++;
@@ -48,6 +48,6 @@ static void DrawImage(uint32_t Address)
 void UI_DrawLogo(void)
 {
 	DrawImage(0x3B5000);
-	DELAY_WaitMS(1000);
+	DELAY_WaitMS(100);///WT: if startup tone enabled, 100 else 250
 }
 

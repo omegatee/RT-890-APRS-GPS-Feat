@@ -25,7 +25,7 @@ static void DrawBandwidth(bool bIsNarrow, uint8_t Vfo)
 {
 	const uint8_t Y = 43 - (Vfo * 41);
 
-	gColorForeground = COLOR_WHITE;
+	gColorForeground = COLOR_FOREGROUND;
 	if (bIsNarrow) {
 		UI_DrawSmallString(150, Y, "N", 1);
 	} else {
@@ -36,28 +36,46 @@ static void DrawBandwidth(bool bIsNarrow, uint8_t Vfo)
 void UI_DrawVfo(uint8_t Vfo)
 {
 	UI_DrawName(Vfo, gVfoState[Vfo].Name);
-	gColorForeground = COLOR_WHITE;
-	UI_DrawVfoFrame(Vfo);
+	gColorForeground = COLOR_FOREGROUND;
+#ifdef ENABLE_SCANLIST_DISPLAY
+	if (gSettings.WorkModeA && gRadioMode == RADIO_MODE_QUIET
+#ifdef ENABLE_KEEP_MONITOR_MODE_UP_DN
+		&& !gMonitorMode
+#endif
+	) {
+		UI_DrawScanLists(Vfo);
+	} else {
+#endif
+#if defined ENABLE_RX_BAR || defined ENABLE_TX_BAR
+		UI_DrawVfoFrame(Vfo);
+#endif
+#ifdef ENABLE_SCANLIST_DISPLAY
+	}
+#endif
 
-	if (Vfo == gCurrentVfo) {
+	if (Vfo == gCurrentDial) {
 		if (gRadioMode == RADIO_MODE_RX) {
-			UI_DrawRX(Vfo);
-			UI_DrawExtra(2, gVfoState[Vfo].bIsAM, Vfo);
+#ifdef ENABLE_RX_BAR
+			///UI_DrawRX(Vfo);
+#endif
+			UI_DrawExtra(2, gVfoState[Vfo].gModulationType, Vfo);
 			gColorForeground = COLOR_BLUE;
 		} else if (gRadioMode == RADIO_MODE_TX) {
-			UI_DrawRX(Vfo);
-			UI_DrawExtra(1, gVfoState[Vfo].bIsAM, Vfo);
+#ifdef ENABLE_RX_BAR
+			///UI_DrawRX(Vfo);
+#endif
+			UI_DrawExtra(1, gVfoState[Vfo].gModulationType, Vfo);
 			gColorForeground = COLOR_RED;
 		} else {
-			UI_DrawExtra(0, gVfoState[Vfo].bIsAM, Vfo);
-			gColorForeground = COLOR_WHITE;
+			UI_DrawExtra(0, gVfoState[Vfo].gModulationType, Vfo);
+			gColorForeground = COLOR_FOREGROUND;
 		}
 	} else {
-		UI_DrawExtra(0, gVfoState[Vfo].bIsAM, Vfo);
-		gColorForeground = COLOR_WHITE;
+		UI_DrawExtra(0, gVfoState[Vfo].gModulationType, Vfo);
+		gColorForeground = COLOR_FOREGROUND;
 	}
 
-	if (gSettings.CurrentVfo == Vfo && gFrequencyReverse) {
+	if (gSettings.CurrentDial == Vfo && gFrequencyReverse) {
 		gColorForeground = COLOR_RED;
 		UI_DrawFrequency(gVfoState[Vfo].TX.Frequency, Vfo, COLOR_RED);
 		UI_DrawCss(gVfoState[Vfo].TX.CodeType, gVfoState[Vfo].TX.Code, gVfoState[Vfo].Encrypt, gVfoState[Vfo].bMuteEnabled, Vfo);
@@ -67,8 +85,8 @@ void UI_DrawVfo(uint8_t Vfo)
 	}
 
 	UI_DrawTxPower(gVfoState[Vfo].bIsLowPower, Vfo);
-	gColorForeground = COLOR_WHITE;
-	if (gSettings.WorkMode) {
+	gColorForeground = COLOR_FOREGROUND;
+	if (gSettings.WorkModeA) {
 		UI_DrawChannel(gSettings.VfoChNo[Vfo], Vfo);
 	} else {
 		UI_DrawChannel(Vfo ? 1000 : 999, Vfo);

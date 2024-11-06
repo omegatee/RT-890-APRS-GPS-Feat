@@ -126,8 +126,30 @@ static void InitGPIO(void)
 
 	gpio_init(GPIOF, &init);
 
+	// GPIO A
+	init.gpio_pins = BOARD_GPIOA_USART2_RX;
+	init.gpio_mode = GPIO_MODE_MUX;
+	init.gpio_out_type = GPIO_OUTPUT_PUSH_PULL;
+	init.gpio_pull = GPIO_PULL_NONE;
+
+	gpio_init(GPIOA, &init);
+
+	// PA2 -> USART2_TX
+	gpio_pin_mux_config(GPIOA, GPIO_PINS_SOURCE2, GPIO_MUX_1);
+	// PA3 -> USART2_RX
+	gpio_pin_mux_config(GPIOA, GPIO_PINS_SOURCE3, GPIO_MUX_1);
+
+	gpio_init(GPIOA, &init);
+
 	// GPIO B
 	init.gpio_pins = BOARD_GPIOB_USART1_TX;
+	init.gpio_mode = GPIO_MODE_MUX;
+	init.gpio_out_type = GPIO_OUTPUT_PUSH_PULL;
+	init.gpio_pull = GPIO_PULL_NONE;
+
+	gpio_init(GPIOB, &init);
+	
+	init.gpio_pins = BOARD_GPIOB_USART1_RX;
 	init.gpio_mode = GPIO_MODE_MUX;
 	init.gpio_out_type = GPIO_OUTPUT_PUSH_PULL;
 	init.gpio_pull = GPIO_PULL_NONE;
@@ -177,7 +199,8 @@ void HARDWARE_Init(void)
 	CRM_InitPeripherals();
 	InitGPIO();
 	SCHEDULER_Init();
-	UART_Init(115200);
+	UART_Init(1,115200);
+	UART_Init(2,9600);		///WT: for GPS Receiver
 	BATTERY_Init();
 	PWM_Init();
 	HARDWARE_EnableInterrupts(true);
@@ -198,7 +221,7 @@ void HARDWARE_Init(void)
 void HARDWARE_Reboot(void)
 {
 	DELAY_WaitMS(1000);
-	DISPLAY_Fill(0, 159, 0, 96, COLOR_BLACK);
+	DISPLAY_Fill(0, 159, 0, 96, COLOR_BACKGROUND);
 	RADIO_Sleep();
 	NVIC_SystemReset();
 }
@@ -215,6 +238,11 @@ void HARDWARE_EnableInterrupts(bool bEnable)
 	AT32_EnableIRQ(&Config);
 
 	Config.Irq = USART1_IRQn;
+	Config.PreemptPriority = 0;
+	Config.SubPriority = 0;
+	AT32_EnableIRQ(&Config);
+
+	Config.Irq = USART2_IRQn;
 	Config.PreemptPriority = 0;
 	Config.SubPriority = 0;
 	AT32_EnableIRQ(&Config);

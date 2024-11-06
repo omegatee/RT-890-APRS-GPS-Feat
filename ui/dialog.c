@@ -27,6 +27,13 @@ void UI_DrawDialogText(UI_DialogText_t Text, bool bSet)
 	gColorForeground = COLOR_RED;
 
 	switch (Text) {
+	case DIALOG_AM_FIX:
+		if (bSet) {
+			UI_DrawString(10, 48, "AM Fix: On", 10);
+		} else {
+			UI_DrawString(10, 48, "AM Fix: Off", 11);
+		}
+		break;
 	case DIALOG_TX_PRIORITY:
 		if (bSet) {
 			UI_DrawString(10, 48, "TX PRI: Busy", 12);
@@ -58,12 +65,20 @@ void UI_DrawDialogText(UI_DialogText_t Text, bool bSet)
 			UI_DrawString(10, 48, "Dual Standby: Off", 17);
 		}
 		break;
-
+	
 	case DIALOG_KEY_BEEP:
 		if (bSet) {
 			UI_DrawString(10, 48, "Key Beep: On ", 13);
 		} else {
 			UI_DrawString(10, 48, "Key Beep: Off", 13);
+		}
+		break;
+
+	case DIALOG_TOGGLE_SCANLIST:
+		if (bSet) {
+			UI_DrawString(10, 48, "SList: Ch Added", 15);
+		} else {
+			UI_DrawString(10, 48, "SList: Ch Removed", 17);
 		}
 		break;
 

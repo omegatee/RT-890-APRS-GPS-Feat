@@ -37,8 +37,7 @@ typedef struct __attribute__((packed)) {
 	uint32_t Encrypt:2;
 	// 0x10
 	uint8_t Available:1;
-	uint8_t Unknown3:1;
-	uint8_t bIsAM:1;
+	uint8_t gModulationType:2;
 	uint8_t BCL:2;
 	uint8_t ScanAdd:1;
 	uint8_t bIsLowPower:1;
@@ -46,7 +45,7 @@ typedef struct __attribute__((packed)) {
 	// 0x11
 	uint8_t _0x11;
 	uint8_t Scramble;
-	uint8_t _0x13;
+	uint8_t IsInscanList;		// 8 lists: 1 bit per list
 	uint8_t _0x14;
 	uint8_t _0x15;
 	char Name[10];
@@ -54,13 +53,16 @@ typedef struct __attribute__((packed)) {
 
 extern uint16_t gFreeChannelsCount;
 
-void CHANNELS_NextChannelMr(uint8_t Key);
+bool CHANNELS_NextChannelMr(uint8_t Key, bool OnlyFromScanlist);
 void CHANNELS_NextChannelVfo(uint8_t Key);
+#ifdef ENABLE_NOAA
 void CHANNELS_NextNOAA(uint8_t Key);
+#endif
 void CHANNELS_NextFM(uint8_t Key);
 
 void CHANNELS_UpdateChannel(void);
 void CHANNELS_UpdateVFO(void);
+void CHANNELS_UpdateVFOFreq(uint32_t Frequency);
 
 bool CHANNELS_LoadChannel(uint16_t ChNo, uint8_t Vfo);
 void CHANNELS_CheckFreeChannels(void);
@@ -69,7 +71,9 @@ void CHANNELS_LoadWorkMode(void);
 uint16_t CHANNELS_GetChannelUp(uint16_t Channel, uint8_t Vfo);
 uint16_t CHANNELS_GetChannelDown(uint16_t Channel, uint8_t Vfo);
 void CHANNELS_SaveChannel(uint16_t Channel, const ChannelInfo_t *pChannel);
+#ifdef ENABLE_NOAA
 void CHANNELS_SetNoaaChannel(uint8_t Channel);
+#endif
 void CHANNELS_SaveVfo(void);
 
 #endif

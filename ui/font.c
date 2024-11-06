@@ -88,7 +88,9 @@ uint8_t FONT_GetOffsets(const char *String, uint8_t Size, bool bFlag)
 
 	for (i = 0, j = 0; i < Size; i++, j++) {
 		uint16_t c = String[i];
-
+		
+		if(c==0)break;///WT: remove zeroes !!!
+		
 		if ((c >> 4) == 0xF) {
 			i++;
 			c = ((c & 0xF) << 8) | String[i];

@@ -18,10 +18,26 @@
 #define DRIVER_UART_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
-void UART_Init(uint32_t BaudRate);
-void UART_SendByte(uint8_t Data);
-void UART_Send(const void *pBuffer, uint8_t Size);
+extern uint8_t Buffer1[256];
+extern uint8_t Buffer1Length;
+extern uint8_t Buffer2[256];
+extern uint8_t Buffer2Length;
+
+extern uint16_t UART1_Timer;
+extern bool UART1_IsRunning;
+
+
+void UART_Init(uint8_t Port, uint32_t BaudRate);
+
+void HandlerUSART1(void);
+void HandlerUSART2(void);
+
+void UART_SendByte(uint8_t Port, uint8_t Data);
+void UART_Send(uint8_t Port,const void *pBuffer, uint8_t Size);
+uint8_t UART_ReceiveByte(uint8_t Port, uint8_t *dat);
+void UART_printf(uint8_t Port,const char *str, ...);
 
 #endif
 

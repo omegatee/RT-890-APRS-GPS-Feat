@@ -31,6 +31,9 @@
 
 	.global HandlerUSART1
 	.weak HandlerUSART1
+	
+	.global HandlerUSART2
+	.weak HandlerUSART2
 
 	.global HandlerTMR6_GLOBAL
 	.weak HandlerTMR6_GLOBAL

@@ -1,6 +1,6 @@
 *.o
 *.d
-firmware
-firmware.bin
+firmwareWT
+firmwareWT.bin
 .tags
 

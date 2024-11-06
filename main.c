@@ -16,7 +16,6 @@
 
 #include <at32f421.h>
 #include "app/radio.h"
-#include "app/uart.h"
 #include "driver/bk4819.h"
 #include "driver/crm.h"
 #include "driver/delay.h"
@@ -27,16 +26,21 @@
 #include "radio/data.h"
 #include "radio/hardware.h"
 #include "radio/settings.h"
+#include "task/am-fix.h"
 #include "task/alarm.h"
 #include "task/battery.h"
 #include "task/cursor.h"
 #include "task/encrypt.h"
-#include "task/fmscanner.h"
+#ifdef ENABLE_FM_RADIO
+	#include "task/fmscanner.h"
+#endif
 #include "task/idle.h"
 #include "task/incoming.h"
 #include "task/keys.h"
 #include "task/lock.h"
-#include "task/noaa.h"
+#ifdef ENABLE_NOAA
+	#include "task/noaa.h"
+#endif
 #include "task/ptt.h"
 #include "task/rssi.h"
 #include "task/scanner.h"
@@ -50,10 +54,6 @@ extern const uint8_t StackVector[];
 
 void Main(void) __attribute__((noreturn));
 
-void _putchar(char c)
-{
-	UART_SendByte((uint8_t)c);
-}
 
 void Main(void)
 {
@@ -68,14 +68,21 @@ void Main(void)
 	if (gSettings.DtmfState == DTMF_STATE_KILLED) {
 		DATA_ReceiverInit();
 	}
+	
+	/// ------------------------------------------------------------------- MAIN LOOP
+	//UART_printf(1,"\r\n\n\n\nRADTEL RT-890\r\nOEFW by omegatee V_0.6\r\n2024/10/26\r\n");
+
 	while (1) {
 		do {
-			while (!UART_IsRunning && gSettings.DtmfState != DTMF_STATE_KILLED) {
+			while (!UART1_IsRunning && gSettings.DtmfState != DTMF_STATE_KILLED) {
 				Task_VoicePlayer();
 				Task_CheckKeyPad();
 				Task_CheckSideKeys();
 				Task_UpdateScreen();
 				Task_BlinkCursor();
+#ifdef ENABLE_AM_FIX
+				Task_AM_fix();
+#endif
 				Task_Scanner();
 				Task_CheckPTT();
 				Task_CheckIncoming();
@@ -86,12 +93,22 @@ void Main(void)
 				Task_VoxUpdate();
 				Task_Idle();
 				Task_CheckBattery();
+#ifdef ENABLE_FM_RADIO
 				Task_CheckScannerFM();
+#endif
+#ifdef ENABLE_NOAA
 				Task_CheckNOAA();
+#endif
 				Task_LocalAlarm();
+
+//	IFDBG UART_printf(1,"ModeA=%d\t",gSettings.WorkModeA);
+//	IFDBG UART_printf(1,"ModeB=%d\t",gSettings.WorkModeB);
+//	IFDBG UART_printf(1,"Dial=%d\n",gSettings.CurrentDial);
+//	IFDBG UART_printf(1,"Freq = %d\n",gVfoInfo[gSettings.CurrentDial].Frequency);
+
 			}
 		} while (gSettings.DtmfState != DTMF_STATE_KILLED);
-		if (BK4819_ReadRegister(0x0C) & 0x0001U) {
+		if (BK4819_ReadRegister(0x0C) & 0x0001U) { /// 0x0C[0] = Interrupt Indicator
 			DATA_ReceiverCheck();
 		}
 		DELAY_WaitMS(1);

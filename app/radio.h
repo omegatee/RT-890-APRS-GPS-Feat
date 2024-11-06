@@ -20,9 +20,9 @@
 #include "radio/channels.h"
 #include "radio/frequencies.h"
 
-extern uint8_t gCurrentVfo;
+extern uint8_t gCurrentDial;
 extern ChannelInfo_t *gMainVfo;
-extern ChannelInfo_t gVfoState[3];
+extern ChannelInfo_t gVfoState[4];
 extern FrequencyInfo_t gVfoInfo[2];
 
 extern bool gNoaaMode;
@@ -39,11 +39,13 @@ void RADIO_EndAudio(void);
 
 void RADIO_Sleep(void);
 void RADIO_Retune(void);
+#ifdef ENABLE_NOAA
 void RADIO_NoaaRetune(void);
 void RADIO_NoaaTune(void);
+#endif
 void VFO_ClearCss(void);
 void VFO_ClearMute(void);
-void RADIO_SaveCurrentVfo(void);
+void RADIO_SaveCurrentDial(void);
 
 void RADIO_StartTX(bool bFlag);
 void RADIO_EndTX(void);

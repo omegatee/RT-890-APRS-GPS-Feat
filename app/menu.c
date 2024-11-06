@@ -20,6 +20,7 @@
 #include "app/t9.h"
 #include "driver/audio.h"
 #include "driver/beep.h"
+#include "driver/bk4819.h"
 #include "driver/key.h"
 #include "driver/speaker.h"
 #include "helper/dtmf.h"
@@ -29,81 +30,99 @@
 #include "radio/hardware.h"
 #include "radio/settings.h"
 #include "task/cursor.h"
+#include "task/keyaction.h"
+#include "task/sidekeys.h"
 #include "ui/gfx.h"
 #include "ui/helper.h"
 #include "ui/main.h"
 #include "ui/menu.h"
 #include "ui/version.h"
 
-static const char Menu[47][16] = {
-	"Startup Logo  01",
-	"Voltage       02",
-	"Ringtone      03",
-	"Prompt Text   04",
-	"Voice Prompt  05",
-	"Key Beep      06",
-	"Roger Beep    07",
-	"Dual Display  08",
-	"TX Priority   09",
-	"Save Mode     10",
-	"Freq Step     11",
-	"SQ Level      12",
-	"LED Timer     13",
-	"Lock Timer    14",
-	"TOT           15",
-	"VOX Level     16",
-	"VOX Delay     17",
-	"NOAA Monitor  18",
-	"FM Standby    19",
-	"Tail Tone     20",
-	"Scan DIR      21",
-	"Personal ID   22",
-	"Repeater Mode 23",
-	"CTCSS/DCS     24",
-	"RX CTCSS/DCS  25",
-	"TX CTCSS/DCS  26",
-	"TX Power      27",
-	"Band Width    28",
-	"Busy Lock     29",
-	"Scrambler     30",
-	"DCS Encrypt   31",
-	"Mute Code     32",
-	"CH Name       33",
-	"Save CH       34",
-	"Delete CH     35",
-	"K1 Long       36",
-	"K1 Short      37",
-	"K2 Long       38",
-	"K2 Short      39",
-	"DTMF Delay    40",
-	"DTMF Interval 41",
-	"DTMF Mode     42",
-	"DTMF Select   43",
-	"DTMF Display  44",
-	"Initialize    45",
-	"Version       46",
-	"Instruction   47",
-};
-
-static const uint8_t BitmapQR[] = {
-	0x00, 0x7F, 0x7F, 0x60, 0x6F, 0x6F, 0x6F, 0x6F, 0x6F, 0x60, 0x60, 0x7F, 0x00, 0x00, 0x73, 0x0F,
-	0x0F, 0x11, 0x11, 0x00, 0x7F, 0x7F, 0x60, 0x1E, 0x1E, 0x7E, 0x7F, 0x01, 0x6C, 0x6C, 0x11, 0x1F,
-	0x1F, 0x61, 0x63, 0x63, 0x61, 0x6D, 0x0D, 0x6D, 0x6D, 0x71, 0x1C, 0x1C, 0x0C, 0x1E, 0x1E, 0x00,
-	0x00, 0xF3, 0xF3, 0x33, 0xB3, 0xB3, 0xB1, 0xB1, 0xB3, 0x30, 0x30, 0xF2, 0x03, 0x03, 0x8E, 0x83,
-	0x83, 0xB3, 0xB3, 0x00, 0xB3, 0xB3, 0x31, 0x0F, 0x0F, 0x71, 0xF3, 0xB2, 0x62, 0x62, 0xE3, 0xB0,
-	0xB0, 0xFE, 0x83, 0x83, 0xB3, 0xB3, 0x82, 0xFE, 0xFE, 0xBF, 0x03, 0x03, 0x02, 0x60, 0x60, 0x00,
-	0x00, 0xF0, 0xF0, 0xF1, 0xFF, 0xBF, 0x8C, 0x8C, 0xB6, 0x06, 0x06, 0x4D, 0xFE, 0xFE, 0x30, 0xFC,
-	0xFC, 0xC0, 0xC0, 0x77, 0xB1, 0xB1, 0xCC, 0xBC, 0xBC, 0xFF, 0xFF, 0x3D, 0x31, 0x31, 0x8D, 0x77,
-	0x77, 0x7F, 0x80, 0x80, 0xC0, 0xCE, 0x0E, 0x77, 0x77, 0xCC, 0xB7, 0xB7, 0x30, 0x47, 0x47, 0x00,
-	0x00, 0x71, 0x71, 0xFE, 0xFE, 0xF8, 0x79, 0x79, 0x00, 0x46, 0x46, 0xB6, 0x48, 0x48, 0x06, 0x39,
-	0x39, 0x0E, 0x0E, 0xBE, 0xB9, 0xB9, 0x41, 0x49, 0x49, 0xFF, 0xFF, 0x81, 0xF9, 0xF9, 0xC1, 0x89,
-	0x89, 0xB8, 0x38, 0x38, 0x76, 0x77, 0x71, 0xCF, 0xCF, 0x48, 0xC7, 0xC7, 0x41, 0xF8, 0xF8, 0x00,
-	0x00, 0xCF, 0xCF, 0x48, 0x49, 0x09, 0xC9, 0xC9, 0x49, 0x08, 0x08, 0x4F, 0x00, 0x00, 0x38, 0xC1,
-	0xC1, 0x7E, 0x7E, 0x71, 0x8E, 0x8E, 0xB1, 0xF8, 0xF8, 0xF1, 0xFF, 0xBF, 0xC0, 0xC0, 0xF9, 0xB1,
-	0xB1, 0x0F, 0x00, 0x00, 0x4F, 0xCF, 0x88, 0x89, 0x89, 0x09, 0x89, 0x89, 0x88, 0x4F, 0x4F, 0x00,
-	0x00, 0xFE, 0xFE, 0x06, 0xF6, 0xF6, 0xF6, 0xF6, 0xF6, 0x06, 0x06, 0xFE, 0x00, 0x00, 0x06, 0x18,
-	0x18, 0x38, 0x38, 0x06, 0xF6, 0xF6, 0xF0, 0x30, 0x30, 0x06, 0xDE, 0xD8, 0xDE, 0xDE, 0x1E, 0xD8,
-	0xD8, 0xF8, 0x00, 0x00, 0xFE, 0xFE, 0x06, 0xF6, 0xF6, 0xF6, 0xF6, 0xF6, 0x06, 0xFE, 0xFE, 0x00,
+static const char Menu[][14] = {
+	"SQL Level     ",
+	"VFO Step      ",
+	"Modulation    ",
+	"Bandwidth     ",
+	"TX Power      ",
+	"Repeater Mode ",
+	"CTCSS/DCS     ",
+	"RX CTCSS/DCS  ",
+	"TX CTCSS/DCS  ",
+	"DCS Mute Code ",
+	"DCS Encrypt   ",
+	"Scrambler     ",
+	"CH Name       ",
+	"Save CH       ",
+	"Delete CH     ",
+	"Mic Gain      ",
+	"Dual Display  ",
+	"TX Priority   ",
+	"TX Tail Tone  ",
+	"Roger Beep    ",
+	"TOT           ",
+	"PTT Busy Lock ",
+	"VOX Level     ",
+	"VOX Delay     ",
+	"RX Save Mode  ",
+	"Scan Direction",
+	"Scan Delay    ",
+	"Scan Resume   ",
+	"Scan Blink    ",
+	"Squelch Mode  ",
+	"Squelch RSSI  ",
+	"Squelch Noise ",
+	"Squelch Glitch",
+	"DTMF Delay    ",
+	"DTMF Interval ",
+	"DTMF Mode     ",
+	"DTMF Select   ",
+	"DTMF Display  ",
+	"Personal ID   ",
+#ifdef ENABLE_FM_RADIO
+	"FM Standby    ",
+#endif
+#ifdef ENABLE_NOAA
+	"NOAA Monitor  ",
+#endif
+	"Dark Theme    ",
+	"Screen Timer  ",
+	"Key Lock Timer",
+	"Startup Logo  ",
+	"Startup Volt. ",
+	"Startup Tone  ",
+	"Startup Text  ",
+	"Voice Prompt  ",
+	"Key Beep      ",
+	"Side 1 Long   ",
+	"Side 1 Short  ",
+	"Side 2 Long   ",
+	"Side 2 Short  ",
+	"Key 0 Long    ",
+	"Key 1 Long    ",
+	"Key 2 Long    ",
+	"Key 3 Long    ",
+	"Key 4 Long    ",
+	"Key 5 Long    ",
+	"Key 6 Long    ",
+	"Key 7 Long    ",
+	"Key 8 Long    ",
+	"Key 9 Long    ",
+	"Key * Long    ",
+	"Key # Long    ",
+	"Key Menu Long ",
+	"Key Exit Long ",
+	"Reset Keys    ",
+	"Initialize    ",
+	"Version       ",
+	"CH In List 1  ",
+	"CH In List 2  ",
+	"CH In List 3  ",
+	"CH In List 4  ",
+	"CH In List 5  ",
+	"CH In List 6  ",
+	"CH In List 7  ",
+	"CH In List 8  ",
+	"List To Scan  ",
 };
 
 static const ChannelInfo_t EmptyChannel = {
@@ -117,8 +136,7 @@ static const ChannelInfo_t EmptyChannel = {
 	.Encrypt = 3,
 
 	.Available = 1,
-	.Unknown3 = 1,
-	.bIsAM = 1,
+	.gModulationType = 2,
 	.BCL = BUSY_LOCK_INVALID,
 	.ScanAdd = 1,
 	.bIsLowPower = 1,
@@ -126,7 +144,7 @@ static const ChannelInfo_t EmptyChannel = {
 
 	._0x11 = 0xFF,
 	.Scramble = 0xFF,
-	._0x13 = 0xFF,
+	.IsInscanList = 0xFF,
 	._0x14 = 0xFF,
 	._0x15 = 0xFF,
 	.Name = "          ",
@@ -142,22 +160,19 @@ uint16_t gSettingGolay;
 
 uint8_t gMenuIndex;
 uint8_t gSettingIndex;
-
-//
+uint8_t gSettingsCount = sizeof(Menu) / sizeof(Menu[0]);
 
 static void DrawMenu(uint8_t Index)
 {
-	UI_DrawString(24, 48, Menu[Index], 16);
-	UI_DrawString(24, 24, Menu[(Index + 1) % gSettingsCount], 16);
-}
-
-static void DrawQR(void)
-{
-	gColorForeground = COLOR_BLACK;
-	gColorBackground = COLOR_WHITE;
-	UI_DrawBitmap(24, 4, 6, 48, BitmapQR);
-	gColorForeground = COLOR_WHITE;
-	gColorBackground = COLOR_BLACK;
+	UI_DrawString(24, 72, Menu[(Index + gSettingsCount - 1) % gSettingsCount], 14);
+	Int2Ascii(((Index + gSettingsCount - 1) % gSettingsCount) + 1, 2);
+	UI_DrawString(140, 72, gShortString, 2);
+	UI_DrawString(24, 48, Menu[Index], 14);
+	Int2Ascii(Index + 1, 2);
+	UI_DrawString(140, 48, gShortString, 2);
+	UI_DrawString(24, 24, Menu[(Index + 1) % gSettingsCount], 14);
+	Int2Ascii(((Index + 1) % gSettingsCount) + 1, 2);
+	UI_DrawString(140, 24, gShortString, 2);
 }
 
 static void EnableTextEditor(void)
@@ -177,8 +192,11 @@ static void EnableTextEditor(void)
 
 static void DrawSettingName(uint8_t Index)
 {
-	gColorForeground = COLOR_WHITE;
-	UI_DrawString(24, 76, Menu[Index], 14);
+	gColorForeground = COLOR_BLUE;
+	UI_DrawString(24, 72, Menu[Index], 14);
+	Int2Ascii((Index + 1), 2);
+	UI_DrawString(140, 72, gShortString, 2);
+	gColorForeground = COLOR_FOREGROUND;
 }
 
 static void DrawNewSetting(void)
@@ -192,7 +210,7 @@ static void DrawNewSetting(void)
 	}
 	gInputBoxWriteIndex = 0;
 	INPUTBOX_Pad(0, 10);
-	UI_DrawString(136, 76, "  ", 2);
+	UI_DrawSettingArrow(0);
 	if (Index && Index <= gSettingsCount) {
 		gMenuIndex = Index - 1;
 		MENU_Redraw(false);
@@ -274,7 +292,7 @@ static void DrawEditChannel(void)
 	}
 	gInputBoxWriteIndex = 0;
 	INPUTBOX_Pad(0, 10);
-	UI_DrawString(128, 76, "   ", 3);
+	UI_DrawString(132, 48, "   ", 3);
 	if (Channel && Channel < 1000) {
 		gSettingCurrentValue = Channel - 1;
 		UI_DrawChannelName(gSettingCurrentValue);
@@ -429,17 +447,18 @@ void MENU_AcceptSetting(void)
 		gSettings.VoxDelay = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
 		SETTINGS_SaveGlobals();
 		break;
-
+#ifdef ENABLE_NOAA
 	case MENU_NOAA_MONITOR:
 		gSettings.NoaaAlarm = gSettingIndex;
 		SETTINGS_SaveGlobals();
 		break;
-
+#endif
+#ifdef ENABLE_FM_RADIO
 	case MENU_FM_STANDBY:
 		gSettings.FmStandby = gSettingIndex;
 		SETTINGS_SaveGlobals();
 		break;
-
+#endif
 	case MENU_TAIL_TONE:
 		gSettings.TailTone = gSettingIndex;
 		SETTINGS_SaveGlobals();
@@ -452,7 +471,7 @@ void MENU_AcceptSetting(void)
 
 	case MENU_PERSONAL_ID:
 		for (i = 0; i < 16; i++) {
-			gDeviceName[i] = gBigString[i];
+			myCALL[i] = gBigString[i];
 		}
 		SETTINGS_SaveDeviceName();
 		break;
@@ -463,49 +482,120 @@ void MENU_AcceptSetting(void)
 		SETTINGS_SaveGlobals();
 		break;
 
+	case MENU_SCAN_DELAY:
+		gExtendedSettings.ScanDelay = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
+		SETTINGS_SaveGlobals();
+		break;
+
+	case MENU_SCAN_RESUME:
+		gExtendedSettings.ScanResume = ((gSettingCurrentValue + gSettingIndex) % gSettingMaxValues) + 1;
+		SETTINGS_SaveGlobals();
+		break;
+
+	case MENU_SCAN_BLINK:
+		gExtendedSettings.ScanBlink = gSettingIndex;
+		SETTINGS_SaveGlobals();
+		break;
+
 	case MENU_CTCSS_DCS:
-		gVfoState[gSettings.CurrentVfo].TX.CodeType = gSettingCodeType;
-		gVfoState[gSettings.CurrentVfo].TX.Code = gSettingCode;
-		gVfoState[gSettings.CurrentVfo].RX.CodeType = gSettingCodeType;
-		gVfoState[gSettings.CurrentVfo].RX.Code = gSettingCode;
+		gVfoState[gSettings.CurrentDial].TX.CodeType = gSettingCodeType;
+		gVfoState[gSettings.CurrentDial].TX.Code = gSettingCode;
+		gVfoState[gSettings.CurrentDial].RX.CodeType = gSettingCodeType;
+		gVfoState[gSettings.CurrentDial].RX.Code = gSettingCode;
 		CHANNELS_SaveVfo();
 		break;
 
 	case MENU_RX_CTCSS_DCS:
-		gVfoState[gSettings.CurrentVfo].RX.CodeType = gSettingCodeType;
-		gVfoState[gSettings.CurrentVfo].RX.Code = gSettingCode;
+		gVfoState[gSettings.CurrentDial].RX.CodeType = gSettingCodeType;
+		gVfoState[gSettings.CurrentDial].RX.Code = gSettingCode;
 		CHANNELS_SaveVfo();
 		break;
 
 	case MENU_TX_CTCSS_DCS:
-		gVfoState[gSettings.CurrentVfo].TX.CodeType = gSettingCodeType;
-		gVfoState[gSettings.CurrentVfo].TX.Code = gSettingCode;
+		gVfoState[gSettings.CurrentDial].TX.CodeType = gSettingCodeType;
+		gVfoState[gSettings.CurrentDial].TX.Code = gSettingCode;
 		CHANNELS_SaveVfo();
 		break;
 
 	case MENU_TX_POWER:
-		gVfoState[gSettings.CurrentVfo].bIsLowPower = gSettingIndex;
+		gVfoState[gSettings.CurrentDial].bIsLowPower = gSettingIndex;
+		CHANNELS_SaveVfo();
+		break;
+
+	case MENU_MIC_GAIN:
+		gExtendedSettings.MicGainLevel = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
+		SETTINGS_SaveGlobals();
+		BK4819_SetMicSensitivityTuning();
+		break;
+
+	case MENU_SQUELCH_MODE:
+		gExtendedSettings.SqMode = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
+		SETTINGS_SaveGlobals();
+		BK4819_SetSquelchMode();
+		break;
+
+	case MENU_SQUELCH_RSSI:
+	case MENU_SQUELCH_NOISE:
+	case MENU_SQUELCH_GLITCH:
+		if (gMenuIndex == MENU_SQUELCH_RSSI) {
+			gExtendedSettings.SqRSSIBase = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
+		} else if (gMenuIndex == MENU_SQUELCH_NOISE) {
+			gExtendedSettings.SqNoiseBase = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
+		} else {
+			gExtendedSettings.SqGlitchBase = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
+		}
+		SETTINGS_SaveGlobals();
+		BK4819_SetSquelchGlitch(gMainVfo->bIsNarrow);
+		BK4819_SetSquelchNoise(gMainVfo->bIsNarrow);
+		BK4819_SetSquelchRSSI(gMainVfo->bIsNarrow);
+		break;
+
+	case MENU_MODULATION:
+		gVfoState[gSettings.CurrentDial].gModulationType = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
 		CHANNELS_SaveVfo();
 		break;
 
 	case MENU_BAND_WIDTH:
-		gVfoState[gSettings.CurrentVfo].bIsNarrow = gSettingIndex;
+		gVfoState[gSettings.CurrentDial].bIsNarrow = gSettingIndex;
 		CHANNELS_SaveVfo();
 		break;
 
+	case MENU_LIST_TO_SCAN:
+		gExtendedSettings.ScanAll = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues == 8;
+		if (!gExtendedSettings.ScanAll) {
+			gExtendedSettings.CurrentScanList = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
+		}
+		SETTINGS_SaveGlobals();
+		break;
+
+	case MENU_SCANLIST_1:
+	case MENU_SCANLIST_2:
+	case MENU_SCANLIST_3:
+	case MENU_SCANLIST_4:
+	case MENU_SCANLIST_5:
+	case MENU_SCANLIST_6:
+	case MENU_SCANLIST_7:
+	case MENU_SCANLIST_8:
+		gVfoState[gSettings.CurrentDial].IsInscanList =
+				(gVfoState[gSettings.CurrentDial].IsInscanList & ~(1 << (gMenuIndex - MENU_SCANLIST_1)))	// cleaning the bit corresponding to the scanlist
+				| (gSettingIndex << (gMenuIndex - MENU_SCANLIST_1));									// set the bit to 1 if gSettingIndex = "On"
+		CHANNELS_SaveVfo();
+		break;
+
+
 	case MENU_BUSY_LOCK:
-		gVfoState[gSettings.CurrentVfo].BCL = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
+		gVfoState[gSettings.CurrentDial].BCL = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
 		CHANNELS_SaveVfo();
 		break;
 
 	case MENU_SCRAMBLER:
 		BEEP_Disable();
-		gVfoState[gSettings.CurrentVfo].Scramble = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
+		gVfoState[gSettings.CurrentDial].Scramble = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
 		CHANNELS_SaveVfo();
 		break;
 
 	case MENU_DCS_ENCRYPT:
-		gVfoState[gSettings.CurrentVfo].Encrypt = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
+		gVfoState[gSettings.CurrentDial].Encrypt = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
 		CHANNELS_SaveVfo();
 		break;
 
@@ -525,31 +615,31 @@ void MENU_AcceptSetting(void)
 			return;
 		}
 		if (gSettingCurrentValue == 0) {
-			gVfoState[gSettings.CurrentVfo].bMuteEnabled = 0;
-			gVfoState[gSettings.CurrentVfo].bIs24Bit = 0;
+			gVfoState[gSettings.CurrentDial].bMuteEnabled = 0;
+			gVfoState[gSettings.CurrentDial].bIs24Bit = 0;
 		} else if (gSettingCurrentValue == 1) {
-			gVfoState[gSettings.CurrentVfo].bMuteEnabled = 1;
+			gVfoState[gSettings.CurrentDial].bMuteEnabled = 1;
 			// TODO: Feels like there should be a bIs24Bit assignment??
 		} else {
-			gVfoState[gSettings.CurrentVfo].bMuteEnabled = 1;
-			gVfoState[gSettings.CurrentVfo].bIs24Bit = 1;
+			gVfoState[gSettings.CurrentDial].bMuteEnabled = 1;
+			gVfoState[gSettings.CurrentDial].bIs24Bit = 1;
 		}
-		gVfoState[gSettings.CurrentVfo].Golay = gSettingGolay;
+		gVfoState[gSettings.CurrentDial].Golay = gSettingGolay;
 		CHANNELS_SaveVfo();
 		break;
 
 	case MENU_CH_NAME:
 		for (i = 0; i < 10; i++) {
-			gVfoState[gSettings.CurrentVfo].Name[i] = gBigString[i];
+			gVfoState[gSettings.CurrentDial].Name[i] = gBigString[i];
 		}
 		CHANNELS_SaveVfo();
 		break;
 
 	case MENU_SAVE_CH:
-		CHANNELS_SaveChannel((gSettingCurrentValue + gSettingIndex) % gSettingMaxValues, &gVfoState[gSettings.CurrentVfo]);
+		CHANNELS_SaveChannel((gSettingCurrentValue + gSettingIndex) % gSettingMaxValues, &gVfoState[gSettings.CurrentDial]);
 		CHANNELS_CheckFreeChannels();
 		// TODO: This "if" block doesn't exist in the original, but there's a bug where VFO A is cleared by the previous line
-		if (gSettings.WorkMode) {
+		if (gSettings.WorkModeA) {
 			CHANNELS_LoadChannel(gSettings.VfoChNo[0], 0);
 		} else {
 			CHANNELS_LoadChannel(999, 0);
@@ -561,7 +651,7 @@ void MENU_AcceptSetting(void)
 		Channel = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
 		CHANNELS_SaveChannel(Channel, &EmptyChannel);
 		CHANNELS_CheckFreeChannels();
-		if (gSettings.WorkMode) {
+		if (gSettings.WorkModeA) {
 			if (gSettings.VfoChNo[0] == Channel) {
 				gSettings.VfoChNo[0] = CHANNELS_GetChannelUp(Channel, 0);
 			}
@@ -570,10 +660,10 @@ void MENU_AcceptSetting(void)
 			}
 			SETTINGS_SaveGlobals();
 		}
-		if (gSettings.WorkMode) {
-			CHANNELS_LoadChannel(gSettings.VfoChNo[!gSettings.CurrentVfo], !gSettings.CurrentVfo);
+		if (gSettings.WorkModeA) {
+			CHANNELS_LoadChannel(gSettings.VfoChNo[!gSettings.CurrentDial], !gSettings.CurrentDial);
 		} else {
-			CHANNELS_LoadChannel(gSettings.CurrentVfo ? 999 : 1000, !gSettings.CurrentVfo);
+			CHANNELS_LoadChannel(gSettings.CurrentDial ? 999 : 1000, !gSettings.CurrentDial);
 		}
 		RADIO_Retune();
 		break;
@@ -582,7 +672,28 @@ void MENU_AcceptSetting(void)
 	case MENU_K1_SHORT:
 	case MENU_K2_LONG:
 	case MENU_K2_SHORT:
-		gSettings.Actions[gMenuIndex - MENU_K1_LONG] = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
+		gSettings.Actions[gMenuIndex - MENU_K1_LONG] = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues; ///WT:
+		SETTINGS_SaveGlobals();
+		break;
+	case MENU_0_LONG:
+	case MENU_1_LONG:
+	case MENU_2_LONG:
+	case MENU_3_LONG:
+	case MENU_4_LONG:
+	case MENU_5_LONG:
+	case MENU_6_LONG:
+	case MENU_7_LONG:
+	case MENU_8_LONG:
+	case MENU_9_LONG:
+	case MENU_STAR_LONG:
+	case MENU_HASH_LONG:
+	case MENU_MENU_LONG:
+	case MENU_EXIT_LONG:
+//		if (gMenuIndex >= MENU_0_LONG) {																			///WT:
+		gExtendedSettings.KeyShortcut[gMenuIndex - MENU_0_LONG] = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
+//		} else {
+//			gSettings.Actions[gMenuIndex - MENU_K1_LONG] = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
+//		}
 		SETTINGS_SaveGlobals();
 		break;
 
@@ -611,10 +722,24 @@ void MENU_AcceptSetting(void)
 		SETTINGS_SaveDTMF();
 		break;
 
+	case MENU_DARK_MODE:
+		gExtendedSettings.DarkMode = gSettingIndex;
+		SETTINGS_SaveGlobals();
+		UI_SetColors(gExtendedSettings.DarkMode);
+		DrawStatusBar();
+		MENU_Redraw(true);
+		break;
+
 	case MENU_INITIALIZE:
 		if (gSettingIndex == 1) {
 			SETTINGS_FactoryReset();
 			HARDWARE_Reboot();
+		}
+		break;
+
+	case MENU_KEYS_RESET:
+		if (gSettingIndex == 1) {
+			SetDefaultKeyShortcuts(true);
 		}
 		break;
 	}
@@ -665,6 +790,7 @@ void MENU_DrawSetting(void)
 	case MENU_ROGER_BEEP:
 		gSettingCurrentValue = gSettings.RogerBeep;
 		gSettingMaxValues = 4;
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawSettingRoger(gSettingCurrentValue);
 		break;
 
@@ -675,6 +801,7 @@ void MENU_DrawSetting(void)
 
 	case MENU_TX_PRIORITY:
 		gSettingIndex = gSettings.TxPriority;
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawTxPriority();
 		break;
 
@@ -685,63 +812,64 @@ void MENU_DrawSetting(void)
 
 	case MENU_FREQ_STEP:
 		gSettingCurrentValue = gSettings.FrequencyStep;
-		gSettingMaxValues = 14;
-		DISPLAY_Fill(0, 159, 1, 55, COLOR_BLACK);
+		gSettingMaxValues = 15;
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawFrequencyStep(gSettingCurrentValue);
 		break;
 
 	case MENU_SQ_LEVEL:
 		gSettingCurrentValue = gSettings.Squelch;
 		gSettingMaxValues = 10;
-		DISPLAY_Fill(0, 159, 1, 55, COLOR_BLACK);
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawLevel(gSettingCurrentValue);
 		break;
 
 	case MENU_LED_TIMER:
 		gSettingCurrentValue = gSettings.DisplayTimer;
 		gSettingMaxValues = 43;
-		DISPLAY_Fill(0, 159, 1, 55, COLOR_BLACK);
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawTimer(gSettingCurrentValue);
 		break;
 
 	case MENU_LOCK_TIMER:
 		gSettingCurrentValue = gSettings.LockTimer;
 		gSettingMaxValues = 43;
-		DISPLAY_Fill(0, 159, 1, 55, COLOR_BLACK);
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawTimer(gSettingCurrentValue);
 		break;
 
 	case MENU_TOT:
 		gSettingCurrentValue = gSettings.TimeoutTimer;
 		gSettingMaxValues = 43;
-		DISPLAY_Fill(0, 159, 1, 55, COLOR_BLACK);
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawTimer(gSettingCurrentValue);
 		break;
 
 	case MENU_VOX_LEVEL:
 		gSettingCurrentValue = gSettings.VoxLevel;
 		gSettingMaxValues = 10;
-		DISPLAY_Fill(0, 159, 1, 55, COLOR_BLACK);
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawLevel(gSettingCurrentValue);
 		break;
 
 	case MENU_VOX_DELAY:
 		gSettingCurrentValue = gSettings.VoxDelay;
 		gSettingMaxValues = 10;
-		DISPLAY_Fill(0, 159, 1, 55, COLOR_BLACK);
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawLevel(gSettingCurrentValue);
 		break;
-
+#ifdef ENABLE_NOAA
 	case MENU_NOAA_MONITOR:
 		gSettingIndex = gSettings.NoaaAlarm;
 		UI_DrawToggle();
 		break;
-
+#endif
+#ifdef ENABLE_FM_RADIO
 	case MENU_FM_STANDBY:
 		gSettingIndex = gSettings.FmStandby;
 		UI_DrawToggle();
 		break;
-
+#endif
 	case MENU_TAIL_TONE:
 		gSettingIndex = gSettings.TailTone;
 		UI_DrawToggle();
@@ -749,6 +877,7 @@ void MENU_DrawSetting(void)
 
 	case MENU_SCAN_DIR:
 		gSettingIndex = gSettings.ScanDirection;
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawScanDirection();
 		break;
 
@@ -756,11 +885,11 @@ void MENU_DrawSetting(void)
 		gSettingMaxValues = 1;
 		T9State = 0;
 		EditSize = 16;
-		DISPLAY_Fill(0, 159, 1, 55, COLOR_BLACK);
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawActivateBy();
 		T9WritePos = 16;
 		for (i = 0; i < EditSize; i++) {
-			gBigString[i] = gDeviceName[i];
+			gBigString[i] = myCALL[i];
 		}
 		UI_DrawDeviceName(gBigString);
 		EnableTextEditor();
@@ -769,81 +898,161 @@ void MENU_DrawSetting(void)
 	case MENU_REPEATER_MODE:
 		gSettingCurrentValue = gSettings.RepeaterMode;
 		gSettingMaxValues = 3;
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawSettingRepeaterMode(gSettingCurrentValue);
+		break;
+
+	case MENU_SCAN_DELAY:
+		gSettingCurrentValue = gExtendedSettings.ScanDelay;
+		gSettingMaxValues = 62;
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
+		UI_DrawSettingNumList(gSettingCurrentValue, gSettingMaxValues);
+		break;
+
+	case MENU_SCAN_RESUME:
+		gSettingCurrentValue = gExtendedSettings.ScanResume - 1;
+		gSettingMaxValues = 3;
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
+		UI_DrawSettingScanResume(gSettingCurrentValue);
+		break;
+	
+	case MENU_SCAN_BLINK:
+		gSettingIndex = gExtendedSettings.ScanBlink;
+		UI_DrawToggle();
 		break;
 
 	case MENU_CTCSS_DCS:
 	case MENU_RX_CTCSS_DCS:
-		gSettingCode = gVfoState[gSettings.CurrentVfo].RX.Code;
-		gSettingCodeType = gVfoState[gSettings.CurrentVfo].RX.CodeType;
+		gSettingCode = gVfoState[gSettings.CurrentDial].RX.Code;
+		gSettingCodeType = gVfoState[gSettings.CurrentDial].RX.CodeType;
 		MENU_SetMaxCssValues();
-		DISPLAY_Fill(0, 159, 1, 55, COLOR_BLACK);
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawSettingArrow(0);
 		UI_DrawStringSwitchType();
 		DrawCss(gSettingCodeType, gSettingCode);
 		return;
 
 	case MENU_TX_CTCSS_DCS:
-		gSettingCode = gVfoState[gSettings.CurrentVfo].TX.Code;
-		gSettingCodeType = gVfoState[gSettings.CurrentVfo].TX.CodeType;
+		gSettingCode = gVfoState[gSettings.CurrentDial].TX.Code;
+		gSettingCodeType = gVfoState[gSettings.CurrentDial].TX.CodeType;
 		MENU_SetMaxCssValues();
-		DISPLAY_Fill(0, 159, 1, 55, COLOR_BLACK);
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawSettingArrow(0);
 		UI_DrawStringSwitchType();
 		DrawCss(gSettingCodeType, gSettingCode);
 		return;
 
 	case MENU_TX_POWER:
-		gSettingIndex = gVfoState[gSettings.CurrentVfo].bIsLowPower;
+		gSettingIndex = gVfoState[gSettings.CurrentDial].bIsLowPower;
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawSettingTxPower();
 		break;
 
+	case MENU_MIC_GAIN:
+		gSettingCurrentValue = gExtendedSettings.MicGainLevel;
+		gSettingMaxValues = 32;
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
+		UI_DrawSettingNumList(gSettingCurrentValue, gSettingMaxValues);
+		break;
+
+	case MENU_SQUELCH_MODE:
+		gSettingCurrentValue = gExtendedSettings.SqMode;
+		gSettingMaxValues = 4;
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
+		UI_DrawSettingSquelchMode(gSettingCurrentValue);
+		break;
+	
+	case MENU_SQUELCH_RSSI:
+	case MENU_SQUELCH_NOISE:
+	case MENU_SQUELCH_GLITCH:
+		if (gMenuIndex == MENU_SQUELCH_RSSI) {
+			gSettingCurrentValue = gExtendedSettings.SqRSSIBase;
+		} else if (gMenuIndex == MENU_SQUELCH_NOISE) {
+			gSettingCurrentValue = gExtendedSettings.SqNoiseBase;
+		} else {
+			gSettingCurrentValue = gExtendedSettings.SqGlitchBase;
+		}
+		gSettingMaxValues = 255;
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
+		UI_DrawSettingNumList(gSettingCurrentValue, gSettingMaxValues);
+		break;
+
+	case MENU_MODULATION:
+		gSettingCurrentValue = gVfoState[gSettings.CurrentDial].gModulationType;
+		gSettingMaxValues = 4;
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
+		UI_DrawSettingModulation(gSettingCurrentValue);
+		break;
+
 	case MENU_BAND_WIDTH:
-		gSettingIndex = gVfoState[gSettings.CurrentVfo].bIsNarrow;
+		gSettingIndex = gVfoState[gSettings.CurrentDial].bIsNarrow;
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawSettingBandwidth();
 		break;
 
+	case MENU_LIST_TO_SCAN:
+		gSettingCurrentValue = gExtendedSettings.ScanAll ? 8 : gExtendedSettings.CurrentScanList;
+		gSettingMaxValues = 9;
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
+		UI_DrawSettingScanlist(gSettingCurrentValue);
+		break;
+
+	case MENU_SCANLIST_1:
+	case MENU_SCANLIST_2:
+	case MENU_SCANLIST_3:
+	case MENU_SCANLIST_4:
+	case MENU_SCANLIST_5:
+	case MENU_SCANLIST_6:
+	case MENU_SCANLIST_7:
+	case MENU_SCANLIST_8:
+		gSettingIndex = ((gVfoState[gSettings.CurrentDial].IsInscanList >> (gMenuIndex - MENU_SCANLIST_1)) & 1);	// pick the bit corresponding to the scanlist
+		UI_DrawToggle();
+		break;
+
 	case MENU_BUSY_LOCK:
-		gSettingCurrentValue = gVfoState[gSettings.CurrentVfo].BCL;
+		gSettingCurrentValue = gVfoState[gSettings.CurrentDial].BCL;
 		gSettingMaxValues = 3;
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawSettingBusyLock(gSettingCurrentValue);
 		break;
 
 	case MENU_SCRAMBLER:
-		gSettingCurrentValue = gVfoState[gSettings.CurrentVfo].Scramble;
+		gSettingCurrentValue = gVfoState[gSettings.CurrentDial].Scramble;
 		gSettingMaxValues = 9;
-		DISPLAY_Fill(0, 159, 1, 55, COLOR_BLACK);
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawScrambler(gSettingCurrentValue);
 		break;
 
 	case MENU_DCS_ENCRYPT:
-		gSettingCurrentValue = gVfoState[gSettings.CurrentVfo].Encrypt;
+		gSettingCurrentValue = gVfoState[gSettings.CurrentDial].Encrypt;
 		gSettingMaxValues = 4;
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawEncrypt(gSettingCurrentValue);
 		break;
 
 	case MENU_MUTE_CODE:
 		gSettingMaxValues = 3;
-		if (gVfoState[gSettings.CurrentVfo].bMuteEnabled) {
-			gSettingCurrentValue = 1 + gVfoState[gSettings.CurrentVfo].bIs24Bit;
+		if (gVfoState[gSettings.CurrentDial].bMuteEnabled) {
+			gSettingCurrentValue = 1 + gVfoState[gSettings.CurrentDial].bIs24Bit;
 		} else {
 			gSettingCurrentValue = 0;
 		}
-		gSettingGolay = gVfoState[gSettings.CurrentVfo].Golay;
-		DISPLAY_Fill(0, 159, 1, 55, COLOR_BLACK);
+		gSettingGolay = gVfoState[gSettings.CurrentDial].Golay;
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawSettingArrow(0);
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawMute(gSettingCurrentValue, gSettingGolay, true);
 		return;
 
 	case MENU_CH_NAME:
 		gSettingMaxValues = 1;
-		DISPLAY_Fill(0, 159, 1, 55, COLOR_BLACK);
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawActivateBy();
 		T9State = 0;
 		EditSize = 10;
 		T9WritePos = 10;
 		for (i = 0; i < 10; i++) {
-			gBigString[i] = gVfoState[gSettings.CurrentVfo].Name[i];
+			gBigString[i] = gVfoState[gSettings.CurrentDial].Name[i];
 		}
 		UI_DrawString(4, 48, gBigString, 10);
 		EnableTextEditor();
@@ -852,8 +1061,8 @@ void MENU_DrawSetting(void)
 	case MENU_SAVE_CH:
 	case MENU_DELETE_CH:
 		gSettingMaxValues = 999;
-		gSettingCurrentValue = gSettings.VfoChNo[gSettings.CurrentVfo];
-		DISPLAY_Fill(0, 159, 1, 55, COLOR_BLACK);
+		gSettingCurrentValue = gSettings.VfoChNo[gSettings.CurrentDial];
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawChannelName(gSettingCurrentValue);
 		break;
 
@@ -861,41 +1070,69 @@ void MENU_DrawSetting(void)
 	case MENU_K1_SHORT:
 	case MENU_K2_LONG:
 	case MENU_K2_SHORT:
-		gSettingCurrentValue = gSettings.Actions[gMenuIndex - MENU_K1_LONG] % 10U;
-		gSettingMaxValues = 10;
-		UI_DrawActions(gSettings.Actions[gMenuIndex - MENU_K1_LONG] % 10U);
+	case MENU_0_LONG:
+	case MENU_1_LONG:
+	case MENU_2_LONG:
+	case MENU_3_LONG:
+	case MENU_4_LONG:
+	case MENU_5_LONG:
+	case MENU_6_LONG:
+	case MENU_7_LONG:
+	case MENU_8_LONG:
+	case MENU_9_LONG:
+	case MENU_STAR_LONG:
+	case MENU_HASH_LONG:
+	case MENU_MENU_LONG:
+	case MENU_EXIT_LONG:
+		gSettingMaxValues = ACTIONS_COUNT;
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
+		if (gMenuIndex >= MENU_0_LONG) {
+			gSettingCurrentValue = gExtendedSettings.KeyShortcut[gMenuIndex - MENU_0_LONG] % ACTIONS_COUNT;
+		} else {
+			gSettingCurrentValue = gSettings.Actions[gMenuIndex - MENU_K1_LONG] % ACTIONS_COUNT;
+		}
+		UI_DrawActions(gSettingCurrentValue);
+		break;
+
+	case MENU_KEYS_RESET:
+		UI_DrawToggle();
 		break;
 
 	case MENU_DTMF_DELAY:
 		gSettingCurrentValue = gDTMF_Settings.Delay;
 		gSettingMaxValues = 21;
-		DISPLAY_Fill(0, 159, 1, 55, COLOR_BLACK);
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawDtmfDelay(gSettingCurrentValue);
 		break;
 
 	case MENU_DTMF_INTERVAL:
 		gSettingCurrentValue = gDTMF_Settings.Interval;
 		gSettingMaxValues = 18;
-		DISPLAY_Fill(0, 159, 1, 55, COLOR_BLACK);
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawDtmfInterval(gSettingCurrentValue);
 		break;
 
 	case MENU_DTMF_MODE:
 		gSettingCurrentValue = gDTMF_Settings.Mode;
 		gSettingMaxValues = 4;
-		DISPLAY_Fill(0, 159, 1, 55, COLOR_BLACK);
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawDtmfMode(gSettingCurrentValue);
 		break;
 
 	case MENU_DTMF_SELECT:
 		gSettingCurrentValue = gDTMF_Settings.Select;
 		gSettingMaxValues = 16;
-		DISPLAY_Fill(0, 159, 1, 55, COLOR_BLACK);
+		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 		UI_DrawDtmfSelect(gSettingCurrentValue);
 		break;
 
 	case MENU_DTMF_DISPLAY:
 		gSettingIndex = gDTMF_Settings.Display;
+		UI_DrawToggle();
+		break;
+
+	case MENU_DARK_MODE:
+		gSettingIndex = gExtendedSettings.DarkMode;
 		UI_DrawToggle();
 		break;
 
@@ -907,12 +1144,6 @@ void MENU_DrawSetting(void)
 		gSettingMaxValues = 0;
 		UI_DrawVersion();
 		break;
-
-	case MENU_INSTRUCTION:
-		gSettingMaxValues = 0;
-		DISPLAY_Fill(0, 159, 1, 55, COLOR_BLACK);
-		DrawQR();
-		return;
 	}
 
 	UI_DrawSettingArrow(gSettingIndex);
@@ -925,11 +1156,9 @@ void MENU_Redraw(bool bClear)
 	gSettingIndex = 0;
 	gInputBoxWriteIndex = 0;
 	if (bClear) {
-		DISPLAY_Fill(0, 159, 1, 81, COLOR_BLACK);
-		DISPLAY_DrawRectangle0(0, 56, 160, 1, gSettings.BorderColor);
+		DISPLAY_Fill(0, 159, 1, 81, COLOR_BACKGROUND);
 	}
-	gColorForeground = COLOR_WHITE;
-	UI_DrawStringMenuSettings();
+	gColorForeground = COLOR_FOREGROUND;
 	UI_DrawSettingArrow(0);
 	DrawMenu(gMenuIndex);
 	MENU_PlayAudio(gMenuIndex);
@@ -965,9 +1194,9 @@ void MENU_KeyHandler(uint8_t Key)
 		gScreenMode = SCREEN_MAIN;
 		gInputBoxWriteIndex = 0;
 		if (gRadioMode != RADIO_MODE_RX) {
-			RADIO_Tune(gSettings.CurrentVfo);
+			RADIO_Tune(gSettings.CurrentDial);
 		}
-		UI_DrawMain(true);
+		UI_DrawMain(false);
 		BEEP_Play(440, 4, 80);
 		break;
 
@@ -978,23 +1207,13 @@ void MENU_KeyHandler(uint8_t Key)
 
 void MENU_Next(uint8_t Key)
 {
+	UI_DrawSettingArrow(0);
 	if (Key == KEY_UP) {
-		if (gSettingIndex) {
-			gSettingIndex = 0;
-			UI_DrawSettingArrow(0);
-		} else {
-			gMenuIndex = (gMenuIndex + gSettingsCount - 1) % gSettingsCount;
-			DrawMenu(gMenuIndex);
-		}
+		gMenuIndex = (gMenuIndex + gSettingsCount - 1) % gSettingsCount;
 	} else {
-		if (gSettingIndex) {
-			gMenuIndex = (gMenuIndex + 1) % gSettingsCount;
-			DrawMenu(gMenuIndex);
-		} else {
-			gSettingIndex = 1;
-			UI_DrawSettingArrow(1);
-		}
+		gMenuIndex = (gMenuIndex + 1) % gSettingsCount;
 	}
+	DrawMenu(gMenuIndex);
 }
 
 void MENU_SettingKeyHandler(uint8_t Key)
@@ -1006,7 +1225,14 @@ void MENU_SettingKeyHandler(uint8_t Key)
 			if (Key == KEY_MENU) {
 				MENU_AcceptSetting();
 			}
-			if (gMenuIndex == MENU_PERSONAL_ID || gMenuIndex == MENU_CH_NAME || gMenuIndex == MENU_INSTRUCTION || gMenuIndex == MENU_CTCSS_DCS || gMenuIndex == MENU_RX_CTCSS_DCS || gMenuIndex == MENU_TX_CTCSS_DCS) {
+			if (gMenuIndex == MENU_PERSONAL_ID
+					|| gMenuIndex == MENU_CH_NAME
+					|| gMenuIndex == MENU_CTCSS_DCS
+					|| gMenuIndex == MENU_RX_CTCSS_DCS
+					|| gMenuIndex == MENU_TX_CTCSS_DCS
+					|| gMenuIndex == MENU_SCAN_RESUME
+					|| gMenuIndex == MENU_SAVE_CH
+					|| gMenuIndex == MENU_DELETE_CH) {
 				MENU_Redraw(true);
 			} else {
 				MENU_Redraw(false);
@@ -1122,12 +1348,42 @@ void MENU_ScrollSetting(uint8_t Key)
 		UI_DrawSettingRepeaterMode(gSettingCurrentValue);
 		break;
 
+	case MENU_SCAN_DELAY:
+		UI_DrawSettingNumList(gSettingCurrentValue, 62);
+		break;
+
+	case MENU_SCAN_RESUME:
+		UI_DrawSettingScanResume(gSettingCurrentValue);
+		break;
+
 	case MENU_TX_POWER:
 		UI_DrawSettingTxPower();
 		break;
 
+	case MENU_MIC_GAIN:
+		UI_DrawSettingNumList(gSettingCurrentValue, 32);
+		break;
+
+	case MENU_SQUELCH_MODE:
+		UI_DrawSettingSquelchMode(gSettingCurrentValue);
+		break;
+
+	case MENU_SQUELCH_RSSI:
+	case MENU_SQUELCH_NOISE:
+	case MENU_SQUELCH_GLITCH:
+		UI_DrawSettingNumList(gSettingCurrentValue, 255);
+		break;
+
+	case MENU_MODULATION:
+		UI_DrawSettingModulation(gSettingCurrentValue);
+		break;
+
 	case MENU_BAND_WIDTH:
 		UI_DrawSettingBandwidth();
+		break;
+
+	case MENU_LIST_TO_SCAN:
+		UI_DrawSettingScanlist(gSettingCurrentValue);
 		break;
 
 	case MENU_BUSY_LOCK:
@@ -1155,6 +1411,20 @@ void MENU_ScrollSetting(uint8_t Key)
 	case MENU_K1_SHORT:
 	case MENU_K2_LONG:
 	case MENU_K2_SHORT:
+	case MENU_0_LONG:
+	case MENU_1_LONG:
+	case MENU_2_LONG:
+	case MENU_3_LONG:
+	case MENU_4_LONG:
+	case MENU_5_LONG:
+	case MENU_6_LONG:
+	case MENU_7_LONG:
+	case MENU_8_LONG:
+	case MENU_9_LONG:
+	case MENU_STAR_LONG:
+	case MENU_HASH_LONG:
+	case MENU_MENU_LONG:
+	case MENU_EXIT_LONG:
 		UI_DrawActions(gSettingCurrentValue);
 		break;
 
@@ -1178,7 +1448,7 @@ void MENU_ScrollSetting(uint8_t Key)
 
 void MENU_PlayAudio(uint8_t MenuID)
 {
-	uint8_t ID;
+	uint8_t ID = 0;
 
 	switch (MenuID) {
 	case MENU_STARTUP_LOGO:  ID = 0x09; break;
@@ -1198,8 +1468,12 @@ void MENU_PlayAudio(uint8_t MenuID)
 	case MENU_TOT:           ID = 0x19; break;
 	case MENU_VOX_LEVEL:     ID = 0x1A; break;
 	case MENU_VOX_DELAY:     ID = 0x1B; break;
+#ifdef ENABLE_NOAA
 	case MENU_NOAA_MONITOR:  ID = 0x1C; break;
+#endif
+#ifdef ENABLE_FM_RADIO
 	case MENU_FM_STANDBY:    ID = 0x1D; break;
+#endif
 	case MENU_TAIL_TONE:     ID = 0x1F; break;
 	case MENU_SCAN_DIR:      ID = 0x20; break;
 	case MENU_PERSONAL_ID:   ID = 0x21; break;
@@ -1222,10 +1496,9 @@ void MENU_PlayAudio(uint8_t MenuID)
 	case MENU_K2_SHORT:      ID = 0x36; break;
 	case MENU_INITIALIZE:    ID = 0x23; break;
 	case MENU_VERSION:       ID = 0x3B; break;
-	case MENU_INSTRUCTION:   ID = 0x3A; break;
 	}
 
-	if (MenuID != MENU_DTMF_DELAY && MenuID != MENU_DTMF_INTERVAL && MenuID != MENU_DTMF_MODE && MenuID != MENU_DTMF_SELECT && MenuID != MENU_DTMF_DISPLAY) {
+	if (ID) {
 		AUDIO_PlaySampleOptional(ID);
 	}
 }

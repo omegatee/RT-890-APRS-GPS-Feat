@@ -15,6 +15,7 @@
  */
 
 #include "app/radio.h"
+#include "driver/bk4819.h"
 #include "driver/delay.h"
 #include "driver/key.h"
 #include "driver/pins.h"
@@ -23,14 +24,17 @@
 #include "misc.h"
 #include "radio/hardware.h"
 #include "radio/settings.h"
+#include "task/keyaction.h"
 #include "task/scanner.h"
 #include "ui/gfx.h"
+#include "ui/helper.h"
 
 Calibration_t gCalibration;
-char gDeviceName[16];
+char myCALL[16];
 gSettings_t gSettings;
 char WelcomeString[32];
 uint32_t gFrequencyStep = 25;
+gExtendedSettings_t gExtendedSettings;
 
 static void RestoreCalibration(void)
 {
@@ -78,31 +82,63 @@ void SETTINGS_LoadCalibration(void)
 	gpio_bits_set(GPIOA, BOARD_GPIOA_LCD_RESX);
 
 	while (1) {
-		DISPLAY_Fill(0, 159, 0, 96, COLOR_BLACK);
+		DISPLAY_Fill(0, 159, 0, 96, COLOR_RGB(0, 0, 0)); //Black
 		DELAY_WaitMS(1000);
-		DISPLAY_Fill(0, 159, 0, 96, COLOR_WHITE);
+		DISPLAY_Fill(0, 159, 0, 96, COLOR_RGB(31, 63, 31)); //White
 		DELAY_WaitMS(1000);
-		DISPLAY_Fill(0, 159, 0, 96, COLOR_RED);
+		DISPLAY_Fill(0, 159, 0, 96, COLOR_RGB(31, 0, 0)); //Red
 		DELAY_WaitMS(1000);
-		DISPLAY_Fill(0, 159, 0, 96, COLOR_RGB(0, 32, 0));
+		DISPLAY_Fill(0, 159, 0, 96, COLOR_RGB(0, 32, 0)); //Green
 		DELAY_WaitMS(1000);
-		DISPLAY_Fill(0, 159, 0, 96, COLOR_BLUE);
+		DISPLAY_Fill(0, 159, 0, 96, COLOR_RGB(0, 0, 31)); //Blue
 		DELAY_WaitMS(1000);
 	}
 }
 
 void SETTINGS_LoadSettings(void)
 {
-	SFLASH_Read(WelcomeString, 0x3C1000, sizeof(WelcomeString));
-	SFLASH_Read(gDeviceName, 0x3C1020, sizeof(gDeviceName));
+uint8_t cnt;
+	
+	SFLASH_Read(WelcomeString, 0x3C1000, sizeof(WelcomeString));	/// "Startup Label" in CHIRP (now, used as Serial Number)
+	cnt=0;/// let's remove the annoying spaces here
+	while(WelcomeString[cnt]!=0x20 && WelcomeString[cnt])	
+		cnt++;
+	WelcomeString[cnt]=0;
+	SFLASH_Read(myCALL, 0x3C1020, sizeof(myCALL));		/// "Personal ID" in CHIRP
+	cnt=0;/// again
+	while(myCALL[cnt]!=0x20 && myCALL[cnt])	
+		cnt++;
+	myCALL[cnt]=0;
 	SFLASH_Read(&gSettings, 0x3C1030, sizeof(gSettings));
 	SFLASH_Read(&gDTMF_Settings, 0x3C9D20, sizeof(gDTMF_Settings));
 	SFLASH_Read(&gDTMF_Contacts, 0x3C9D30, sizeof(gDTMF_Contacts));
 	SFLASH_Read(&gDTMF_Kill, 0x3C9E30, sizeof(gDTMF_Kill));
 	SFLASH_Read(&gDTMF_Stun, 0x3C9E40, sizeof(gDTMF_Stun));
 	SFLASH_Read(&gDTMF_Wake, 0x3C9E50, sizeof(gDTMF_Wake));
+	// Extended Settings bits are all 1 at first read as the flash is full of 0xFF
+	SFLASH_Read(&gExtendedSettings, 0x3D5000, sizeof(gExtendedSettings));
+
+	if (gExtendedSettings.KeyShortcut[0] == 0xFF) {
+		SetDefaultKeyShortcuts(false); //
+	}
+
+	if (gExtendedSettings.SqGlitchBase == 0xFF) {
+		gExtendedSettings.SqRSSIBase = 0x5E;
+		gExtendedSettings.SqNoiseBase = 0x44;
+		gExtendedSettings.SqGlitchBase = 0x11;
+	}
+	if (gExtendedSettings.ScanDelay == 63) {
+		gExtendedSettings.ScanDelay = 35;
+	}
 
 	gFrequencyStep = FREQUENCY_GetStep(gSettings.FrequencyStep);
+
+	UI_SetColors(gExtendedSettings.DarkMode);
+
+	if (gExtendedSettings.MicGainLevel > 31) {
+		gExtendedSettings.MicGainLevel = 19;
+	}
+	BK4819_SetMicSensitivityTuning();
 
 	gSettings.bEnableDisplay = 1;
 	if (!gpio_input_data_bit_read(GPIOA, BOARD_GPIOA_KEY_SIDE2)) {
@@ -122,6 +158,7 @@ void SETTINGS_LoadSettings(void)
 void SETTINGS_SaveGlobals(void)
 {
 	SFLASH_Update(&gSettings, 0x3C1030, sizeof(gSettings));
+	SFLASH_Update(&gExtendedSettings, 0x3D5000, sizeof(gExtendedSettings));
 }
 
 void SETTINGS_SaveState(void)
@@ -129,11 +166,12 @@ void SETTINGS_SaveState(void)
 	gScannerMode = false;
 	gpio_bits_reset(GPIOA, BOARD_GPIOA_LED_GREEN);
 	SCANNER_Countdown = 0;
-	if (gSettings.WorkMode) {
+	if (gSettings.WorkModeA) {
 		SETTINGS_SaveGlobals();
 	} else {
-		CHANNELS_SaveChannel(gSettings.CurrentVfo ? 1000 : 999, &gVfoState[gSettings.CurrentVfo]);
+		CHANNELS_SaveChannel(gSettings.CurrentDial ? 1000 : 999, &gVfoState[gSettings.CurrentDial]);
 	}
+	UI_DrawScan();
 }
 
 void SETTINGS_SaveDTMF(void)
@@ -158,7 +196,7 @@ void SETTINGS_FactoryReset(void)
 
 void SETTINGS_SaveDeviceName(void)
 {
-	SFLASH_Update(gDeviceName, 0x3C1020, sizeof(gDeviceName));
+	SFLASH_Update(myCALL, 0x3C1020, sizeof(myCALL));
 }
 
 void SETTINGS_BackupSettings(void)

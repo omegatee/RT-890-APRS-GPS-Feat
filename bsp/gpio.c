@@ -15,6 +15,8 @@
  */
 
 #include "bsp/gpio.h"
+#include "driver/delay.h"
+#include "driver/pins.h"
 
 void gpio_bits_flip(gpio_type *gpio, uint16_t pins)
 {
@@ -38,11 +40,27 @@ void gpio_default_para_init_ex(gpio_init_type *init)
 void gpio_bits_set(gpio_type *gpio_x, uint16_t pins)
 {
 	gpio_x->scr = pins;
+#ifdef ENABLE_LTO
+	if (gpio_x == GPIOB && (
+		pins == BOARD_GPIOB_BK4819_SDA ||
+		pins == BOARD_GPIOB_BK4819_CS ||
+		pins == BOARD_GPIOB_BK4819_SCL)) {
+		DELAY_WaitUS(1);  //Delay needed to stop LTO from breaking certain register reads
+	}
+#endif
 }
 
 void gpio_bits_reset(gpio_type *gpio_x, uint16_t pins)
 {
 	gpio_x->clr = pins;
+#ifdef ENABLE_LTO
+	if (gpio_x == GPIOB && (
+		pins == BOARD_GPIOB_BK4819_SDA ||
+		pins == BOARD_GPIOB_BK4819_CS ||
+		pins == BOARD_GPIOB_BK4819_SCL)) {
+		DELAY_WaitUS(1);  //Delay needed to stop LTO from breaking certain register reads
+	}
+#endif
 }
 
 flag_status gpio_input_data_bit_read(gpio_type *gpio_x, uint16_t pins)

@@ -14,13 +14,15 @@
  *     limitations under the License.
  */
 
+#include <string.h>
 #include "driver/pins.h"
 #include "helper/helper.h"
 #include "misc.h"
 #include "radio/scheduler.h"
 #include "radio/settings.h"
+#include "driver/uart.h"///
 
-char gShortString[10];
+char gShortString[14];
 
 void Int2Ascii(uint32_t Number, uint8_t Size)
 {
@@ -32,16 +34,26 @@ void Int2Ascii(uint32_t Number, uint8_t Size)
 	}
 }
 
+uint32_t Ascii2Int(char *String){
+	
+	uint8_t Size = strlen(String);
+	uint32_t Value = 0;
+	uint32_t Multiplier = 1;
+
+	for (; Size != 0; Size--) {
+		Value += (String[Size-1] - 0x30) * Multiplier;
+		Multiplier *= 10;
+	}
+	return Value;
+}
+
 uint16_t TIMER_Calculate(uint16_t Setting)
 {
-	if (Setting == 0) {
-		return 0;
-	}
-	if (Setting != 1 && Setting != 2 && Setting != 3) {
+	if (Setting < 4) {
+		return Setting * 5;
+	} else {
 		return (Setting - 2) * 15;
 	}
-
-	return Setting * 5;
 }
 
 void SCREEN_TurnOn(void)
@@ -62,7 +74,7 @@ void STANDBY_BlinkGreen(void)
 		gGreenLedTimer = 0;
 	}
 	if (gBlinkGreen && gGreenLedTimer > 199) {
-		if (!gScannerMode && gRadioMode != RADIO_MODE_RX) {
+		if ((!gScannerMode || !gExtendedSettings.ScanBlink) && gRadioMode != RADIO_MODE_RX) {
 			gpio_bits_reset(GPIOA, BOARD_GPIOA_LED_GREEN);
 		}
 		gBlinkGreen = false;

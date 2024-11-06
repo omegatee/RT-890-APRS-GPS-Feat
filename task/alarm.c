@@ -41,9 +41,10 @@ void Task_LocalAlarm(void)
 			gAlarmSiren = !gAlarmSiren;
 			gpio_bits_flip(GPIOA, BOARD_GPIOA_LED_RED);
 		}
-		BK4819_SetToneFrequency(gAlarmFrequency);
+		BK4819_SetToneFrequency(false, gAlarmFrequency);
 	}
 }
+
 
 void ALARM_Start(void)
 {
@@ -53,7 +54,7 @@ void ALARM_Start(void)
 	gAlarmCounter = 0;
 	BK4819_SetAfGain(0xB325);
 	BK4819_EnableTone1(true);
-	BK4819_SetToneFrequency(gAlarmFrequency);
+	BK4819_SetToneFrequency(false, gAlarmFrequency);
 	SPEAKER_TurnOn(SPEAKER_OWNER_SYSTEM);
 }
 
@@ -61,7 +62,7 @@ void ALARM_Stop(void)
 {
 	gEnableLocalAlarm = false;
 	gSendTone = false;
-	BK4819_SetToneFrequency(0);
+	BK4819_SetToneFrequency(false, 0);
 	BK4819_EnableTone1(false);
 	SPEAKER_TurnOff(SPEAKER_OWNER_SYSTEM);
 	if (gRadioMode == RADIO_MODE_TX) {

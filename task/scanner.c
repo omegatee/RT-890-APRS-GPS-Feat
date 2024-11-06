@@ -14,6 +14,9 @@
  *     limitations under the License.
  */
 
+#ifdef ENABLE_FM_RADIO
+#include "app/fm.h"
+#endif
 #include "app/radio.h"
 #include "bsp/gpio.h"
 #include "driver/key.h"
@@ -23,21 +26,53 @@
 #include "radio/scheduler.h"
 #include "radio/settings.h"
 #include "task/scanner.h"
+#include "ui/helper.h"
 
 uint16_t SCANNER_Countdown;
 
-void Task_Scanner(void)
-{
-	if (gRadioMode < RADIO_MODE_RX && gScannerMode && SCANNER_Countdown == 0 && SCHEDULER_CheckTask(TASK_SCANNER)) {
+void Task_Scanner(void) {
+	if ((gRadioMode < (gExtendedSettings.ScanResume == 2 ? RADIO_MODE_TX : RADIO_MODE_RX) 	// Allows Task_Scanner in RX mode if ScanResume is set to Time Operated
+			&& gScannerMode
+			&& SCANNER_Countdown == 0
+			&& SCHEDULER_CheckTask(TASK_SCANNER)
+			)
+			|| gForceScan) {
 		SCHEDULER_ClearTask(TASK_SCANNER);
-		if (gSettings.WorkMode) {
-			CHANNELS_NextChannelMr(gSettings.ScanDirection ? KEY_DOWN : KEY_UP);
-		} else {
-			CHANNELS_NextChannelVfo(gSettings.ScanDirection ? KEY_DOWN : KEY_UP);
-			RADIO_Tune(gSettings.CurrentVfo);
+		gForceScan = false;
+		if (gRadioMode == RADIO_MODE_RX) {	// Scanner timeout
+			RADIO_EndRX();
 		}
-		SCANNER_Countdown = 250;
-		gpio_bits_flip(GPIOA, BOARD_GPIOA_LED_GREEN);
+		if (gSettings.WorkModeA) {
+			if(!CHANNELS_NextChannelMr(gManualScanDirection ? KEY_DOWN : KEY_UP, !gExtendedSettings.ScanAll)) {
+				Next_ScanList();
+			}
+		} else {
+			CHANNELS_NextChannelVfo(gManualScanDirection ? KEY_DOWN : KEY_UP);
+			RADIO_Tune(gSettings.CurrentDial);
+		}
+		// we have to slow down the scan speed in FM broadcast mode
+		// because we do not redraw VFO so the chip does not have time
+		// to catch incoming signal
+		SCANNER_Countdown =
+#ifdef ENABLE_FM_RADIO
+				gFM_Mode > FM_MODE_OFF ? 50 :
+#endif
+				gExtendedSettings.ScanDelay;
+		if (gExtendedSettings.ScanBlink) {
+			gpio_bits_flip(GPIOA, BOARD_GPIOA_LED_GREEN);
+		}
 	}
+}
+
+void Next_ScanList(void) {
+	if (gExtendedSettings.ScanAll) {
+		gExtendedSettings.ScanAll = 0;
+	} else {
+		gExtendedSettings.CurrentScanList = (gExtendedSettings.CurrentScanList + 1) % 8;
+		if (gExtendedSettings.CurrentScanList == 0) {
+			gExtendedSettings.ScanAll = 1;
+		}
+	}
+	UI_DrawScan();
 }
 
