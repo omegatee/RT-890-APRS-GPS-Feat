@@ -15,10 +15,11 @@ Use at your own risk and remember to [back up your SPI memory](https://github.co
 -- Full rewrite of UART code to support the new command shell and the GPS Receiver.
 -- New keyaction to send Position by APRS (not working yet).
 -- Personal ID (editable with CHIRP) used as "myCALL" for APRS. SSID is fixed to 7.
+-- GPS Time shown on display.
 
 - Removed / unbugged:
 -- Removed "[DISABLE]" options in menu
-
+-- Fixed "If CurrentDial ("CurrentVfo" in the repos) is "B" and the incoming signal enters on "A", the AM fix does not apply".
 
 ## GPS Receiver HW Implementation
 
@@ -34,9 +35,12 @@ Implemented commands:
 - *IDN?        Returns Manufacturer, Model, Serial Number and FW Version.
 - *RST          Reboots the device
 - RADIO:FREQ?  Returns A Frequency, B Frequency
+- RADIO:TX 1    Puts the device on TX (just a millisecond... by now)
+- RADIO:TX 0    Puts the device on RX
 - GPS:TIME?    Returns GPS Time
 - GPS:LAT?      Returns GPS Latitude
 - GPS:LON?      Returns GPS Longitude
+- EXIT           Exits Shell mode
 
 
 ## Telegram group
