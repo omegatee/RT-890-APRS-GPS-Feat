@@ -17,7 +17,7 @@ static const ChannelInfo_t gAPRSDefaultChannels[3] = {
 		.BCL = BUSY_LOCK_OFF,
 		.ScanAdd = 1,
 		.bIsLowPower = 1, // for debug
-		.bIsNarrow = 0,
+		.bIsNarrow = 1,
 
 		._0x11 = 0x11,
 		.Scramble = 0x00,
