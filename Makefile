@@ -1,165 +1,101 @@
-TARGET = firmware
+** THIS REPO IS NOT WORKING **
+Just used as backup
 
-OBJS =
-# Startup files
-OBJS += startup/start.o
-OBJS += startup/init.o
-#OBJS += external/printf/printf.o
 
-# BSP
-OBJS += bsp/crm.o
-OBJS += bsp/gpio.o
-OBJS += bsp/misc.o
-OBJS += bsp/tmr.o
 
-# Drivers
-OBJS += driver/audio.o
-OBJS += driver/battery.o
-OBJS += driver/beep.o
-OBJS += driver/bk1080.o
-OBJS += driver/bk4819.o
-OBJS += driver/crm.o
-OBJS += driver/delay.o
-OBJS += driver/key.o
-OBJS += driver/led.o
-OBJS += driver/pwm.o
-OBJS += driver/serial-flash.o
-OBJS += driver/speaker.o
-OBJS += driver/st7735s.o
-OBJS += driver/uart.o
 
-# "App" logic
-OBJS += app/css.o
-OBJS += app/fm.o
-OBJS += app/lock.o
-OBJS += app/menu.o
-OBJS += app/radio.o
-OBJS += app/t9.o
-OBJS += app/uart.o
+## Radtel RT-890 Custom APRS&GPS Firmware
 
-# Helper code
-OBJS += helper/dtmf.o
-OBJS += helper/helper.o
-OBJS += helper/inputbox.o
+This project is an effort to improve the firmware of the Radtel RT-890 in terms of features and radio performance.
 
-# Misc data
-OBJS += misc.o
+It is based on [DualTachyon's OEFW](https://github.com/OEFW-community/radtel-rt-890-oefw) which is reversed from the original Radtel 1.34 firmware.  
+Thanks to him for making this possible!
 
-# Radio management
-OBJS += radio/channels.o
-OBJS += radio/data.o
-OBJS += radio/detector.o
-OBJS += radio/frequencies.o
-OBJS += radio/hardware.o
-OBJS += radio/scheduler.o
-OBJS += radio/settings.o
+And on [Wiki in this repository](https://github.com/OEFW-community/RT-890-custom-firmware)
 
-# Tasks
-OBJS += task/alarm.o
-OBJS += task/battery.o
-OBJS += task/cursor.o
-OBJS += task/encrypt.o
-OBJS += task/fmscanner.o
-OBJS += task/keys.o
-OBJS += task/idle.o
-OBJS += task/incoming.o
-OBJS += task/lock.o
-OBJS += task/noaa.o
-OBJS += task/ptt.o
-OBJS += task/rssi.o
-OBJS += task/scanner.o
-OBJS += task/screen.o
-OBJS += task/sidekeys.o
-OBJS += task/timeout.o
-OBJS += task/voice.o
-OBJS += task/vox.o
+## Disclaimer
+This firmware is a work in progress and could be unstable; it could alter your radio and its data.  
+Use at your own risk and remember to [back up your SPI memory](https://github.com/OEFW-community/RT-890-custom-firmware/wiki/SPI) before installing any custom firmware.  DO NOT SKIP THIS STEP.
 
-# User Interface
-OBJS += ui/boot.o
-OBJS += ui/dialog.o
-OBJS += ui/font.o
-OBJS += ui/gfx.o
-OBJS += ui/helper.o
-OBJS += ui/logo.o
-OBJS += ui/main.o
-OBJS += ui/menu.o
-OBJS += ui/noaa.o
-OBJS += ui/version.o
-OBJS += ui/vfo.o
-OBJS += ui/welcome.o
+## Changes and new Features
+- RX & TX frequency can be set from 10 to 1300 MHz (results may vary).
+	- ### NOTE: Is your responsability to use this ability in accordance to your country laws ###
+- Removed unuseful functions such as FLashlight, Local Alrarm, etc.
+- Removed display icons hidding modulation mode indicators
+- Changed WorkMode to WorkModeA and WorkModeB, for future splitting of VFO/CHAN mode on both dials
+- Full rework of UART functions
+  - Added serial command prompt at UART1
+  - Added UART2 to manage the GPS Receiver communication
+- Modified "roll-on" selection (instead of calling menu) for keyactions Modulation, TX Power...
+- Personal ID (editable with CHIRP) used as source address in APRS (ssid fixed to 7)
+- Startup Label (editable with CHIRP) used as device serial number
+- Added channel templates for standard APRS frequencies in EUR and USA
+- Added GPS Time presentation on display (previous indicators displaced to get room)
+- Added keyaction to manually send position by APRS
+- Added task to implement APRS Beacon
 
-# Main
+## Removed Bugs
+- If you set ENABLE_NOAA to 0, linker fails
+- If CurrentDial ("CurrentVfo" in the repos) is "B" and the incoming signal enters on "A", the AM fix does not apply
+- Removed annoying "[DISABLED]" items from menu options
+- Corrected modulation index to comply with 12,5/25 kHz bandwidth
 
-OBJS += main.o
+## Usage and feature instructions
+See the [Wiki in this repository](https://github.com/OEFW-community/RT-890-custom-firmware/wiki) for detailed usage instructions.
 
-ifeq ($(OS),Windows_NT)
-TOP := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-else
-TOP := $(shell pwd)
-endif
+## Pre-built firmware
+You can find pre-built firmwares in the [Actions](https://github.com/OEFW-community/RT-890-custom-firmware/actions)
 
-SDK := $(TOP)/external/SDK
-LINKER_SCRIPT := $(SDK)/libraries/cmsis/cm4/device_support/startup/gcc/linker/AT32F421x8_FLASH.ld
+## Telegram group
+If you want to discuss this project, you can join the [Telegram group](https://t.me/RT890_OEFW).
 
-AS = arm-none-eabi-as
-CC = arm-none-eabi-gcc
-LD = arm-none-eabi-gcc
-OBJCOPY = arm-none-eabi-objcopy
-SIZE = arm-none-eabi-size
 
-GIT_HASH_TMP := $(shell git rev-parse --short HEAD)
+---
+_Original OEFW readme_
 
-ifeq ($(GIT_HASH_TMP),)
-GIT_HASH := "NOGIT"
-else
-GIT_HASH := $(GIT_HASH_TMP)
-endif
+# Support
 
-ASFLAGS = -mcpu=cortex-m4
-CFLAGS = -Os -Wall -Werror -mcpu=cortex-m4 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c11 -MMD
-CFLAGS += -DAT32F421C8T7
-CFLAGS += -DPRINTF_INCLUDE_CONFIG_H
-CFLAGS += -DGIT_HASH=\"$(GIT_HASH)\"
-LDFLAGS = -mcpu=cortex-m4 -nostartfiles -Wl,-T,firmware.ld
+* If you like my work, you can support me through https://ko-fi.com/DualTachyon
 
-ifeq ($(DEBUG),1)
-ASFLAGS += -g
-CFLAGS += -g
-LDFLAGS += -g
-endif
+# Open reimplementation of the Radtel RT-890 v1.34 firmware
 
-INC =
-INC += -I $(TOP)
-INC += -I $(SDK)/libraries/cmsis/cm4/device_support
-INC += -I $(SDK)/libraries/cmsis/cm4/core_support/
-INC += -I $(SDK)/libraries/drivers/inc/
+This repository is a preservation project of the Radtel RT-890 v1.34 firmware.
+It is dedicated to understanding how the radio works and help developers making their own customisations/fixes/etc.
+It is by no means fully understood or has all variables/functions properly named, as this is best effort only.
+As a result, this repository will not include any customisations or improvements over the original firmware.
 
-LIBS =
+# Compiler
 
-DEPS = $(OBJS:.o=.d)
+arm-none-eabi GCC version 10.3.1 is recommended, which is the current version on Ubuntu 22.04.03 LTS.
+Other versions may generate a flash file that is too big.
+You can get an appropriate version from: https://developer.arm.com/downloads/-/gnu-rm
 
-all: $(TARGET)
-	$(OBJCOPY) -O binary $< $<.bin
-	$(SIZE) $<
+# Building
 
-ctags:
-	ctags -R -f .tags .
+To build the firmware, you need to fetch the submodules and then run make:
+```
+git submodule update --init --recursive --depth=1
+make
+```
 
-ui/version.o: .FORCE
+# Flashing
 
-$(TARGET): $(OBJS)
-	$(LD) $(LDFLAGS) $^ -o $@ $(LIBS)
+* Use the firmware.bin file with either [RT-890-Flasher](https://github.com/OEFW-community/radtel-rt-890-flasher) or [RT-890-Flasher-CLI](https://github.com/OEFW-community/radtel-rt-890-flasher-cli)
 
-%.o: %.c
-	$(CC) $(CFLAGS) $(INC) -c $< -o $@
+# License
 
-%.o: %.S
-	$(AS) $(ASFLAGS) $< -o $@
+Copyright 2023 Dual Tachyon
+https://github.com/DualTachyon
 
-.FORCE:
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
--include $(DEPS)
+    http://www.apache.org/licenses/LICENSE-2.0
 
-clean:
-	rm -f $(TARGET).bin $(TARGET) $(OBJS) $(DEPS)
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 
