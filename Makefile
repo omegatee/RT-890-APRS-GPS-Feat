@@ -1,101 +1,276 @@
-** THIS REPO IS NOT WORKING **
-Just used as backup
+TARGET = firmwareWT
+
+MOTO_STARTUP_TONE			?= 1
+ENABLE_AM_FIX				?= 1
+ENABLE_ALT_SQUELCH			?= 0
+ENABLE_STATUS_BAR_LINE		?= 0
+ENABLE_NOAA					?= 0
+ENABLE_RX_BAR				?= 1
+ENABLE_TX_BAR				?= 1
+ENABLE_SLOWER_RSSI_TIMER	?= 1
+ENABLE_SPECTRUM				?= 0
+ENABLE_KEEP_MONITOR_MODE_UP_DN	?= 0
+
+# Spectrum presets - 1.4 kB
+ENABLE_SPECTRUM_PRESETS		?= 1
+# FM radio = 2.6 kB
+ENABLE_FM_RADIO				?= 1
+# Register Editor = .5 kB
+ENABLE_REGISTER_EDIT		?= 0
+# Scanlist membership display - 252 B
+ENABLE_SCANLIST_DISPLAY		?= 1
+
+# Space saving options
+ENABLE_LTO					?= 0
+ENABLE_OPTIMIZED			?= 1
+
+
+OBJS =
+# Startup files
+OBJS += startup/start.o
+OBJS += startup/init.o
+
+OBJS += external/printf/printf.o
+
+
+# BSP
+OBJS += bsp/crm.o
+OBJS += bsp/gpio.o
+OBJS += bsp/misc.o
+OBJS += bsp/tmr.o
+
+# Drivers
+OBJS += driver/audio.o
+OBJS += driver/battery.o
+OBJS += driver/beep.o
+ifeq ($(ENABLE_FM_RADIO), 1)
+	OBJS += driver/bk1080.o
+endif
+OBJS += driver/bk4819.o
+OBJS += driver/crm.o
+OBJS += driver/delay.o
+OBJS += driver/key.o
+OBJS += driver/led.o
+OBJS += driver/pwm.o
+OBJS += driver/serial-flash.o
+OBJS += driver/speaker.o
+OBJS += driver/st7735s.o
+OBJS += driver/uart.o
+OBJS += driver/gps.o
+#OBJS += driver/afsk.o
+
+# "App" logic
+OBJS += app/css.o
+#OBJS += app/flashlight.o
+ifeq ($(ENABLE_FM_RADIO), 1)
+	OBJS += app/fm.o
+endif
+OBJS += app/lock.o
+OBJS += app/menu.o
+OBJS += app/radio.o
+ifeq ($(ENABLE_REGISTER_EDIT), 1)
+	OBJS += app/regedit.o
+endif
+ifeq ($(ENABLE_SPECTRUM), 1)
+	OBJS += app/spectrum.o
+endif
+OBJS += app/t9.o
+OBJS += app/prog.o
+OBJS += app/shell.o
+OBJS += app/aprs.o
+
+# Helper code
+OBJS += helper/dtmf.o
+OBJS += helper/helper.o
+OBJS += helper/inputbox.o
+
+# Misc data
+OBJS += misc.o
+
+# Radio management
+OBJS += radio/channels.o
+OBJS += radio/data.o
+OBJS += radio/detector.o
+OBJS += radio/frequencies.o
+OBJS += radio/hardware.o
+OBJS += radio/scheduler.o
+OBJS += radio/settings.o
+
+# Tasks
+OBJS += task/alarm.o
+ifeq ($(ENABLE_AM_FIX), 1)
+        OBJS += task/am-fix.o
+endif
+OBJS += task/battery.o
+OBJS += task/cursor.o
+OBJS += task/encrypt.o
+ifeq ($(ENABLE_FM_RADIO), 1)
+	OBJS += task/fmscanner.o
+endif
+OBJS += task/keyaction.o
+OBJS += task/keys.o
+OBJS += task/idle.o
+OBJS += task/incoming.o
+OBJS += task/lock.o
+ifeq ($(ENABLE_NOAA), 1)
+OBJS += task/noaa.o
+endif
+OBJS += task/ptt.o
+OBJS += task/rssi.o
+OBJS += task/scanner.o
+OBJS += task/screen.o
+OBJS += task/sidekeys.o
+OBJS += task/timeout.o
+OBJS += task/voice.o
+OBJS += task/vox.o
+
+# User Interface
+OBJS += ui/boot.o
+OBJS += ui/dialog.o
+OBJS += ui/font.o
+OBJS += ui/gfx.o
+OBJS += ui/helper.o
+OBJS += ui/logo.o
+OBJS += ui/main.o
+OBJS += ui/menu.o
+ifeq ($(ENABLE_NOAA), 1)
+OBJS += ui/noaa.o
+endif
+OBJS += ui/version.o
+OBJS += ui/vfo.o
+OBJS += ui/welcome.o
+
+# Main
+
+OBJS += main.o
+
+ifeq ($(OS),Windows_NT)
+TOP := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+else
+TOP := $(shell pwd)
+endif
+
+SDK := $(TOP)/external/SDK
+LINKER_SCRIPT := $(SDK)/libraries/cmsis/cm4/device_support/startup/gcc/linker/AT32F421x8_FLASH.ld
+
+AS = arm-none-eabi-as
+CC = arm-none-eabi-gcc
+LD = arm-none-eabi-gcc
+OBJCOPY = arm-none-eabi-objcopy
+SIZE = arm-none-eabi-size
+
+GIT_HASH_TMP := $(shell git rev-parse --short HEAD)
+
+ifeq ($(GIT_HASH_TMP),)
+GIT_HASH := "NOGIT"
+else
+GIT_HASH := $(GIT_HASH_TMP)
+endif
+
+ASFLAGS = -mcpu=cortex-m4
+CFLAGS = -Os -Wall -Werror -mcpu=cortex-m4 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c2x -MMD
+CFLAGS += -DAT32F421C8T7
+CFLAGS += -DPRINTF_INCLUDE_CONFIG_H
+CFLAGS += -DGIT_HASH=\"$(GIT_HASH)\"
+LDFLAGS = -mcpu=cortex-m4 -nostartfiles -Wl,-T,firmware.ld
+
+ifeq ($(ENABLE_OPTIMIZED),1)
+CFLAGS += --specs=nano.specs
+LDFLAGS += --specs=nano.specs
+
+CFLAGS += -ffunction-sections
+LDFLAGS += -Wl,--gc-sections
+
+CFLAGS += -finline-limit=0
+
+CFLAGS += -fmerge-all-constants
+endif
+ 
+ifeq ($(DEBUG),1)
+ASFLAGS += -g
+CFLAGS += -g
+LDFLAGS += -g
+endif
+
+INC =
+INC += -I $(TOP)
+INC += -I $(SDK)/libraries/cmsis/cm4/device_support
+INC += -I $(SDK)/libraries/cmsis/cm4/core_support/
+INC += -I $(SDK)/libraries/drivers/inc/
+
+LIBS =
+
+DEPS = $(OBJS:.o=.d)
+
+ifeq ($(MOTO_STARTUP_TONE),1)
+	CFLAGS += -DMOTO_STARTUP_TONE
+endif
+ifeq ($(ENABLE_AM_FIX),1)
+	CFLAGS += -DENABLE_AM_FIX
+endif
+ifeq ($(ENABLE_ALT_SQUELCH),1)
+	CFLAGS += -DENABLE_ALT_SQUELCH
+endif
+ifeq ($(ENABLE_LTO),1)
+	CFLAGS += -flto=auto
+endif
+ifeq ($(ENABLE_NOAA),1)
+	CFLAGS += -DENABLE_NOAA
+endif
+ifeq ($(ENABLE_SPECTRUM), 1)
+	CFLAGS += -DENABLE_SPECTRUM
+endif
+ifeq ($(ENABLE_SPECTRUM_PRESETS), 1)
+	CFLAGS += -DENABLE_SPECTRUM_PRESETS
+endif
+ifeq ($(ENABLE_REGISTER_EDIT), 1)
+	CFLAGS += -DENABLE_REGISTER_EDIT
+endif
+ifeq ($(ENABLE_FM_RADIO), 1)
+	CFLAGS += -DENABLE_FM_RADIO
+endif
+ifeq ($(ENABLE_SLOWER_RSSI_TIMER), 1)
+	CFLAGS += -DENABLE_SLOWER_RSSI_TIMER
+endif
+ifeq ($(ENABLE_RX_BAR), 1)
+	CFLAGS += -DENABLE_RX_BAR
+endif
+ifeq ($(ENABLE_TX_BAR), 1)
+	CFLAGS += -DENABLE_TX_BAR
+endif
+ifeq ($(ENABLE_SCANLIST_DISPLAY), 1)
+	CFLAGS += -DENABLE_SCANLIST_DISPLAY
+endif
+ifeq ($(ENABLE_KEEP_MONITOR_MODE_UP_DN), 1)
+	CFLAGS += -DENABLE_KEEP_MONITOR_MODE_UP_DN
+endif
+ifeq ($(ENABLE_STATUS_BAR_LINE), 1)
+	CFLAGS += -DENABLE_STATUS_BAR_LINE
+endif
 
 
 
+all: $(TARGET)
+	$(OBJCOPY) -O binary $< $<.bin
+	$(SIZE) $<
 
-## Radtel RT-890 Custom APRS&GPS Firmware
+ctags:
+	ctags -R -f .tags .
 
-This project is an effort to improve the firmware of the Radtel RT-890 in terms of features and radio performance.
+ui/version.o: .FORCE
 
-It is based on [DualTachyon's OEFW](https://github.com/OEFW-community/radtel-rt-890-oefw) which is reversed from the original Radtel 1.34 firmware.  
-Thanks to him for making this possible!
+$(TARGET): $(OBJS)
+	$(LD) $(LDFLAGS) $^ -o $@ $(LIBS)
 
-And on [Wiki in this repository](https://github.com/OEFW-community/RT-890-custom-firmware)
+%.o: %.c
+	$(CC) $(CFLAGS) $(INC) -c $< -o $@
 
-## Disclaimer
-This firmware is a work in progress and could be unstable; it could alter your radio and its data.  
-Use at your own risk and remember to [back up your SPI memory](https://github.com/OEFW-community/RT-890-custom-firmware/wiki/SPI) before installing any custom firmware.  DO NOT SKIP THIS STEP.
+%.o: %.S
+	$(AS) $(ASFLAGS) $< -o $@
 
-## Changes and new Features
-- RX & TX frequency can be set from 10 to 1300 MHz (results may vary).
-	- ### NOTE: Is your responsability to use this ability in accordance to your country laws ###
-- Removed unuseful functions such as FLashlight, Local Alrarm, etc.
-- Removed display icons hidding modulation mode indicators
-- Changed WorkMode to WorkModeA and WorkModeB, for future splitting of VFO/CHAN mode on both dials
-- Full rework of UART functions
-  - Added serial command prompt at UART1
-  - Added UART2 to manage the GPS Receiver communication
-- Modified "roll-on" selection (instead of calling menu) for keyactions Modulation, TX Power...
-- Personal ID (editable with CHIRP) used as source address in APRS (ssid fixed to 7)
-- Startup Label (editable with CHIRP) used as device serial number
-- Added channel templates for standard APRS frequencies in EUR and USA
-- Added GPS Time presentation on display (previous indicators displaced to get room)
-- Added keyaction to manually send position by APRS
-- Added task to implement APRS Beacon
+.FORCE:
 
-## Removed Bugs
-- If you set ENABLE_NOAA to 0, linker fails
-- If CurrentDial ("CurrentVfo" in the repos) is "B" and the incoming signal enters on "A", the AM fix does not apply
-- Removed annoying "[DISABLED]" items from menu options
-- Corrected modulation index to comply with 12,5/25 kHz bandwidth
+-include $(DEPS)
 
-## Usage and feature instructions
-See the [Wiki in this repository](https://github.com/OEFW-community/RT-890-custom-firmware/wiki) for detailed usage instructions.
-
-## Pre-built firmware
-You can find pre-built firmwares in the [Actions](https://github.com/OEFW-community/RT-890-custom-firmware/actions)
-
-## Telegram group
-If you want to discuss this project, you can join the [Telegram group](https://t.me/RT890_OEFW).
-
-
----
-_Original OEFW readme_
-
-# Support
-
-* If you like my work, you can support me through https://ko-fi.com/DualTachyon
-
-# Open reimplementation of the Radtel RT-890 v1.34 firmware
-
-This repository is a preservation project of the Radtel RT-890 v1.34 firmware.
-It is dedicated to understanding how the radio works and help developers making their own customisations/fixes/etc.
-It is by no means fully understood or has all variables/functions properly named, as this is best effort only.
-As a result, this repository will not include any customisations or improvements over the original firmware.
-
-# Compiler
-
-arm-none-eabi GCC version 10.3.1 is recommended, which is the current version on Ubuntu 22.04.03 LTS.
-Other versions may generate a flash file that is too big.
-You can get an appropriate version from: https://developer.arm.com/downloads/-/gnu-rm
-
-# Building
-
-To build the firmware, you need to fetch the submodules and then run make:
-```
-git submodule update --init --recursive --depth=1
-make
-```
-
-# Flashing
-
-* Use the firmware.bin file with either [RT-890-Flasher](https://github.com/OEFW-community/radtel-rt-890-flasher) or [RT-890-Flasher-CLI](https://github.com/OEFW-community/radtel-rt-890-flasher-cli)
-
-# License
-
-Copyright 2023 Dual Tachyon
-https://github.com/DualTachyon
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-
+clean:
+	rm -f $(TARGET).bin $(TARGET) $(OBJS) $(DEPS)
