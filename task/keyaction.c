@@ -33,9 +33,9 @@
 #include "driver/bk4819.h"
 #include "driver/key.h"
 #include "driver/pins.h"
-#include "driver/speaker.h"///
-#include "driver/delay.h"///
-#include "app/radio.h"///
+//#include "driver/speaker.h"///
+//#include "driver/delay.h"///
+//#include "app/radio.h"///
 #include "helper/dtmf.h"
 #include "helper/helper.h"
 #include "helper/inputbox.h"
