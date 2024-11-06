@@ -57,7 +57,7 @@ OBJS += driver/speaker.o
 OBJS += driver/st7735s.o
 OBJS += driver/uart.o
 OBJS += driver/gps.o
-OBJS += driver/afsk.o
+#OBJS += driver/afsk.o
 
 # "App" logic
 OBJS += app/css.o
