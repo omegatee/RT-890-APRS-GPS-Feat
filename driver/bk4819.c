@@ -455,13 +455,13 @@ void BK4819_SetFilterBandwidth(bool bIsNarrow)
 	if (gMainVfo->gModulationType == 0) { // if FM
 #ifndef ENABLE_REGISTER_EDIT
 		if (bIsNarrow) {
-			BK4819_WriteRegister(0x43, 0x2020);
+			BK4819_WriteRegister(0x43, 0x1008);
 			//BK4819_WriteRegister(0x43, 0x4048); //stock
 			//BK4819_WriteRegister(0x43, 0x7B08); //kamil/fagci
 			//BK4819_WriteRegister(0x43, 0x1408);//OEFW
 			//BK4819_WriteRegister(0x43, 0x4408); //egzumer
 		} else {
-			BK4819_WriteRegister(0x43, 0x1008);
+			BK4819_WriteRegister(0x43, 0x2020);
 			//BK4819_WriteRegister(0x43, 0x3028); //stock
 			//BK4819_WriteRegister(0x43, 0x7B08); //kamil/fagci
 			//BK4819_WriteRegister(0x43, 0x1408);//OEFW
@@ -758,7 +758,9 @@ void BK4819_EnableRfTxDeviation(void)
 	if (gMainVfo->Scramble) {
 		Deviation -= 200;
 	}
-	BK4819_WriteRegister(0x40, Deviation);
+	///BK4819_WriteRegister(0x40, Deviation);
+	BK4819_WriteRegister(0x40, 0x14D0);// default on DS
+
 }
 
 void BK4819_SetMicSensitivityTuning(void)

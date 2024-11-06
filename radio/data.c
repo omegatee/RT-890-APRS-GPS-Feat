@@ -18,12 +18,10 @@
 #include <string.h>
 #include "misc.h"
 #include "app/radio.h"
-#include "app/aprs.h"
-#include "driver/bk4819.h"///
-#include "driver/delay.h"///
+#include "driver/bk4819.h"
+#include "driver/delay.h"
 #include "driver/uart.h"
 #include "driver/gps.h"
-#include "driver/afsk.h"///
 #include "helper/dtmf.h"
 #include "helper/helper.h"
 #include "radio/data.h"
