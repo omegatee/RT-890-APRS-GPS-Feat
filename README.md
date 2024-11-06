@@ -9,34 +9,35 @@ Thanks to him for making this possible!
 This firmware is a work in progress and could be unstable; it could alter your radio and its data.  
 Use at your own risk and remember to [back up your SPI memory](https://github.com/OEFW-community/RT-890-custom-firmware/wiki/SPI) before installing any custom firmware.  DO NOT SKIP THIS STEP.
 
-## Features
-- All stock features: [check user's manual](https://cdn.shopifycdn.net/s/files/1/0564/8855/8800/files/RT-890_user_manual.pdf?v=1670288968)
-- RX frequency can be set from 10 to 1300 MHz (results may vary)
-- SSB reception
-- Light theme
-- AM Fix (improvement in AM reception with strong signals, port of @OneOfEleven's excellent work on the Quansheng UV-K5)
-- Sensitivty improvements in gain and squelch 
-- Full control over side key and main key shortcuts
-- New configurable actions (FM Radio, Scanner, FLashlight)
-- 0.01K step
-- Displaying registers in single VFO mode
-- Displaying dBM when receiving
-- Reworked scanner
-  - 8 Scan lists
-  - Faster scanning
-  - Resume mode: Time, Carrier, No
-  - Change scan direction while scanning (up/down keys)
-  - Force scan resume (up/down keys)
-- Spectrum view with waterfall display
-- Reworked main menu
-- Ability to disable LED toggling when scanning
-- And much more!
+## omegatee Features / Modifications
+- All OEFW features plus:
 
-## Usage and feature instructions
-See the [Wiki in this repository](https://github.com/OEFW-community/RT-890-custom-firmware/wiki) for detailed usage instructions.
+-- Full rewrite of UART code to support the new command shell and the GPS Receiver.
+-- New keyaction to send Position by APRS (not working yet).
+-- Personal ID (editable with CHIRP) used as "myCALL" for APRS. SSID is fixed to 7.
 
-## Pre-built firmware
-You can find pre-built firmwares in the [Actions](https://github.com/OEFW-community/RT-890-custom-firmware/actions)
+- Removed / unbugged:
+-- Removed "[DISABLE]" options in menu
+
+
+## GPS Receiver HW Implementation
+
+![image](https://github.com/user-attachments/assets/ff4816d5-8ab2-4709-805b-d65616095407)
+
+Do it as you can
+
+## Command Shell
+At boot, the device works as usual, letting CHIRP to operate correctly.
+But after receiving two semicolons, enters the SCPI-like shell mode. In this mode, CHIRP will fail. Type EXIT to return to normal operation.
+While in Shell mode, device operates normally.
+Implemented commands:
+- *IDN?        Returns Manufacturer, Model, Serial Number and FW Version.
+- *RST          Reboots the device
+- RADIO:FREQ?  Returns A Frequency, B Frequency
+- GPS:TIME?    Returns GPS Time
+- GPS:LAT?      Returns GPS Latitude
+- GPS:LON?      Returns GPS Longitude
+
 
 ## Telegram group
 If you want to discuss this project, you can join the [Telegram group](https://t.me/RT890_OEFW).
