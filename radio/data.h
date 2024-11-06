@@ -22,7 +22,6 @@
 void DATA_ReceiverInit(void);
 bool DATA_ReceiverCheck(void);
 void DATA_SendDeviceName(void);
-void DATA_SendAPRSPos(void);
 bool DATA_WasDataReceived(void);
 
 #endif

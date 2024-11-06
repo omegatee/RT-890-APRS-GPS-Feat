@@ -179,14 +179,14 @@ void KeypressAction(uint8_t Action) {
 				}
 				break;
 
-			case ACTION_APRS_BEACON:///WT: it was ACTION_LOCAL_ALARM 
+			case ACTION_APRS_SEND_POS:
 				if (gRadioMode != RADIO_MODE_QUIET)
 					break;
 				/// set APRS frequency first
 				gVfoState[gCurrentDial]=gAPRSDefaultChannels[0];
 				RADIO_StartTX(0);
 				
-				DATA_SendAPRSPos();
+				APRS_send_Packet(1);
 
 				/// restore initial dial mode
 				if (gSettings.WorkModeA) {
