@@ -538,6 +538,7 @@ void RADIO_StartTX(bool bUseMic)
 		Task_UpdateScreen();
 		UI_DrawMainBitmap(true, gSettings.CurrentDial);///
 		UI_DrawVfo(gSettings.CurrentDial);
+/// Moved to end of transmission
 ///		if (gSettings.RogerBeep == 3) {
 ///			// Play a tone for 300ms to make sure squelch opens on remote end before FSK ID
 ///			BEEP_Enable();
