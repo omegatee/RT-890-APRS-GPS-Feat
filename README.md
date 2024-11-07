@@ -1,4 +1,4 @@
-# Radtel RT-890 Custom Firmware
+# Radtel RT-890 APRS-GPS Custom Firmware
 
 This project is an effort to improve the firmware of the Radtel RT-890 in terms of features and radio performance.
 
@@ -9,16 +9,31 @@ Thanks to him for making this possible!
 This firmware is a work in progress and could be unstable; it could alter your radio and its data.  
 Use at your own risk and remember to [back up your SPI memory](https://github.com/OEFW-community/RT-890-custom-firmware/wiki/SPI) before installing any custom firmware.  DO NOT SKIP THIS STEP.
 
+Transmission on this devices is very bad filtered (HW issue). Harmonics go to air almost freely.
+
+    --        [IS YOUR RESPONSABILITY TO TAKE THIS ON ACCOUNT TO COMPLY WITH LOCAL REGULATIONS IN YOUR COUNTRY]
+
+There is no "free radio" but GMRS, and this devices do not comply whith GMRS specifications.
+
+    --        [DO NOT TRANSMIT IF YOU ARE NOT LICENSED TO]
+
 ## omegatee Features / Modifications
 - All OEFW features plus:
-    -Full rewrite of UART code to support the new command shell and the GPS Receiver.
+    - Full rewrite of UART code to support the new command shell and the GPS Receiver.
+    - Added channel templates for standard APRS frequencies on EUR and USA.
     - New keyaction to send Position by APRS (not working yet).
     - Personal ID (editable with CHIRP) used as "myCALL" for APRS. SSID is fixed to 7.
+    - Startup Label (editable with CHIRP) used as Device Serial Number.
     - GPS Time shown on display.
 
 - Removed / unbugged:
     - Removed "[DISABLE]" options in menu
     - Fixed "If CurrentDial ("CurrentVfo" in the repos) is "B" and the incoming signal enters on "A", the AM fix does not apply".
+    - Corrected FM modulation depth for Wide/Narrow modes
+    - Removed unuseful functions such as Flashlight, Local Alarm...
+    - Removed icons hiding modulation mode indicators
+    - Modulation mode is allways "FM" on TX
+    - Keyaction for "Modulation" and others set to "roll-on" instead of calling menu
 
 ## GPS Receiver HW Implementation
 
@@ -30,6 +45,7 @@ Do it as you can
 At boot, the device works as usual, letting CHIRP to operate correctly.
 But after receiving two semicolons, enters the SCPI-like shell mode. In this mode, CHIRP will fail. Type EXIT to return to normal operation.
 While in Shell mode, device operates normally.
+
 Implemented commands:
 - *IDN?        Returns Manufacturer, Model, Serial Number and FW Version.
 - *RST          Reboots the device
