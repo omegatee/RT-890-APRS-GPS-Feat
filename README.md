@@ -11,9 +11,10 @@ Use at your own risk and remember to [back up your SPI memory](https://github.co
 
 ## omegatee Features / Modifications
 - All OEFW features plus:
-    -Full rewrite of UART code to support the new command shell and the GPS Receiver.
+    - Full rewrite of UART code to support the new command shell and the GPS Receiver.
     - New keyaction to send Position by APRS (not working yet).
     - Personal ID (editable with CHIRP) used as "myCALL" for APRS. SSID is fixed to 7.
+    - Startup Label (editable with CHIRP) used as Device Serial Number.
     - GPS Time shown on display.
 
 - Removed / unbugged:
@@ -21,6 +22,9 @@ Use at your own risk and remember to [back up your SPI memory](https://github.co
     - Fixed "If CurrentDial ("CurrentVfo" in the repos) is "B" and the incoming signal enters on "A", the AM fix does not apply".
     - Corrected FM modulation depth for Wide/Narrow modes
     - Removed unuseful functions such as Flashlight, Local Alarm...
+    - Removed icons hiding modulation mode indicators
+    - Modulation mode is allways "FM" on TX
+    - Keyaction for "Modulation" and others set to "roll-on" instead of calling menu
 
 ## GPS Receiver HW Implementation
 
