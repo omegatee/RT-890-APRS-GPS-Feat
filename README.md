@@ -1,4 +1,4 @@
-# Radtel RT-890 Custom Firmware
+# Radtel RT-890 APRS-GPS Custom Firmware
 
 This project is an effort to improve the firmware of the Radtel RT-890 in terms of features and radio performance.
 
