@@ -14,6 +14,7 @@ Transmission on this devices is very bad filtered (HW issue). Harmonics go to ai
     --        [IS YOUR RESPONSABILITY TO TAKE THIS ON ACCOUNT TO COMPLY WITH LOCAL REGULATIONS IN YOUR COUNTRY]
 
 There is no "free radio" but GMRS, and this devices do not comply whith GMRS specifications.
+
     --        [DO NOT TRANSMIT IF YOU ARE NOT LICENSED TO]
 
 ## omegatee Features / Modifications
