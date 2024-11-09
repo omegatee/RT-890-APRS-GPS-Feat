@@ -19,20 +19,21 @@ There is no "free radio" but GMRS, and this devices do not comply whith GMRS spe
 
 ## omegatee Features / Modifications
 - All OEFW features plus:
-    - Full rewrite of UART code to support the new command shell and the GPS Receiver.
-    - Added channel templates for standard APRS frequencies on EUR and USA.
-    - New keyaction to send Position by APRS (not working yet).
-    - Personal ID (editable with CHIRP) used as "myCALL" for APRS. SSID is fixed to 7.
-    - Startup Label (editable with CHIRP) used as Device Serial Number.
-    - GPS Time shown on display.
+    - Full rewrite of UART code to support the new command shell and the GPS Receiver
+    - Added channel templates for standard APRS frequencies on EUR and USA
+    - New keyaction to send Position by APRS (not working yet)
+    - Personal ID (editable with CHIRP) used as "myCALL" for APRS. SSID is fixed to 7
+    - Startup Label (editable with CHIRP) used as Device Serial Number
+    - GPS Time shown on display
 
 - Removed / unbugged:
     - Removed "[DISABLE]" options in menu
-    - Fixed "If CurrentDial ("CurrentVfo" in the repos) is "B" and the incoming signal enters on "A", the AM fix does not apply".
+    - Fixed "If CurrentDial ("CurrentVfo" in the repos) is "B" and the incoming signal enters on "A", the AM fix does not apply"
     - Corrected FM modulation depth for Wide/Narrow modes
+    - Corrected TX Power levels High and Low (set to 5 and 1 W)
     - Removed unuseful functions such as Flashlight, Local Alarm...
     - Removed icons hiding modulation mode indicators
-    - Modulation mode is allways "FM" on TX
+    - Modulation mode is allways shown as "FM" on TX
     - Keyaction for "Modulation" and others set to "roll-on" instead of calling menu
 
 ## GPS Receiver HW Implementation
@@ -42,14 +43,14 @@ There is no "free radio" but GMRS, and this devices do not comply whith GMRS spe
 Do it as you can
 
 ## Command Shell
-At boot, the device works as usual, letting CHIRP to operate correctly.
+At boot, the device works as usual.
 But after receiving two semicolons, enters the SCPI-like shell mode. In this mode, CHIRP will fail. Type EXIT to return to normal operation.
 While in Shell mode, device operates normally.
 
 Implemented commands:
 - *IDN?        Returns Manufacturer, Model, Serial Number and FW Version.
 - *RST          Reboots the device
-- RADIO:FREQ?  Returns A Frequency, B Frequency
+- RADIO:FREQ?  Returns current RX Frequency, TX Frequency
 - RADIO:TX 1    Puts the device on TX (just a millisecond... by now)
 - RADIO:TX 0    Puts the device on RX
 - GPS:TIME?    Returns GPS Time
