@@ -48,15 +48,16 @@ But after receiving two semicolons, enters the SCPI-like shell mode. In this mod
 While in Shell mode, device operates normally.
 
 Implemented commands:
-- *IDN?        Returns Manufacturer, Model, Serial Number and FW Version.
-- *RST          Reboots the device
-- RADIO:FREQ?  Returns current RX Frequency, TX Frequency
-- RADIO:TX 1    Puts the device on TX (just a millisecond... by now)
-- RADIO:TX 0    Puts the device on RX
-- GPS:TIME?    Returns GPS Time
-- GPS:LAT?      Returns GPS Latitude
-- GPS:LON?      Returns GPS Longitude
-- EXIT           Exits Shell mode
+- *IDN?                Returns Manufacturer, Model, Serial Number and FW Version.
+- *RST                    Reboots the device
+- RADIO:FREQ?            Returns current RX Frequency, TX Frequency
+- RADIO:TX 1            Puts the device on TX (just a millisecond... by now)
+- RADIO:TX 0            Puts the device on RX
+- RADIO:APRS:SEND POS    Sends APRS Position Packet
+- GPS:TIME?                Returns GPS Time
+- GPS:LAT?                Returns GPS Latitude
+- GPS:LON?                Returns GPS Longitude
+- EXIT                    Exits Shell mode
 
 
 ## Telegram group
