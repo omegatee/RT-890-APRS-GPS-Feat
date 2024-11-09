@@ -6,6 +6,8 @@
 #include "radio/settings.h"
 #include "radio/hardware.h"
 #include "radio/data.h"
+#include "task/keyaction.h"
+
 
 bool gShellMode;
 
@@ -33,6 +35,10 @@ void SCPI_ProcessRADIO(char * cmd){
 			RADIO_StartTX(0);
 		else
 			RADIO_EndTX();
+		return;
+	}
+	if(strncmp(cmd,"APRS:SEND POS",5)==0){
+		KeypressAction(ACTION_APRS_SEND_POS);
 		return;
 	}
 }
