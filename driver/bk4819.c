@@ -21,6 +21,7 @@
 #include "driver/delay.h"
 #include "driver/pins.h"
 #include "driver/speaker.h"
+#include "driver/uart.h"///
 #include "helper/helper.h"
 #include "misc.h"
 #include "radio/settings.h"
@@ -188,6 +189,7 @@ void BK4819_Init(void)
 	BK4819_WriteRegister(0x00, 0x8000);
 	BK4819_WriteRegister(0x00, 0x0000);
 	BK4819_WriteRegister(0x37, 0x1D0F);
+BK4819_WriteRegister(0x36, 0x0022); /// from UV-K5
 	// DisableAGC(0);
 	BK4819_WriteRegister(0x33, 0x1F00);
 	BK4819_WriteRegister(0x35, 0x0000);
@@ -449,19 +451,20 @@ void BK4819_SetSquelchRSSI(bool bIsNarrow)
 
 }
 
+#if 0
 void BK4819_SetFilterBandwidth(bool bIsNarrow)
 {
 	// Check if modulation is FM
 	if (gMainVfo->gModulationType == 0) { // if FM
 #ifndef ENABLE_REGISTER_EDIT
 		if (bIsNarrow) {
-			BK4819_WriteRegister(0x43, 0x1008);
+			BK4819_WriteRegister(0x43, 0x1008); // as per DS default for 12,5 kHz
 			//BK4819_WriteRegister(0x43, 0x4048); //stock
 			//BK4819_WriteRegister(0x43, 0x7B08); //kamil/fagci
 			//BK4819_WriteRegister(0x43, 0x1408);//OEFW
 			//BK4819_WriteRegister(0x43, 0x4408); //egzumer
 		} else {
-			BK4819_WriteRegister(0x43, 0x2020);
+			BK4819_WriteRegister(0x43, 0x2020); // as per DS default for 25 kHz
 			//BK4819_WriteRegister(0x43, 0x3028); //stock
 			//BK4819_WriteRegister(0x43, 0x7B08); //kamil/fagci
 			//BK4819_WriteRegister(0x43, 0x1408);//OEFW
@@ -477,6 +480,118 @@ void BK4819_SetFilterBandwidth(bool bIsNarrow)
 #endif
 	}
 }
+#else
+//void BK4819_SetFilterBandwidth(const BK4819_FilterBandwidth_t Bandwidth, const bool weak_no_different)
+void BK4819_SetFilterBandwidth(bool Bandwidth, bool weak)
+{
+	
+	// REG_43
+	// <15>    0 ???
+	//
+	// <14:12> 4 RF filter bandwidth
+	//         0 = 1.7  kHz
+	//         1 = 2.0  kHz
+	//         2 = 2.5  kHz
+	//         3 = 3.0  kHz
+	//         4 = 3.75 kHz
+	//         5 = 4.0  kHz
+	//         6 = 4.25 kHz
+	//         7 = 4.5  kHz
+	// if <5> == 1, RF filter bandwidth * 2
+	//
+	// <11:9>  0 RF filter bandwidth when signal is weak
+	//         0 = 1.7  kHz
+	//         1 = 2.0  kHz
+	//         2 = 2.5  kHz
+	//         3 = 3.0  kHz
+	//         4 = 3.75 kHz
+	//         5 = 4.0  kHz
+	//         6 = 4.25 kHz
+	//         7 = 4.5  kHz
+	// if <5> == 1, RF filter bandwidth * 2
+	//
+	// <8:6>   1 AFTxLPF2 filter Band Width
+	//         1 = 2.5  kHz (for 12.5k channel space)
+	//         2 = 2.75 kHz
+	//         0 = 3.0  kHz (for 25k   channel space)
+	//         3 = 3.5  kHz
+	//         4 = 4.5  kHz
+	//         5 = 4.25 kHz
+	//         6 = 4.0  kHz
+	//         7 = 3.75 kHz
+	//
+	// <5:4>   0 BW Mode Selection
+	//         0 = 12.5k
+	//         1 =  6.25k
+	//         2 = 25k/20k
+	//
+	// <3>     1 ???
+	//
+	// <2>     0 Gain after FM Demodulation
+	//         0 = 0dB
+	//         1 = 6dB
+	//
+	// <1:0>   0 ???
+
+	uint16_t val = 0;
+	switch (Bandwidth)
+	{
+		default:
+		//case BK4819_FILTER_BW_WIDE:	// 25kHz
+		if(Bandwidth==0){
+			val = (4u << 12) |     // *3 RF filter bandwidth
+				  (6u <<  6) |     // *0 AFTxLPF2 filter Band Width
+				  (2u <<  4) |     //  2 BW Mode Selection
+				  (1u <<  3) |     //  1
+				  (0u <<  2);     //  0 Gain after FM Demodulation
+
+			if (weak) {
+				/// with weak RX signals the RX bandwidth is reduced
+				val |= (2u <<  9);     // *0 RF filter bandwidth when signal is weak
+			} else {
+				// make the RX bandwidth the same with weak signals
+				val |= (4u <<  9);     // *0 RF filter bandwidth when signal is weak
+			}
+
+		}//break;
+
+		//case BK4819_FILTER_BW_NARROW:	// 12.5kHz
+		else{
+			val = (4u << 12) |     // *4 RF filter bandwidth
+				  (0u <<  6) |     // *1 AFTxLPF2 filter Band Width
+				  (0u <<  4) |     //  0 BW Mode Selection
+				  (1u <<  3) |     //  1
+				  (0u <<  2);      //  0 Gain after FM Demodulation
+
+			if (weak) {
+				val |= (2u <<  9);
+			} else {
+				val |= (4u <<  9);     // *0 RF filter bandwidth when signal is weak
+			}
+
+		}//break;
+/*
+		case BK4819_FILTER_BW_NARROWER:	// 6.25kHz
+			val = (3u << 12) |     //  3 RF filter bandwidth
+				  (3u <<  9) |     // *0 RF filter bandwidth when signal is weak
+				  (1u <<  6) |     //  1 AFTxLPF2 filter Band Width
+				  (1u <<  4) |     //  1 BW Mode Selection
+				  (1u <<  3) |     //  1
+				  (0u <<  2);      //  0 Gain after FM Demodulation
+
+			if (weak) {
+				val |= (0u <<  9);     //  0 RF filter bandwidth when signal is weak
+			} else {
+				val |= (3u <<  9);
+			}
+			break;*/
+	}
+//IFDBG UART_printf(1,"Wid: %d/r/n",val); narrow= 0x4808 wide=0x49A8
+	BK4819_WriteRegister(0x43, val);
+}
+
+#endif
+
 
 void BK4819_EnableFilter(bool bEnable)
 {
@@ -653,6 +768,7 @@ void BK4819_StartAudio(void)
 
 void BK4819_SetAfGain(uint16_t Gain)
 {
+#if 0
 	if (gMainVfo->gModulationType) {			// AM, SSB
 		//if ((Gain & 15) > 4) { ///WT: testing
 		//	Gain -= 4;
@@ -675,6 +791,14 @@ void BK4819_SetAfGain(uint16_t Gain)
 			break;
 		}
 	}
+#else
+	BK4819_WriteRegister(0x48,	//  0xB3A8);     // 1011 00 111010 1000
+		(11u << 12) |     // ??? 0..15
+		( 0u << 10) |     // AF Rx Gain-1
+		(58u <<  4) |     // AF Rx Gain-2
+		( 8u <<  0));     // AF DAC Gain (after Gain-1 and Gain-2)
+
+#endif
 }
 
 bool BK4819_CheckSquelchLink(void)
@@ -738,28 +862,76 @@ void BK4819_GenTail(bool bIsNarrow)
 	}
 }
 
-void BK4819_SetupPowerAmplifier(uint8_t Bias)
+void BK4819_SetupPowerAmplifier(uint8_t Bias, uint32_t frequency)
 {
 	uint16_t Value;
 
+#if 0
 	Value = (Bias << 10) | 0x7F;
 	if (Bias) {
 		Value |= 0x80;
 	}
-
 	BK4819_WriteRegister(0x36, Value);
+// Bias is 15 for LOW  33 for HIGH
+// resulting Value is 0x3CFF for LOW 0x84FF for HIGH	
+#else
+
+	// REG_36 <15:8> 0 PA Bias output 0 ~ 3.2V
+	//               255 = 3.2V
+	//                 0 = 0V
+	//
+	// REG_36 <7>    0
+	//               1 = Enable PA-CTL output
+	//               0 = Disable (Output 0 V)
+	//
+	// REG_36 <5:3>  7 PA gain 1 tuning
+	//               7 = max
+	//               0 = min
+	//
+	// REG_36 <2:0>  7 PA gain 2 tuning
+	//               7 = max
+	//               0 = min
+	//
+
+	const uint8_t gain   = (frequency < 28000000) ? (1u << 3) | // PA Gain1 Tuning. 0(min)->7(max)  def. 1u
+							(1u << 0) : // PA Gain2 Tuning. 0(min)->7(max)       0u
+	
+							(4u << 3) | // PA Gain1 Tuning. 0(min)->7(max)       4u
+							(4u << 0);	// PA Gain2 Tuning. 0(min)->7(max)       2u
+
+	Value = (Bias   << 8) |										// PA Biasoutput 0x00=0V 0xFF=3.2V
+			(1      << 7) |										// 1=Enable PACTLoutput; 0=Disable(Output 0 V)
+			(gain   << 0);
+	BK4819_WriteRegister(0x36, Value);
+	
+#endif
+IFDBG UART_printf(1,"Pwr Freq: %d\r\n",frequency);
+IFDBG UART_printf(1,"Pwr Bias: %d\r\n",Bias);
+IFDBG UART_printf(1,"Pwr val: %X\r\n",Value);
+
 }
 
 void BK4819_EnableRfTxDeviation(void)
 {
 	uint16_t Deviation;
 
-	Deviation = gMainVfo->bIsNarrow ? gFrequencyBandInfo.TxDeviationNarrow : gFrequencyBandInfo.TxDeviationWide;
+	//Deviation = gMainVfo->bIsNarrow ? gFrequencyBandInfo.TxDeviationNarrow : gFrequencyBandInfo.TxDeviationWide;// 0x34EC
+	// 0x4D0 -  12 kHz
+	// 0x6FF -  25 kHz
+	// 0x7FF -  40 kHz
+	// 0x840 -  55 kHz
+	// 0x940 - 200 kHz
+	Deviation = gMainVfo->bIsNarrow ? 0x440 : 0x540;
 	if (gMainVfo->Scramble) {
 		Deviation -= 200;
 	}
-	///BK4819_WriteRegister(0x40, Deviation);
-	BK4819_WriteRegister(0x40, 0x14D0);// default on DS
+IFDBG UART_printf(1,"Dev: 0x%X\r\n",Deviation);
+
+	Deviation |=	(   1u << 12);     // Enable
+	
+	//BK4819_WriteRegister(0x40, 0x14D0); /// default on DS
+	BK4819_WriteRegister(0x40, Deviation);
+	
 
 }
 
