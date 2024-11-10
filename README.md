@@ -21,7 +21,7 @@ There is no "free radio" but GMRS, and this devices do not comply whith GMRS spe
 - All OEFW features plus:
     - Full rewrite of UART code to support the new command shell and the GPS Receiver
     - Added channel templates for standard APRS frequencies on EUR and USA
-    - New keyaction to send Position by APRS (not working yet)
+    - New keyaction to send Position by APRS
     - Personal ID (editable with CHIRP) used as "myCALL" for APRS. SSID is fixed to 7
     - Startup Label (editable with CHIRP) used as Device Serial Number
     - GPS Time shown on display
