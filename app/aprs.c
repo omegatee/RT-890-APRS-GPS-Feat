@@ -1,15 +1,15 @@
 #include <string.h>
 #include "driver/uart.h"
-//#include "driver/afsk.h"
+#include "driver/speaker.h"///
 #include "driver/delay.h"
 #include "driver/gps.h"
 #include "driver/bk4819.h"
 #include "driver/speaker.h"
 #include "radio/settings.h"
+#include "app/radio.h"
 #include "misc.h"
 
-#define SYM_TIME 833	// nominal is 833 (1/1200)
-
+#define SYM_TIME 770	// nominal is 833 (1/1200)
 
 uint8_t		FrameBUFF[512];
 uint16_t 	pFrameBUFF=0;
@@ -35,17 +35,14 @@ bool tone = 0;
 void send_tone(bool ton)
 {
 	// Nominal for Bell 202 AFSK: MARK(1) - 1200 SPACE(0) - 2200
-	if(ton){
+	if(ton==1){
 		BK4819_SetToneFrequency(false, 1200);// trimmed 1200
-//UART_SendByte(1,0x30);
 	}
 	else {
 		BK4819_SetToneFrequency(false, 2200);// trimmed 2200 
-//UART_SendByte(1,0x31);
 	}
 
 	DELAY_WaitUS(SYM_TIME);
-	//DELAY_WaitMS(200); // for debug purposes
 }
 
 
@@ -64,8 +61,7 @@ void AFSK_SendByte(char byte, bool stuff){
 	
 uint8_t i;
 bool bit;
-//UART_SendByte(1,byte);
-	
+
 	for(i = 0; i < 8; i++) {
 		bit = byte & 0x01;
 		calc_crc(bit);
@@ -96,7 +92,7 @@ bool bit;
 }
 
 
-void APRS_send_Flag(uint8_t cnt)
+void APRS_send_Flag(uint16_t cnt)
 {
     while(cnt--)					
 		AFSK_SendByte(0x7E,0);// 0=no bitstuff
@@ -118,9 +114,7 @@ uint8_t ssid_byte;
 			FrameBUFF[pFrameBUFF++]=(' ' << 1);
 	}
 	
-	ssid_byte=0x30;
-	ssid_byte |= ((ssid + 0x30) << 1);
-
+	ssid_byte = ((ssid + 0x30) << 1);
 	if (last)
 		ssid_byte |= 1;
 
@@ -133,15 +127,20 @@ void APRS_add_CTRL(void)
 	FrameBUFF[pFrameBUFF++]=(0xF0); // PID -- No Layer 3 protocol
 }
 
+void APRS_add_Status(char * text)
+{
+uint8_t cnt,slen;
+	
+	slen=strlen(text);
+	
+	FrameBUFF[pFrameBUFF++]='>';
+	for(cnt=0;cnt<slen;cnt++)
+		FrameBUFF[pFrameBUFF++]=text[cnt];
+}
+
 void APRS_add_Pos(void)
 {
 uint8_t cnt;
-	
-//for debug:
-//char LatY[]={"4027.25"};
-//char LatS[]={"N"};
-//char LonX[]={"00328.45"};
-//char LonS[]={"W"};
 	
 	FrameBUFF[pFrameBUFF++]='!';
 	
@@ -161,7 +160,6 @@ uint8_t cnt;
 }
 
 
-
 void APRS_send_Frame(void)
 {
 uint16_t cnt;
@@ -174,41 +172,20 @@ void APRS_send_FCS(void)
 {
   unsigned char crc_lo = crc ^ 0xff;
   unsigned char crc_hi = (crc >> 8) ^ 0xff;
-	AFSK_SendByte(crc_lo,1);		// LO byte first
+	AFSK_SendByte(crc_lo,1);	// LO byte first
 	AFSK_SendByte(crc_hi,1);	// HI byte
 }
 
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 void APRS_send_Packet(uint8_t Type)
 {
-#if 0
-int cnt;
-int len=0;
-// ristra Carlos char mess[]={"10000001100000011000000110000001100000001000000110000001100000011000000110000001000000000000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010010001101010011011000110000110011010100101011001001000010000100101011101110101100101011010001001010100111001110001010101010000001010110010011101001000000010001000100000111100100101110100000010111101101011011000001101010111011010001000100010110111010000110100001101001000101010001001101001101011100000110110101001100000001010001010100010101000101100110110100010011000000000110101011001001000101001110101100010001001100000110101100110110111011110001011100110110111010110001010011101001001101011011000111111001101101000000010101010"};
-
-//char mess[]={"100010001010011010101000010000000100000001000000011001001010011010100100100001100100000001000000010000000110011010101110100100101000100010001010011000100100000001100011000000111111000001001010011101010111001101110100001000000101001101101111011011010110010100100000010001000110000101110100011000011010010101101110"};	
-
-char mess[]={"100000011000000110000001100000011000000110000001100000011000000110001000101001101010100001000000010000000100000001100100101001101010010010000110010000000100000001000000011001101010111010010010100010001000101001100010010000000110001100000011111100000100101001110101011100110111010000100000010100110110111101101101011001010010000001000100011000010111010001100001101001010110111010000001100000011000000110000001"};	
-
-
-	BK4819_SetAfGain(0xB325);
+	BK4819_SetAfGain(0xB32A);
 	BK4819_EnableTone1(true);
+//SPEAKER_TurnOn(SPEAKER_OWNER_SYSTEM);
 
-	//APRS_send_Flag(100);
-	cnt=strlen(mess);
-	while(cnt--)
-		if(mess[len++]=='1')
-			send_tone(1);
-		else
-			send_tone(0);
-	//APRS_send_Flag(10);
-#else
-	
+	RADIO_StartTX(0);
+
 	/* ==============================================================  */
-
-	BK4819_SetAfGain(0xB325);
-	BK4819_EnableTone1(true);
-	//SPEAKER_TurnOn(SPEAKER_OWNER_SYSTEM);
 	
 	// Compose Frame
 		FrameBUFF[0]=0;
@@ -224,11 +201,17 @@ char mess[]={"100000011000000110000001100000011000000110000001100000011000000110
 		APRS_add_CTRL();
 
 		// compose payload -----------------
-		APRS_add_Pos();
+		switch(Type){
+			case 0:
+				APRS_add_Status("HELLO. RT-890 Test");
+				break;
+			case 1:
+				APRS_add_Pos();
+				break;
+		}
 	
-tone=0; /// ???
 	// send flag -----------------
-	APRS_send_Flag(100);
+	APRS_send_Flag(48);
 
 	crc=0xFFFF;
 	// send frame -----------------
@@ -238,7 +221,8 @@ tone=0; /// ???
 	APRS_send_FCS();
 	
 	// send flag -----------------
-	APRS_send_Flag(10);
-#endif	
+	APRS_send_Flag(4);
+	//	AFSK_SendByte(0x7E,0);
+
 	BK4819_EnableTone1(false);
 }
