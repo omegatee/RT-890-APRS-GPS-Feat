@@ -23,6 +23,7 @@
 #include "radio/scheduler.h"
 #include "task/am-fix.h"
 #include "task/alarm.h"
+#include "task/aprs.h"
 #include "task/cursor.h"
 #include "task/lock.h"
 #ifdef ENABLE_NOAA
@@ -91,6 +92,9 @@ void HandlerTMR1_BRK_OVF_TRG_HALL(void)
 	}
 	if (gEnableLocalAlarm && !gSendTone) {
 		gAlarmCounter++;
+	}
+	if (gAPRSInterval && gAPRSCounter) {
+		gAPRSCounter--;
 	}
 	if (gAudioTimer) {
 		gAudioTimer--;

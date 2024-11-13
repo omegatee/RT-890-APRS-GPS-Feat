@@ -123,6 +123,7 @@ OBJS += task/sidekeys.o
 OBJS += task/timeout.o
 OBJS += task/voice.o
 OBJS += task/vox.o
+OBJS += task/aprs.o
 
 # User Interface
 OBJS += ui/boot.o

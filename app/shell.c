@@ -65,7 +65,7 @@ uint8_t cnt;
 char group[16];
 	
 	if(strncmp(buffer,"EXIT",4)==0){
-//		UART_printf(1,"\r\n<\r\n");
+		UART_printf(1,"\r\n<\r\n");
 		gShellMode=false;
 		return;
 	}

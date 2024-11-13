@@ -894,10 +894,10 @@ void BK4819_SetupPowerAmplifier(uint8_t Bias, uint32_t frequency)
 	//
 
 	const uint8_t gain   = (frequency < 28000000) ? (1u << 3) | // PA Gain1 Tuning. 0(min)->7(max)  def. 1u
-							(1u << 0) : // PA Gain2 Tuning. 0(min)->7(max)       0u
+													(1u << 0) : // PA Gain2 Tuning. 0(min)->7(max)       0u
 	
-							(4u << 3) | // PA Gain1 Tuning. 0(min)->7(max)       4u
-							(4u << 0);	// PA Gain2 Tuning. 0(min)->7(max)       2u
+													(4u << 3) | // PA Gain1 Tuning. 0(min)->7(max)       4u
+													(4u << 0);	// PA Gain2 Tuning. 0(min)->7(max)       2u
 
 	Value = (Bias   << 8) |										// PA Biasoutput 0x00=0V 0xFF=3.2V
 			(1      << 7) |										// 1=Enable PACTLoutput; 0=Disable(Output 0 V)

@@ -27,6 +27,7 @@
 #include "ui/helper.h"
 #include "ui/main.h"
 #include "ui/vfo.h"
+#include "task/aprs.h"
 
 void DrawStatusBar(void)
 {
@@ -129,7 +130,10 @@ void UI_DrawBattery(bool bDisplayVoltage)
 	
 	
 /// rented space to display GPS clock
-gColorForeground = COLOR_GREY;
+if(gAPRSInterval)
+	gColorForeground = COLOR_RED;
+else
+	 gColorForeground = COLOR_GREY;
 UI_DrawSmallString(78,86,gTime,6);
 gColorForeground = COLOR_FOREGROUND;
 

@@ -32,15 +32,12 @@
 #include "task/cursor.h"
 #include "task/keyaction.h"
 #include "task/sidekeys.h"
-#include "task/aprs.h"
 #include "ui/gfx.h"
 #include "ui/helper.h"
 #include "ui/main.h"
 #include "ui/menu.h"
 #include "ui/version.h"
 
-
-/// NOTE: match this list with app/menu.h
 static const char Menu[][14] = {
 	"SQL Level     ",
 	"VFO Step      ",
@@ -81,7 +78,6 @@ static const char Menu[][14] = {
 	"DTMF Select   ",
 	"DTMF Display  ",
 	"Personal ID   ",
-	"APRS Beacon   ",
 #ifdef ENABLE_FM_RADIO
 	"FM Standby    ",
 #endif
@@ -146,8 +142,7 @@ static const ChannelInfo_t EmptyChannel = {
 	.bIsLowPower = 1,
 	.bIsNarrow = 1,
 
-	.gBandWidth = 0x0F,
-	.gTXPower = 0x0F,
+	._0x11 = 0xFF,
 	.Scramble = 0xFF,
 	.IsInscanList = 0xFF,
 	._0x14 = 0xFF,
@@ -476,36 +471,11 @@ void MENU_AcceptSetting(void)
 
 	case MENU_PERSONAL_ID:
 		for (i = 0; i < 16; i++) {
-			myCALL[i] = gBigString[i];
+			gDeviceName[i] = gBigString[i];
 		}
 		SETTINGS_SaveDeviceName();
 		break;
 
-	case MENU_APRS_BEACON:
-		gAPRSInterval = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
-		switch(gAPRSInterval){
-			case 0:
-				gAPRSCounter=0;
-				break;
-			case 1:
-				gAPRSCounter=ONE_MIN;
-				break;
-			case 2:
-				gAPRSCounter=ONE_MIN*5;
-				break;
-			case 3:
-				gAPRSCounter=ONE_MIN*10;
-				break;
-			case 4:
-				gAPRSCounter=ONE_MIN*20;
-				break;
-			case 5:
-				gAPRSCounter=ONE_MIN*60;
-				break;
-		}
-
-		break;
-			
 	case MENU_REPEATER_MODE:
 		gSettings.RepeaterMode = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
 		UI_DrawRepeaterMode();
@@ -919,19 +889,12 @@ void MENU_DrawSetting(void)
 		UI_DrawActivateBy();
 		T9WritePos = 16;
 		for (i = 0; i < EditSize; i++) {
-			gBigString[i] = myCALL[i];
+			gBigString[i] = gDeviceName[i];
 		}
 		UI_DrawDeviceName(gBigString);
 		EnableTextEditor();
 		return;
 
-	case MENU_APRS_BEACON:
-		gSettingCurrentValue = gAPRSInterval;
-		gSettingMaxValues = 6;
-		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
-		UI_DrawSettingAPRSInterval(gSettingCurrentValue);
-		break;
-			
 	case MENU_REPEATER_MODE:
 		gSettingCurrentValue = gSettings.RepeaterMode;
 		gSettingMaxValues = 3;
@@ -1198,7 +1161,7 @@ void MENU_Redraw(bool bClear)
 	gColorForeground = COLOR_FOREGROUND;
 	UI_DrawSettingArrow(0);
 	DrawMenu(gMenuIndex);
-	///MENU_PlayAudio(gMenuIndex);
+	MENU_PlayAudio(gMenuIndex);
 }
 
 void MENU_KeyHandler(uint8_t Key)
@@ -1222,7 +1185,7 @@ void MENU_KeyHandler(uint8_t Key)
 	case KEY_DOWN:
 		UI_DrawString(1, 112, "  ", 2);
 		MENU_Next(Key);
-		///MENU_PlayAudio((gMenuIndex + gSettingIndex) % gSettingsCount);
+		MENU_PlayAudio((gMenuIndex + gSettingIndex) % gSettingsCount);
 		BEEP_Play(740, 2, 100);
 		break;
 
@@ -1385,10 +1348,6 @@ void MENU_ScrollSetting(uint8_t Key)
 		UI_DrawSettingRepeaterMode(gSettingCurrentValue);
 		break;
 
-	case MENU_APRS_BEACON:
-		UI_DrawSettingAPRSInterval(gSettingCurrentValue);
-		break;
-			
 	case MENU_SCAN_DELAY:
 		UI_DrawSettingNumList(gSettingCurrentValue, 62);
 		break;
@@ -1486,7 +1445,7 @@ void MENU_ScrollSetting(uint8_t Key)
 		break;
 	}
 }
-/*
+
 void MENU_PlayAudio(uint8_t MenuID)
 {
 	uint8_t ID = 0;
@@ -1542,5 +1501,5 @@ void MENU_PlayAudio(uint8_t MenuID)
 	if (ID) {
 		AUDIO_PlaySampleOptional(ID);
 	}
-}*/
+}
 

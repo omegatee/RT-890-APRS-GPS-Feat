@@ -134,7 +134,6 @@ void GPSProcess(char * buffer)
 {
 char *pBuff;
 
-//	UART_printf(1,"GPS: %s\r\n",buffer);
 // EXAMPLE:
 //	$GNRMC,164015.000,A,4027.25753,N,00328.45384,W,0.00,0.00,101024,,,A,V*19
 //	$GNGGA,164017.000,4027.25749,N,00328.45394,W,1,13,1.2,604.7,M,52.0,M,,*5C

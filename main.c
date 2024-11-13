@@ -49,6 +49,7 @@
 #include "task/timeout.h"
 #include "task/voice.h"
 #include "task/vox.h"
+#include "task/aprs.h"
 
 extern const uint8_t StackVector[];
 
@@ -65,12 +66,12 @@ void Main(void)
 	HARDWARE_Init();
 	RADIO_Init();
 
-	if (gSettings.DtmfState == DTMF_STATE_KILLED) {
+//	if (gSettings.DtmfState == DTMF_STATE_KILLED) {
 		DATA_ReceiverInit();
-	}
+//	}
 	
 	/// ------------------------------------------------------------------- MAIN LOOP
-	//UART_printf(1,"\r\n\n\n\nRADTEL RT-890\r\nOEFW by omegatee V_0.6\r\n2024/10/26\r\n");
+	UART_printf(1,"\r\n\n\n\nRADTEL RT-890\r\nOEFW by omegatee V_0.6\r\n2024/10/26\r\n");
 
 	while (1) {
 		do {
@@ -100,15 +101,19 @@ void Main(void)
 				Task_CheckNOAA();
 #endif
 				Task_LocalAlarm();
+				Task_APRSBeacon();
 
 //	IFDBG UART_printf(1,"ModeA=%d\t",gSettings.WorkModeA);
 //	IFDBG UART_printf(1,"ModeB=%d\t",gSettings.WorkModeB);
 //	IFDBG UART_printf(1,"Dial=%d\n",gSettings.CurrentDial);
 //	IFDBG UART_printf(1,"Freq = %d\n",gVfoInfo[gSettings.CurrentDial].Frequency);
+//IFDBG UART_printf(1,"gAPRSInterval=%d\tgAPRSCounter=%d\r\n",gAPRSInterval,gAPRSCounter);
 
+				
 			}
 		} while (gSettings.DtmfState != DTMF_STATE_KILLED);
 		if (BK4819_ReadRegister(0x0C) & 0x0001U) { /// 0x0C[0] = Interrupt Indicator
+IFDBG UART_printf(1,"DATA!\n");
 			DATA_ReceiverCheck();
 		}
 		DELAY_WaitMS(1);

@@ -33,9 +33,6 @@
 #include "driver/bk4819.h"
 #include "driver/key.h"
 #include "driver/pins.h"
-//#include "driver/speaker.h"///
-//#include "driver/delay.h"///
-//#include "app/radio.h"///
 #include "helper/dtmf.h"
 #include "helper/helper.h"
 #include "helper/inputbox.h"
@@ -182,20 +179,9 @@ void KeypressAction(uint8_t Action) {
 			case ACTION_APRS_SEND_POS:
 				if (gRadioMode != RADIO_MODE_QUIET)
 					break;
-				/// set APRS frequency first
-				gVfoState[gCurrentDial]=gAPRSDefaultChannels[0];
-				RADIO_StartTX(0);
 				
-				APRS_send_Packet(1);
+				APRS_send_Packet(0);
 
-				/// restore initial dial mode
-				if (gSettings.WorkModeA) {
-					CHANNELS_LoadChannel(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
-				} else {
-					CHANNELS_LoadChannel(gSettings.CurrentDial ? 1000 : 999, gSettings.CurrentDial);
-				}
-				RADIO_Tune(gSettings.CurrentDial);
-				UI_DrawVfo(gSettings.CurrentDial);
 				break;
 
 			case ACTION_REMOTE_ALARM:
@@ -291,7 +277,6 @@ void KeypressAction(uint8_t Action) {
 				gVfoState[gSettings.CurrentDial].bIsLowPower ^= 1;
 				UI_DrawTxPower(gVfoState[gSettings.CurrentDial].bIsLowPower, gSettings.CurrentDial);
 				CHANNELS_SaveVfo();
-				//UI_DrawDialogText(DIALOG_TX_POWER, gVfoState[gSettings.CurrentDial].bIsLowPower);
 				break;
 
 			case ACTION_SQ_LEVEL:

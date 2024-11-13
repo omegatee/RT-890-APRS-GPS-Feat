@@ -16,16 +16,17 @@ static const ChannelInfo_t gAPRSDefaultChannels[3] = {
 		.gModulationType = 0,
 		.BCL = BUSY_LOCK_OFF,
 		.ScanAdd = 1,
-		.bIsLowPower = 1, // for debug
+		.bIsLowPower = 0, // for debug
 		.bIsNarrow = 1,
 
-		._0x11 = 0x11,
+		.gBandWidth = 0x0F,
+		.gTXPower = 0x0F,
 		.Scramble = 0x00,
 		.IsInscanList = 0xFF,
 		._0x14 = 0xFF,
 		._0x15 = 0xFF,
 //		.Name = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
-		.Name = { 'A', 'P', 'R', 'S', 0x20,'E', 'U', 'R', 0x20, 'V' },
+		.Name = { "APRS EUR V" }
 	},
 	
 	{
@@ -45,12 +46,13 @@ static const ChannelInfo_t gAPRSDefaultChannels[3] = {
 		.bIsLowPower = 0,
 		.bIsNarrow = 0,
 
-		._0x11 = 0x11,
+		.gBandWidth = 0x0F,
+		.gTXPower = 0x0F,
 		.Scramble = 0x00,
 		.IsInscanList = 0xFF,
 		._0x14 = 0xFF,
 		._0x15 = 0xFF,
-		.Name = { 'A', 'P', 'R', 'S', 0x20,'E', 'U', 'R', 0x20, 'U' },
+		.Name = { "APRS EUR U" }
 	},
 	
 	{
@@ -70,17 +72,18 @@ static const ChannelInfo_t gAPRSDefaultChannels[3] = {
 		.bIsLowPower = 0,
 		.bIsNarrow = 0,
 
-		._0x11 = 0x11,
+		.gBandWidth = 0x0F,
+		.gTXPower = 0x0F,
 		.Scramble = 0x00,
 		.IsInscanList = 0xFF,
 		._0x14 = 0xFF,
 		._0x15 = 0xFF,
-		.Name = { 'A', 'P', 'R', 'S', 0x20,'U', 'S', 'A', 0x20, 'V' },
+		.Name = { "APRS USA V" }
 	}
 
 };
 
-void APRS_send_Flag(uint8_t cnt);
+void APRS_send_Flag(uint16_t cnt);
 
 void APRS_add_Address(char *call, char ssid, bool last);
 void APRS_add_CTRL(void);

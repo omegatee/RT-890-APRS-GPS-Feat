@@ -20,7 +20,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-/// NOTE: match this list with app/menu.c
 enum {
 	MENU_SQ_LEVEL = 0,
 	MENU_FREQ_STEP,
@@ -61,7 +60,6 @@ enum {
 	MENU_DTMF_SELECT,
 	MENU_DTMF_DISPLAY,
 	MENU_PERSONAL_ID,
-	MENU_APRS_BEACON,
 #ifdef ENABLE_FM_RADIO
 	MENU_FM_STANDBY,
 #endif
@@ -123,7 +121,7 @@ void MENU_KeyHandler(uint8_t Key);
 void MENU_Next(uint8_t Key);
 void MENU_SettingKeyHandler(uint8_t Key);
 void MENU_ScrollSetting(uint8_t Key);
-///void MENU_PlayAudio(uint8_t ID);
+void MENU_PlayAudio(uint8_t ID);
 
 #endif
 

@@ -113,7 +113,7 @@ static void TuneCurrentDial(void)
 	BK4819_SetSquelchNoise(gMainVfo->bIsNarrow);
 	BK4819_SetSquelchRSSI(gMainVfo->bIsNarrow);
 	BK4819_EnableRX();
-	BK4819_SetFilterBandwidth(gMainVfo->bIsNarrow);
+	BK4819_SetFilterBandwidth(gMainVfo->bIsNarrow,0);
 	BK4819_EnableFilter(true);
 }
 
@@ -153,7 +153,17 @@ static bool TuneTX(bool bUseMic)
 			BK4819_SetAFResponseCoefficients(true, true, 5);
 		}
 		EnableTxAmp(true);
-		BK4819_SetupPowerAmplifier(gMainVfo->bIsLowPower ? gTxPowerLevelLow : gTxPowerLevelHigh);
+		///BK4819_SetupPowerAmplifier(gMainVfo->bIsLowPower ? gTxPowerLevelLow : gTxPowerLevelHigh, gVfoInfo[gCurrentDial].Frequency);
+		
+		///  10 -   25 uW
+		//   40 -  190 mW
+		//   50 -  360 mW
+		//   80 -  1,2  W
+		//  100 -  2,0  W
+		//  150 -  4,7  W
+		//  200 -  6,2  W
+		BK4819_SetupPowerAmplifier(gMainVfo->bIsLowPower ? 78 : 155, gVfoInfo[gCurrentDial].Frequency);
+
 
 		return true;
 	} else {
@@ -207,7 +217,7 @@ static void TuneNOAA(void)
 	BK4819_EnableScramble(0);
 	BK4819_EnableCompander(false);
 	BK4819_EnableRX();
-	BK4819_SetFilterBandwidth(false);
+	BK4819_SetFilterBandwidth(false,0);
 	BK4819_EnableFilter(true);
 }
 #endif
@@ -583,7 +593,7 @@ void RADIO_EndTX(void)
 	}
 	BK4819_GenTail(gMainVfo->bIsNarrow);
 	gpio_bits_reset(GPIOA, BOARD_GPIOA_LED_RED);
-	BK4819_SetupPowerAmplifier(0);
+	BK4819_SetupPowerAmplifier(0,0);
 	TuneCurrentDial();
 	UI_DrawSomething();
 	gBatteryTimer = 3000;

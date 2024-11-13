@@ -7,6 +7,8 @@
 #include "driver/speaker.h"
 #include "radio/settings.h"
 #include "app/radio.h"
+#include "app/aprs.h"
+#include "ui/vfo.h"
 #include "misc.h"
 
 #define SYM_TIME 770	// nominal is 833 (1/1200)
@@ -179,6 +181,9 @@ void APRS_send_FCS(void)
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 void APRS_send_Packet(uint8_t Type)
 {
+	/// set APRS frequency first
+	gVfoState[gCurrentDial]=gAPRSDefaultChannels[0];
+
 	BK4819_SetAfGain(0xB32A);
 	BK4819_EnableTone1(true);
 //SPEAKER_TurnOn(SPEAKER_OWNER_SYSTEM);
@@ -225,4 +230,14 @@ void APRS_send_Packet(uint8_t Type)
 	//	AFSK_SendByte(0x7E,0);
 
 	BK4819_EnableTone1(false);
+	
+	/// restore initial dial mode
+	if (gSettings.WorkModeA) {
+		CHANNELS_LoadChannel(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
+	} else {
+		CHANNELS_LoadChannel(gSettings.CurrentDial ? 1000 : 999, gSettings.CurrentDial);
+	}
+	RADIO_Tune(gSettings.CurrentDial);
+	UI_DrawVfo(gSettings.CurrentDial);
+
 }

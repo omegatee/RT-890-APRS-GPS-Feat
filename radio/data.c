@@ -100,7 +100,7 @@ bool DATA_ReceiverCheck(void)
 	uint16_t Result;
 	uint8_t i;
 
-	Result = BK4819_ReadRegister(0x0B);
+	Result = BK4819_ReadRegister(0x0B); /// DTMF/FSK flags
 	BK4819_WriteRegister(2, 0);
 
 	if (gSettings.DtmfState == DTMF_STATE_KILLED && (Result & 0x1000U) == 0) {

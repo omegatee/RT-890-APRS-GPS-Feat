@@ -56,7 +56,8 @@ static const ChannelInfo_t VfoTemplate[2] = {
 		.bIsLowPower = 0,
 		.bIsNarrow = 0,
 
-		._0x11 = 0x11,
+		.gBandWidth = 0x0F,
+		.gTXPower = 0x0F,
 		.Scramble = 0x00,
 		.IsInscanList = 0xFF,
 		._0x14 = 0xFF,
@@ -81,7 +82,8 @@ static const ChannelInfo_t VfoTemplate[2] = {
 		.bIsLowPower = 0,
 		.bIsNarrow = 0,
 
-		._0x11 = 0x11,
+		.gBandWidth = 0x0F,
+		.gTXPower = 0x0F,
 		.Scramble = 0x00,
 		.IsInscanList = 0xFF,
 		._0x14 = 0xFF,
@@ -109,7 +111,8 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.bIsLowPower = 0,
 		.bIsNarrow = 0,
 
-		._0x11 = 0x11,
+		.gBandWidth = 0x0F,
+		.gTXPower = 0x0F,
 		.Scramble = 0x00,
 		.IsInscanList = 0xFF,
 		._0x14 = 0xFF,
@@ -133,7 +136,8 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.bIsLowPower = 0,
 		.bIsNarrow = 0,
 
-		._0x11 = 0x11,
+		.gBandWidth = 0x0F,
+		.gTXPower = 0x0F,
 		.Scramble = 0x00,
 		.IsInscanList = 0xFF,
 		._0x14 = 0xFF,
@@ -157,7 +161,8 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.bIsLowPower = 0,
 		.bIsNarrow = 0,
 
-		._0x11 = 0x11,
+		.gBandWidth = 0x0F,
+		.gTXPower = 0x0F,
 		.Scramble = 0x00,
 		.IsInscanList = 0xFF,
 		._0x14 = 0xFF,
@@ -181,7 +186,8 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.bIsLowPower = 0,
 		.bIsNarrow = 0,
 
-		._0x11 = 0x11,
+		.gBandWidth = 0x0F,
+		.gTXPower = 0x0F,
 		.Scramble = 0x00,
 		.IsInscanList = 0xFF,
 		._0x14 = 0xFF,
@@ -205,7 +211,8 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.bIsLowPower = 0,
 		.bIsNarrow = 0,
 
-		._0x11 = 0x11,
+		.gBandWidth = 0x0F,
+		.gTXPower = 0x0F,
 		.Scramble = 0x00,
 		.IsInscanList = 0xFF,
 		._0x14 = 0xFF,
@@ -229,7 +236,8 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.bIsLowPower = 0,
 		.bIsNarrow = 0,
 
-		._0x11 = 0x11,
+		.gBandWidth = 0x0F,
+		.gTXPower = 0x0F,
 		.Scramble = 0x00,
 		.IsInscanList = 0xFF,
 		._0x14 = 0xFF,
@@ -253,7 +261,8 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.bIsLowPower = 0,
 		.bIsNarrow = 0,
 
-		._0x11 = 0x11,
+		.gBandWidth = 0x0F,
+		.gTXPower = 0x0F,
 		.Scramble = 0x00,
 		.IsInscanList = 0xFF,
 		._0x14 = 0xFF,
@@ -277,7 +286,8 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.bIsLowPower = 0,
 		.bIsNarrow = 0,
 
-		._0x11 = 0x11,
+		.gBandWidth = 0x0F,
+		.gTXPower = 0x0F,
 		.Scramble = 0x00,
 		.IsInscanList = 0xFF,
 		._0x14 = 0xFF,
@@ -301,7 +311,8 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.bIsLowPower = 0,
 		.bIsNarrow = 0,
 
-		._0x11 = 0x11,
+		.gBandWidth = 0x0F,
+		.gTXPower = 0x0F,
 		.Scramble = 0x00,
 		.IsInscanList = 0xFF,
 		._0x14 = 0xFF,
@@ -325,7 +336,8 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.bIsLowPower = 0,
 		.bIsNarrow = 0,
 
-		._0x11 = 0x11,
+		.gBandWidth = 0x0F,
+		.gTXPower = 0x0F,
 		.Scramble = 0x00,
 		.IsInscanList = 0xFF,
 		._0x14 = 0xFF,
@@ -349,7 +361,8 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.bIsLowPower = 0,
 		.bIsNarrow = 0,
 
-		._0x11 = 0x11,
+		.gBandWidth = 0x0F,
+		.gTXPower = 0x0F,
 		.Scramble = 0x00,
 		.IsInscanList = 0xFF,
 		._0x14 = 0xFF,

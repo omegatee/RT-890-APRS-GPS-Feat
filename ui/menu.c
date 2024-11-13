@@ -21,6 +21,7 @@
 #include "radio/settings.h"
 #include "task/keyaction.h"
 #include "task/sidekeys.h"
+#include "task/aprs.h"
 #include "ui/gfx.h"
 #include "ui/helper.h"
 #include "ui/menu.h"
@@ -385,6 +386,21 @@ void UI_DrawScanDirection(void)
 void UI_DrawDeviceName(const char *pName)
 {
 	UI_DrawString(4, 48, pName, 16);
+}
+
+void UI_DrawSettingAPRSInterval(uint8_t Index)
+{
+	static const char Mode[6][6] = {
+		"OFF   ",
+		" 1 min",
+		" 5 min",
+		"10 min",
+		"20 min",
+		" 1  hr",
+	};
+
+	UI_DrawSettingOptionEx(Mode[Index], 6, 0);
+	UI_DrawSettingOptionEx(Mode[(Index + 1) % 6], 6, 1);
 }
 
 void UI_DrawSettingRepeaterMode(uint8_t Index)

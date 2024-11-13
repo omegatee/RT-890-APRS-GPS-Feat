@@ -42,6 +42,7 @@ void UI_DrawTimer(uint8_t Index);
 void UI_DrawLevel(uint8_t Index);
 void UI_DrawScanDirection(void);
 void UI_DrawDeviceName(const char *pName);
+void UI_DrawSettingAPRSInterval(uint8_t Index);
 void UI_DrawSettingRepeaterMode(uint8_t Index);
 void UI_DrawSettingTxPower(void);
 void UI_DrawSettingSquelchMode(uint8_t Index);
@@ -52,5 +53,6 @@ void UI_DrawSettingScanlist(uint8_t Index);
 void UI_DrawSettingNumList(uint8_t Index, uint8_t Max);
 void UI_DrawSettingScanResume(uint8_t Index);
 void UI_DrawSettingMicGain(uint8_t Index);
+
 #endif
 

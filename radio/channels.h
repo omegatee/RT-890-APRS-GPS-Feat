@@ -43,7 +43,8 @@ typedef struct __attribute__((packed)) {
 	uint8_t bIsLowPower:1;
 	uint8_t bIsNarrow:1;
 	// 0x11
-	uint8_t _0x11;
+	uint8_t gBandWidth:4;		/// added
+	uint8_t gTXPower:4;			/// added
 	uint8_t Scramble;
 	uint8_t IsInscanList;		// 8 lists: 1 bit per list
 	uint8_t _0x14;

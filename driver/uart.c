@@ -81,15 +81,17 @@ void HandlerUSART1(void)
 			// Read shell commands
 			if(Buffer1[Buffer1Length-1]==0x0D || Buffer1[Buffer1Length-1]==0x0A){	
 				SHELL_Process((char *)Buffer1);
+				UART_printf(1,"\r\nA>");
 				Buffer1Length = 0;
+				Buffer1[0]=0;
 			}
 		}
 		else {
 			// Check for Shell request
 			if(Buffer1Length == 2 && Buffer1[0]==0x3A && Buffer1[1]==0x3A){
 				gShellMode=true;
-				//UART_printf(1,"\r\n>\r\n");
 				Buffer1Length = 0;
+				Buffer1[0]=0;
 				return;
 			}
 
