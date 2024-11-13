@@ -83,7 +83,7 @@ void UI_DrawDialogText(UI_DialogText_t Text, bool bSet)
 		break;
 
 	case DIALOG_PLEASE_CHARGE:
-		UI_DrawString(10, 48, "Please Charge!", 14);
+		UI_DrawString(10, 48, "  LOW BATTERY !  ", 17);
 		break;
 
 	case DIALOG_NO_CH_AVAILABLE:

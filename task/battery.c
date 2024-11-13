@@ -18,6 +18,7 @@
 	#include "app/fm.h"
 #endif
 #include "driver/battery.h"
+#include "driver/beep.h"
 #include "misc.h"
 #include "radio/hardware.h"
 #include "radio/scheduler.h"
@@ -56,6 +57,14 @@ void Task_CheckBattery(void)
 		ChargeTimer = 0;
 		if (gScreenMode == SCREEN_MAIN) {
 			UI_DrawDialogText(DIALOG_PLEASE_CHARGE, true);
+			if(gSettings.KeyBeep){
+				BEEP_Play(740, 2, 100);
+			}
+			else{
+				gSettings.KeyBeep^= 1;
+				BEEP_Play(740, 2, 100);
+				gSettings.KeyBeep^= 1;
+			}
 		}
 	}
 	if (BatteryLevel != 0) {

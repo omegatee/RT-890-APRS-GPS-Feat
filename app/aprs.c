@@ -1,10 +1,11 @@
 #include <string.h>
+#include "external/printf/printf.h"
 #include "driver/uart.h"
 #include "driver/speaker.h"///
 #include "driver/delay.h"
 #include "driver/gps.h"
 #include "driver/bk4819.h"
-#include "driver/speaker.h"
+#include "driver/battery.h"
 #include "radio/settings.h"
 #include "app/radio.h"
 #include "app/aprs.h"
@@ -181,6 +182,7 @@ void APRS_send_FCS(void)
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 void APRS_send_Packet(uint8_t Type)
 {
+char msg[64];
 	/// set APRS frequency first
 	gVfoState[gSettings.CurrentDial]=gAPRSDefaultChannels[0];
 
@@ -208,7 +210,8 @@ void APRS_send_Packet(uint8_t Type)
 		// compose payload -----------------
 		switch(Type){
 			case 0:
-				APRS_add_Status("HELLO. RT-890 APRS Test");
+				sprintf(msg,"HELLO.RT-890 APRS Test.V=%d",BATTERY_GetVoltage());
+				APRS_add_Status(msg);
 				break;
 			case 1:
 				APRS_add_Pos();
