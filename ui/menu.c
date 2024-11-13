@@ -145,7 +145,7 @@ void UI_DrawActions(uint8_t Index)
 		"Freq Detect ",
 		"Repeat Mode ",
 		"Preset CH   ",
-		"Tx APRS Pos ",
+		"Tx APRS Msg ",
 		"Remote Alarm",
 #ifdef ENABLE_NOAA
 		"NOAA        ",

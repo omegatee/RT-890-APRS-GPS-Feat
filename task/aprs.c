@@ -15,7 +15,10 @@ void Task_APRSBeacon(void){
 			gAPRSCounter=ONE_MIN/2; // re-try in 30 s
 			return;
 		}
+
+		
 		APRS_send_Packet(1);
+		
 		switch(gAPRSInterval){
 			case 0:
 				gAPRSCounter=0;

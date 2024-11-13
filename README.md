@@ -1,4 +1,4 @@
-# Radtel RT-890 APRS-GPS Custom Firmware
+# Radtel RT-890 Custom Firmware
 
 This project is an effort to improve the firmware of the Radtel RT-890 in terms of features and radio performance.
 
@@ -9,57 +9,34 @@ Thanks to him for making this possible!
 This firmware is a work in progress and could be unstable; it could alter your radio and its data.  
 Use at your own risk and remember to [back up your SPI memory](https://github.com/OEFW-community/RT-890-custom-firmware/wiki/SPI) before installing any custom firmware.  DO NOT SKIP THIS STEP.
 
-Transmission on this devices is very bad filtered (HW issue). Harmonics go to air almost freely.
+## Features
+- All stock features: [check user's manual](https://cdn.shopifycdn.net/s/files/1/0564/8855/8800/files/RT-890_user_manual.pdf?v=1670288968)
+- RX frequency can be set from 10 to 1300 MHz (results may vary)
+- SSB reception
+- Light theme
+- AM Fix (improvement in AM reception with strong signals, port of @OneOfEleven's excellent work on the Quansheng UV-K5)
+- Sensitivty improvements in gain and squelch 
+- Full control over side key and main key shortcuts
+- New configurable actions (FM Radio, Scanner, FLashlight)
+- 0.01K step
+- Displaying registers in single VFO mode
+- Displaying dBM when receiving
+- Reworked scanner
+  - 8 Scan lists
+  - Faster scanning
+  - Resume mode: Time, Carrier, No
+  - Change scan direction while scanning (up/down keys)
+  - Force scan resume (up/down keys)
+- Spectrum view with waterfall display
+- Reworked main menu
+- Ability to disable LED toggling when scanning
+- And much more!
 
-    --        [IS YOUR RESPONSABILITY TO TAKE THIS ON ACCOUNT TO COMPLY WITH LOCAL REGULATIONS IN YOUR COUNTRY]
+## Usage and feature instructions
+See the [Wiki in this repository](https://github.com/OEFW-community/RT-890-custom-firmware/wiki) for detailed usage instructions.
 
-There is no "free radio" but GMRS, and this devices do not comply whith GMRS specifications.
-
-    --        [DO NOT TRANSMIT IF YOU ARE NOT LICENSED TO]
-
-## omegatee Features / Modifications
-- All OEFW features plus:
-    - Full rewrite of UART code to support the new command shell and the GPS Receiver
-    - Added channel templates for standard APRS frequencies on EUR and USA
-    - New keyaction to send Test Message by APRS
-    - New Menu to activate APRS Position Beacon
-    - Personal ID (editable with CHIRP) used as "myCALL" for APRS. SSID is fixed to 7
-    - Startup Label (editable with CHIRP) used as Device Serial Number
-    - GPS Time shown on display
-
-- Removed / unbugged:
-    - Removed "[DISABLE]" options in menu
-    - Fixed "If CurrentDial ("CurrentVfo" in the repos) is "B" and the incoming signal enters on "A", the AM fix does not apply"
-    - Corrected FM modulation depth for Wide/Narrow modes
-    - Corrected TX Power levels High and Low (set to 5 and 1 W)
-    - Removed unuseful functions such as Flashlight, Local Alarm...
-    - Removed icons hiding modulation mode indicators
-    - Modulation mode is allways shown as "FM" on TX
-    - Keyaction for "Modulation" and others set to "roll-on" instead of calling menu
-
-## GPS Receiver HW Implementation
-
-![image](https://github.com/user-attachments/assets/ff4816d5-8ab2-4709-805b-d65616095407)
-
-Do it as you can
-
-## Command Shell
-At boot, the device works as usual.
-But after receiving two semicolons, enters the SCPI-like shell mode. In this mode, CHIRP will fail. Type EXIT to return to normal operation.
-While in Shell mode, device operates normally.
-
-Implemented commands:
-- *IDN?                Returns Manufacturer, Model, Serial Number and FW Version.
-- *RST                    Reboots the device
-- RADIO:FREQ?            Returns current RX Frequency, TX Frequency
-- RADIO:TX 1            Puts the device on TX (just a millisecond... by now)
-- RADIO:TX 0            Puts the device on RX
-- RADIO:APRS:SEND POS    Sends APRS Position Packet
-- GPS:TIME?                Returns GPS Time
-- GPS:LAT?                Returns GPS Latitude
-- GPS:LON?                Returns GPS Longitude
-- EXIT                    Exits Shell mode
-
+## Pre-built firmware
+You can find pre-built firmwares in the [Actions](https://github.com/OEFW-community/RT-890-custom-firmware/actions)
 
 ## Telegram group
 If you want to discuss this project, you can join the [Telegram group](https://t.me/RT890_OEFW).

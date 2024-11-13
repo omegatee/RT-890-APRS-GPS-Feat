@@ -53,6 +53,7 @@ static const char Menu[][14] = {
 	"TX CTCSS/DCS  ",
 	"DCS Mute Code ",
 	"DCS Encrypt   ",
+	"APRS Beacon   ",
 	"Scrambler     ",
 	"CH Name       ",
 	"Save CH       ",
@@ -81,7 +82,6 @@ static const char Menu[][14] = {
 	"DTMF Select   ",
 	"DTMF Display  ",
 	"Personal ID   ",
-	"APRS Beacon   ",
 #ifdef ENABLE_FM_RADIO
 	"FM Standby    ",
 #endif

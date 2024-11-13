@@ -182,11 +182,11 @@ void APRS_send_FCS(void)
 void APRS_send_Packet(uint8_t Type)
 {
 	/// set APRS frequency first
-	gVfoState[gCurrentDial]=gAPRSDefaultChannels[0];
+	gVfoState[gSettings.CurrentDial]=gAPRSDefaultChannels[0];
 
 	BK4819_SetAfGain(0xB32A);
 	BK4819_EnableTone1(true);
-//SPEAKER_TurnOn(SPEAKER_OWNER_SYSTEM);
+//SPEAKER_TurnOn(SPEAKER_OWNER_SYSTEM); // do you really want to hear it ?
 
 	RADIO_StartTX(0);
 
