@@ -20,6 +20,7 @@ There is no "free radio" but GMRS, and this devices do not comply whith GMRS spe
 ## omegatee Features / Modifications
 - All OEFW features plus:
     - Full rewrite of UART code to support the new command shell and the GPS Receiver
+	- Added functions to manage APRS and AFSK modulation.
     - Added channel templates for standard APRS frequencies on EUR and USA
     - New keyaction to send Test Message by APRS
     - New Menu to activate APRS Position Beacon
@@ -41,12 +42,13 @@ There is no "free radio" but GMRS, and this devices do not comply whith GMRS spe
 
 ![image](https://github.com/user-attachments/assets/ff4816d5-8ab2-4709-805b-d65616095407)
 
-Do it as you can
+Do it as you can.
 
 ## Command Shell
 At boot, the device works as usual.
-But after receiving two semicolons, enters the SCPI-like shell mode. In this mode, CHIRP will fail. Type EXIT to return to normal operation.
-While in Shell mode, device operates normally.
+But after receiving two semicolons, enters the SCPI-like shell mode.
+While in Shell mode, device operates normally, except CHIRP that will fail. Type EXIT to return to normal operation.
+.
 
 Implemented commands:
 - *IDN?                Returns Manufacturer, Model, Serial Number and FW Version.

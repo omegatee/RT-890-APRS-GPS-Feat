@@ -11,7 +11,7 @@
 #include "ui/vfo.h"
 #include "misc.h"
 
-#define SYM_TIME 770	// nominal is 833 (1/1200)
+#define SYM_TIME 770	// nominal could be 833 (1/1200)
 
 uint8_t		FrameBUFF[512];
 uint16_t 	pFrameBUFF=0;
@@ -22,7 +22,7 @@ char destssid = 0;
 
 // MYCALL
 // extern myCALL
-char myssid = 7;// "EA4BGH-7"
+char myssid = 7;
 
 // DIGI
 char digi[8] = "WIDE2";
@@ -88,7 +88,7 @@ bool bit;
 		byte >>= 1;
   	}
 	
-	 /*
+	 /*                                              thanks to
 	/// https://matthewtran.dev/2021/01/stm32-aprs/#modulation
 	*/
 }
@@ -97,7 +97,7 @@ bool bit;
 void APRS_send_Flag(uint16_t cnt)
 {
     while(cnt--)					
-		AFSK_SendByte(0x7E,0);// 0=no bitstuff
+		AFSK_SendByte(0x7E,0);// 0=no bitstuff in flag
 }
 
 void APRS_add_Address(char *addr, char ssid, bool last)
@@ -182,7 +182,7 @@ void APRS_send_FCS(void)
 void APRS_send_Packet(uint8_t Type)
 {
 	/// set APRS frequency first
-	gVfoState[gCurrentDial]=gAPRSDefaultChannels[0];
+	gVfoState[gSettings.CurrentDial]=gAPRSDefaultChannels[0];
 
 	BK4819_SetAfGain(0xB32A);
 	BK4819_EnableTone1(true);
@@ -208,7 +208,7 @@ void APRS_send_Packet(uint8_t Type)
 		// compose payload -----------------
 		switch(Type){
 			case 0:
-				APRS_add_Status("HELLO. RT-890 Test");
+				APRS_add_Status("HELLO. RT-890 APRS Test");
 				break;
 			case 1:
 				APRS_add_Pos();
