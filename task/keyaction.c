@@ -177,8 +177,8 @@ void KeypressAction(uint8_t Action) {
 				break;
 
 			case ACTION_APRS_SEND_POS:
-				//if (gRadioMode != RADIO_MODE_QUIET)
-				//	break;
+				if (gRadioMode != RADIO_MODE_QUIET)
+					break;
 				
 				APRS_send_Packet(0);
 
