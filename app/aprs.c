@@ -182,7 +182,11 @@ void APRS_send_FCS(void)
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 void APRS_send_Packet(uint8_t Type)
 {
-char msg[64];
+char msg[32];
+				uint8_t vv;
+				uint8_t d;
+				uint8_t u;
+
 	/// set APRS frequency first
 	gVfoState[gSettings.CurrentDial]=gAPRSDefaultChannels[0];
 
@@ -210,7 +214,10 @@ char msg[64];
 		// compose payload -----------------
 		switch(Type){
 			case 0:
-				sprintf(msg,"HELLO.RT-890 APRS Test.V=%d",BATTERY_GetVoltage());
+				vv = BATTERY_GetVoltage();
+				d = vv/10;
+				u = vv-(d*10);
+				snprintf(msg,sizeof(msg),"HELLO.RT-890 APRS Test.V=%d.%d",d,u);
 				APRS_add_Status(msg);
 				break;
 			case 1:
