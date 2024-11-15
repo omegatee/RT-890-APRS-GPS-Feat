@@ -24,15 +24,15 @@
 #define BK4819_REG_30_ENABLE_VCO_CALIB 			( 1u << BK4819_REG_30_SHIFT_ENABLE_VCO_CALIB)
 
 enum BK4819_AF_Type_t {
-	BK4819_AF_MUTE = 0U,
-	BK4819_AF_OPEN = 1U,
-	BK4819_AF_ALAM = 2U,
-	BK4819_AF_BEEP = 3U,
-	BK4819_AF_LSB  = 4U,
-	BK4819_AF_USB  = 5U,
-	BK4819_AF_CTCO = 6U,
-	BK4819_AF_AM   = 7U,
-	BK4819_AF_FSKO = 8U,
+	BK4819_AF_MUTE = 0U,	/// Mute
+	BK4819_AF_NORMAL = 1U,	/// Normal AF Out
+	BK4819_AF_RXBEEP = 2U,	/// Tone Out for Rx (Should enable Tone1 first)
+	BK4819_AF_TXBEEP = 3U,	/// Beep Out for Tx (Should enable Tone1 first and set REG_03[9]=1 to enable AF)
+	BK4819_AF_4U  = 4U,		/// undocumented
+	BK4819_AF_5U  = 5U,		/// undocumented
+	BK4819_AF_CTCO = 6U,	/// CTCSS/CDCSS Out for Rx Test	
+	BK4819_AF_7U   = 7U,	/// undocumented
+	BK4819_AF_FSKO = 8U,	/// FSK Out for Rx Test
 };
 
 typedef enum BK4819_AF_Type_t BK4819_AF_Type_t;

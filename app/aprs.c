@@ -12,7 +12,12 @@
 #include "ui/vfo.h"
 #include "misc.h"
 
-#define SYM_TIME 770	// nominal could be 833 (1/1200)
+#define SYM_TIME 770	// nominal must be 833 (1/1200)
+// 760 - fail
+// 765 - some fail
+// 770 - 0K
+// 775 - 0K
+// 780 - fail
 
 uint8_t		FrameBUFF[512];
 uint16_t 	pFrameBUFF=0;
@@ -215,12 +220,18 @@ char msg[32];
 		switch(Type){
 			case 0:
 				vv = BATTERY_GetVoltage();
-				d = vv/10;
+				d = vv/10;// trick to avoid atof
 				u = vv-(d*10);
-				snprintf(msg,sizeof(msg),"HELLO.RT-890 APRS Test.V=%d.%d",d,u);
+				snprintf(msg,sizeof(msg),"HELLO.RT-890 APRS Test.Batt=%d.%dV",d,u);
 				APRS_add_Status(msg);
 				break;
 			case 1:
+//for no GPS
+sprintf(gTime,"235959");
+sprintf(gLatY,"4026.90");
+sprintf(gLatS,"N");
+sprintf(gLonX,"00328.40");
+sprintf(gLonS,"W");
 				APRS_add_Pos();
 				break;
 		}

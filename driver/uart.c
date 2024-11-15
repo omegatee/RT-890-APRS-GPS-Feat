@@ -161,7 +161,7 @@ void UART_SendByte(uint8_t Port, uint8_t Data)
 	}
 }
 
-uint8_t UART_ReceiveByte(uint8_t Port, uint8_t *dat)///WT: testing...
+uint8_t UART_ReceiveByte(uint8_t Port, uint8_t *dat)
 {
 	if(Port==1){
 		if (Buffer1Length>0) {

@@ -11,8 +11,8 @@ uint32_t gAPRSCounter;
 void Task_APRSBeacon(void){
 	
 	if(gAPRSInterval>0 && gAPRSCounter==0){
-		if (gRadioMode != RADIO_MODE_QUIET){
-			gAPRSCounter=ONE_MIN/2; // re-try in 30 s
+		if ((gRadioMode != RADIO_MODE_QUIET) || (gScreenMode == SCREEN_MENU)){
+			//gAPRSCounter=ONE_MIN/5; // re-try in 12 s
 			return;
 		}
 		

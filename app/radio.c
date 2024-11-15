@@ -336,7 +336,7 @@ void RADIO_StartRX(void)
 			}
 			UI_DrawVfo(gCurrentDial);
 			UI_DrawMainBitmap(true, gSettings.CurrentDial);///
-///			UI_DrawRX(gCurrentDial);
+///			UI_DrawRX(gCurrentDial); draws walky rx icon
 		}
 		if (gMainVfo->BCL == BUSY_LOCK_CSS && !gMonitorMode) {
 			PTT_SetLock(PTT_LOCK_BUSY);

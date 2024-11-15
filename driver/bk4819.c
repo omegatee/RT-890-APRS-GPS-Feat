@@ -117,17 +117,17 @@ static void DisableAGC(uint32_t Unknown)
 void OpenAudio(bool bIsNarrow, uint8_t gModulationType)
 {
 	switch(gModulationType) {
-		case 0:
-			BK4819_SetAF(BK4819_AF_OPEN);
+		case 0:								/// FM
+			BK4819_SetAF(BK4819_AF_NORMAL);
 			break;
-		case 1:
-			BK4819_SetAF(BK4819_AF_AM);
+		case 1:								/// AM
+			BK4819_SetAF(BK4819_AF_7U);
 			break;
-		case 2:
-			BK4819_SetAF(BK4819_AF_LSB);
+		case 2:								/// LSB
+			BK4819_SetAF(BK4819_AF_4U);
 			break;
-		case 3:
-			BK4819_SetAF(BK4819_AF_USB);
+		case 3:								/// USB
+			BK4819_SetAF(BK4819_AF_5U);
 			break;
 	}
 	if (bIsNarrow) {
@@ -268,8 +268,8 @@ void BK4819_SetAF(BK4819_AF_Type_t Type)
 {
 	//BK4819_WriteRegister(0x47, 0x6040 | (Type << 8));		///WT:
 	BK4819_WriteRegister(0x47,
-						 			(0) 			// AF Tx Filter Bypass All
-						 			|(Type << 8) 	// Mod type
+						 			(0) 			// AF Tx Filter 0=Normal 1=Bypass All
+						 			|(Type << 8) 	// AFOutputSelection
 						 			|(1 << 13)		// AF Output Inverse Mode
 						 			|(1 << 14)		// ?
 						 			|(1 << 6)		// ?
@@ -729,9 +729,10 @@ void BK4819_StartAudio(void)
 	gpio_bits_set(GPIOA, BOARD_GPIOA_LED_GREEN);
 	gRadioMode = RADIO_MODE_RX;
 	OpenAudio(gMainVfo->bIsNarrow, gMainVfo->gModulationType);
-	if (gMainVfo->gModulationType == 0) {								// FM
-		BK4819_WriteRegister(0x4D, 0xA080);
-		BK4819_WriteRegister(0x4E, 0x6F7C);
+///	if (gMainVfo->gModulationType == 0) {								// FM
+	if(1){
+		BK4819_WriteRegister(0x4D, 0xA080); /// Glitch threshold for Squelch
+		BK4819_WriteRegister(0x4E, 0x6F7C); /// Squelch delay
 
 		BK4819_EnableScramble(gMainVfo->Scramble);
 		BK4819_EnableCompander(true);
@@ -739,14 +740,14 @@ void BK4819_StartAudio(void)
 											// this gets overwritten by sane defaults anyway.
 		// Unset bit 4 of register 73 (Auto Frequency Control Disable)
 		uint16_t reg_73 = BK4819_ReadRegister(0x73);
-		BK4819_WriteRegister(0x73, reg_73 & ~0x10U);
+		BK4819_WriteRegister(0x73, reg_73 & ~0x10U); /// AFC settings
 		if (gMainVfo->Scramble == 0) {
 			BK4819_SetAFResponseCoefficients(false, true, gCalibration.RX_3000Hz_Coefficient);
 		} else {
 			BK4819_SetAFResponseCoefficients(false, true, 4);
 		}
 	}
-	else {																// AM, SSB
+	else {													// AM, SSB
 		//BK4819_EnableScramble(0);															///WT: previously uncommented
 		BK4819_EnableCompander(false);														///WT: check here AM audio level
 		// Set bit 4 of register 73 (Auto Frequency Control Disable)
@@ -821,10 +822,10 @@ void BK4819_EnableTone1(bool bEnable)
 	if (bEnable) {
 		if (gRadioMode != RADIO_MODE_TX) {
 			BK4819_WriteRegister(0x30, 0x0302);
-			BK4819_SetAF(BK4819_AF_ALAM);
+			BK4819_SetAF(BK4819_AF_RXBEEP);
 		} else {
 			BK4819_WriteRegister(0x30, 0xC3FA);
-			BK4819_SetAF(BK4819_AF_BEEP);
+			BK4819_SetAF(BK4819_AF_TXBEEP);
 		}
 	} else {
 		if (gRadioMode == RADIO_MODE_TX) {

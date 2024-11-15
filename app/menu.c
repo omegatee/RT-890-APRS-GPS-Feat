@@ -483,7 +483,8 @@ void MENU_AcceptSetting(void)
 
 	case MENU_APRS_BEACON:
 		gAPRSInterval = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
-		switch(gAPRSInterval){
+		gAPRSCounter=0;	
+/*		switch(gAPRSInterval){
 			case 0:
 				gAPRSCounter=0;
 				break;
@@ -502,7 +503,7 @@ void MENU_AcceptSetting(void)
 			case 5:
 				gAPRSCounter=ONE_MIN*60;
 				break;
-		}
+		}*/
 
 		break;
 			

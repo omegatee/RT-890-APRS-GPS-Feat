@@ -34,7 +34,7 @@ static void PlayStartupTone(void)
 #ifdef MOTO_STARTUP_TONE
 		BEEP_SetFrequency(260);
 		SPEAKER_TurnOn(SPEAKER_OWNER_SYSTEM);
-		BK4819_SetAF(BK4819_AF_BEEP);
+		BK4819_SetAF(BK4819_AF_TXBEEP);
 		DELAY_WaitMS(250);
 		// the secret sauce - two tones at once.
 		// this requires dtmf abuse.
