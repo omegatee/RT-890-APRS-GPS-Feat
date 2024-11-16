@@ -769,7 +769,7 @@ void BK4819_StartAudio(void)
 
 void BK4819_SetAfGain(uint16_t Gain)
 {
-#if 0
+
 	if (gMainVfo->gModulationType) {			// AM, SSB
 		//if ((Gain & 15) > 4) { ///WT: testing
 		//	Gain -= 4;
@@ -792,14 +792,13 @@ void BK4819_SetAfGain(uint16_t Gain)
 			break;
 		}
 	}
-#else
+
 	BK4819_WriteRegister(0x48,	//  0xB3A8);     // 1011 00 111010 1000
 		(11u << 12) |     // ??? 0..15
 		( 0u << 10) |     // AF Rx Gain-1
 		(58u <<  4) |     // AF Rx Gain-2
 		( 8u <<  0));     // AF DAC Gain (after Gain-1 and Gain-2)
 
-#endif
 }
 
 bool BK4819_CheckSquelchLink(void)

@@ -300,8 +300,7 @@ void Task_AM_fix()
 		return;
 	}
 
-	///if(gVfoState[gSettings.CurrentDial].gModulationType == 1) {	///WT: 0=FM 1=AM 2=USB 3=LSB
-	if (gMainVfo->gModulationType == 1){
+	if(gVfoState[gSettings.CurrentDial].gModulationType == 1) {	///WT: 0=FM 1=AM 2=USB 3=LSB
 		int16_t diff_dB;
 		int16_t rssi;
 		const int vfo = gCurrentDial;
@@ -321,6 +320,7 @@ void Task_AM_fix()
 		// sample the current RSSI level
 		// average it with the previous rssi (a bit of noise/spike immunity)
 		const int16_t new_rssi = BK4819_GetRSSI();
+IFDBG UART_printf(1,"RSSI:%d\r",new_rssi);
 		rssi                   = (prev_rssi[vfo] > 0) ? (prev_rssi[vfo] + new_rssi) / 2 : new_rssi;
 		prev_rssi[vfo]         = new_rssi;
 		

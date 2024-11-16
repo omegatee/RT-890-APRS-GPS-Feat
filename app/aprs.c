@@ -15,7 +15,7 @@
 #define SYM_TIME 770	// nominal must be 833 (1/1200)
 // 760 - fail
 // 765 - some fail
-// 770 - 0K
+// 770 - 0K <--
 // 775 - 0K
 // 780 - fail
 
@@ -29,7 +29,24 @@ char destssid = 0;
 // MYCALL
 // extern myCALL
 char myssid = 7;
-
+/*
+-0 Your primary station usually fixed and message capable
+-1 generic additional station, digi, mobile, wx, etc
+-2 generic additional station, digi, mobile, wx, etc
+-3 generic additional station, digi, mobile, wx, etc
+-4 generic additional station, digi, mobile, wx, etc
+-5 Other network sources (Dstar, Iphones, Blackberry's etc)
+-6 Special activity, Satellite ops, camping or 6 meters, etc
+-7 walkie talkies, HT's or other human portable
+-8 boats, sailboats, RV's or second main mobile
+-9 Primary Mobile (usually message capable)
+-10 internet, Igates, echolink, winlink, AVRS, APRN, etc
+-11 balloons, aircraft, spacecraft, etc
+-12 APRStt, DTMF, RFID, devices, one-way trackers， etc
+-13 Weather stations
+-14 Truckers or generally full time drivers
+-15 generic additional station, digi, mobile, wx, etc
+*/
 // DIGI
 char digi[8] = "WIDE2";
 char digissid = 2;
@@ -187,7 +204,7 @@ void APRS_send_FCS(void)
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 void APRS_send_Packet(uint8_t Type)
 {
-char msg[32];
+char msg[64];
 				uint8_t vv;
 				uint8_t d;
 				uint8_t u;
@@ -230,7 +247,7 @@ char msg[32];
 sprintf(gTime,"235959");
 sprintf(gLatY,"4026.90");
 sprintf(gLatS,"N");
-sprintf(gLonX,"00328.40");
+sprintf(gLonX,"00328.35");
 sprintf(gLonS,"W");
 				APRS_add_Pos();
 				break;
