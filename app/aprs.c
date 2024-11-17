@@ -243,12 +243,12 @@ char msg[64];
 				APRS_add_Status(msg);
 				break;
 			case 1:
-//for no GPS
+/*for no GPS
 sprintf(gTime,"235959");
 sprintf(gLatY,"4026.90");
 sprintf(gLatS,"N");
 sprintf(gLonX,"00328.35");
-sprintf(gLonS,"W");
+sprintf(gLonS,"W");*/
 				APRS_add_Pos();
 				break;
 		}
