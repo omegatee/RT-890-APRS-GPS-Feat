@@ -9,6 +9,7 @@
 #include "radio/settings.h"
 #include "app/radio.h"
 #include "app/aprs.h"
+#include "task/aprs.h"
 #include "ui/vfo.h"
 #include "misc.h"
 
@@ -237,19 +238,24 @@ char msg[64];
 		switch(Type){
 			case 0:
 				vv = BATTERY_GetVoltage();
-				d = vv/10;// trick to avoid atof
-				u = vv-(d*10);
-				snprintf(msg,sizeof(msg),"HELLO.RT-890 APRS Test.Batt=%d.%dV",d,u);
+					d = vv/10;// trick to avoid atof
+					u = vv-(d*10);
+				snprintf(msg,sizeof(msg),"Hola.RT-890 APRS Test.Batt=%d.%dV",d,u);
 				APRS_add_Status(msg);
 				break;
 			case 1:
-//for no GPS
+
+/* //for no GPS
 sprintf(gTime,"235959");
-sprintf(gLatY,"4026.90");
+sprintf(gLatY,"4024.30");
 sprintf(gLatS,"N");
-sprintf(gLonX,"00328.35");
+sprintf(gLonX,"00330.00");
 sprintf(gLonS,"W");
-				APRS_add_Pos();
+gGPS_Fix=1;*/
+				if(gGPS_Fix)
+					APRS_add_Pos();
+				else
+					gAPRSCounter=ONE_MIN;
 				break;
 		}
 	

@@ -50,7 +50,7 @@ static const ChannelInfo_t VfoTemplate[2] = {
 		.Encrypt = 0,
 
 		.Available = 0,
-		.gModulationType = 0,
+		.gModulationType = MOD_FM,
 		.BCL = BUSY_LOCK_OFF,
 		.ScanAdd = 1,
 		.bIsLowPower = 0,
@@ -76,7 +76,7 @@ static const ChannelInfo_t VfoTemplate[2] = {
 		.Encrypt = 0,
 
 		.Available = 0,
-		.gModulationType = 0,
+		.gModulationType = MOD_FM,
 		.BCL = BUSY_LOCK_OFF,
 		.ScanAdd = 1,
 		.bIsLowPower = 0,
@@ -105,7 +105,7 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.Encrypt = 0,
 
 		.Available = 0,
-		.gModulationType = 0,
+		.gModulationType = MOD_FM,
 		.BCL = BUSY_LOCK_OFF,
 		.ScanAdd = 1,
 		.bIsLowPower = 0,
@@ -130,7 +130,7 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.Encrypt = 0,
 
 		.Available = 0,
-		.gModulationType = 0,
+		.gModulationType = MOD_FM,
 		.BCL = BUSY_LOCK_OFF,
 		.ScanAdd = 1,
 		.bIsLowPower = 0,
@@ -155,7 +155,7 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.Encrypt = 0,
 
 		.Available = 0,
-		.gModulationType = 0,
+		.gModulationType = MOD_FM,
 		.BCL = BUSY_LOCK_OFF,
 		.ScanAdd = 1,
 		.bIsLowPower = 0,
@@ -180,7 +180,7 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.Encrypt = 0,
 
 		.Available = 0,
-		.gModulationType = 0,
+		.gModulationType = MOD_FM,
 		.BCL = BUSY_LOCK_OFF,
 		.ScanAdd = 1,
 		.bIsLowPower = 0,
@@ -205,7 +205,7 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.Encrypt = 0,
 
 		.Available = 0,
-		.gModulationType = 0,
+		.gModulationType = MOD_FM,
 		.BCL = BUSY_LOCK_OFF,
 		.ScanAdd = 1,
 		.bIsLowPower = 0,
@@ -230,7 +230,7 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.Encrypt = 0,
 
 		.Available = 0,
-		.gModulationType = 0,
+		.gModulationType = MOD_FM,
 		.BCL = BUSY_LOCK_OFF,
 		.ScanAdd = 1,
 		.bIsLowPower = 0,
@@ -255,7 +255,7 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.Encrypt = 0,
 
 		.Available = 0,
-		.gModulationType = 0,
+		.gModulationType = MOD_FM,
 		.BCL = BUSY_LOCK_OFF,
 		.ScanAdd = 1,
 		.bIsLowPower = 0,
@@ -280,7 +280,7 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.Encrypt = 0,
 
 		.Available = 0,
-		.gModulationType = 0,
+		.gModulationType = MOD_FM,
 		.BCL = BUSY_LOCK_OFF,
 		.ScanAdd = 1,
 		.bIsLowPower = 0,
@@ -305,7 +305,7 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.Encrypt = 0,
 
 		.Available = 0,
-		.gModulationType = 0,
+		.gModulationType = MOD_FM,
 		.BCL = BUSY_LOCK_OFF,
 		.ScanAdd = 1,
 		.bIsLowPower = 0,
@@ -330,7 +330,7 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.Encrypt = 0,
 
 		.Available = 0,
-		.gModulationType = 0,
+		.gModulationType = MOD_FM,
 		.BCL = BUSY_LOCK_OFF,
 		.ScanAdd = 1,
 		.bIsLowPower = 0,
@@ -355,7 +355,7 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.Encrypt = 0,
 
 		.Available = 0,
-		.gModulationType = 0,
+		.gModulationType = MOD_FM,
 		.BCL = BUSY_LOCK_OFF,
 		.ScanAdd = 1,
 		.bIsLowPower = 0,

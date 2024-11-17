@@ -66,12 +66,13 @@ void Main(void)
 	HARDWARE_Init();
 	RADIO_Init();
 
-//	if (gSettings.DtmfState == DTMF_STATE_KILLED) {
+	if (gSettings.DtmfState == DTMF_STATE_KILLED) {
 		DATA_ReceiverInit();
-//	}
+	}
 	
+//gShellMode=1;	// for debug, start in shell mode
 	/// ------------------------------------------------------------------- MAIN LOOP
-	UART_printf(1,"\r\n\n\n\nRADTEL RT-890\r\nOEFW by omegatee V_0.6\r\n2024/10/26\r\n");
+	IFDBG UART_printf(1,"\r\n\n\n\nRADTEL RT-890\r\nOEFW by omegatee V_%s\r\n2024/11/17\r\n",FW_VERSION);
 
 	while (1) {
 		do {

@@ -1,5 +1,6 @@
 #include "misc.h"
 #include "app/css.h"
+#include "app/radio.h"
 
 static const ChannelInfo_t gAPRSDefaultChannels[3] = {
 	{
@@ -13,7 +14,7 @@ static const ChannelInfo_t gAPRSDefaultChannels[3] = {
 		.Encrypt = 0,
 
 		.Available = 0,
-		.gModulationType = 0,
+		.gModulationType = MOD_FM,
 		.BCL = BUSY_LOCK_OFF,
 		.ScanAdd = 1,
 		.bIsLowPower = 0, // for debug
@@ -40,7 +41,7 @@ static const ChannelInfo_t gAPRSDefaultChannels[3] = {
 		.Encrypt = 0,
 
 		.Available = 0,
-		.gModulationType = 0,
+		.gModulationType = MOD_FM,
 		.BCL = BUSY_LOCK_OFF,
 		.ScanAdd = 1,
 		.bIsLowPower = 0,
@@ -66,7 +67,7 @@ static const ChannelInfo_t gAPRSDefaultChannels[3] = {
 		.Encrypt = 0,
 
 		.Available = 0,
-		.gModulationType = 0,
+		.gModulationType = MOD_FM,
 		.BCL = BUSY_LOCK_OFF,
 		.ScanAdd = 1,
 		.bIsLowPower = 0,

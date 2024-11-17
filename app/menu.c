@@ -140,7 +140,7 @@ static const ChannelInfo_t EmptyChannel = {
 	.Encrypt = 3,
 
 	.Available = 1,
-	.gModulationType = 2,
+	.gModulationType = MOD_FM,
 	.BCL = BUSY_LOCK_INVALID,
 	.ScanAdd = 1,
 	.bIsLowPower = 1,

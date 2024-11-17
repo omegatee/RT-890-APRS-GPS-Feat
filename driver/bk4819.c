@@ -117,16 +117,16 @@ static void DisableAGC(uint32_t Unknown)
 void OpenAudio(bool bIsNarrow, uint8_t gModulationType)
 {
 	switch(gModulationType) {
-		case 0:								/// FM
+		case MOD_FM:
 			BK4819_SetAF(BK4819_AF_NORMAL);
 			break;
-		case 1:								/// AM
+		case MOD_AM:
 			BK4819_SetAF(BK4819_AF_7U);
 			break;
-		case 2:								/// LSB
+		case MOD_LSB:
 			BK4819_SetAF(BK4819_AF_4U);
 			break;
-		case 3:								/// USB
+		case MOD_USB:
 			BK4819_SetAF(BK4819_AF_5U);
 			break;
 	}
@@ -455,7 +455,7 @@ void BK4819_SetSquelchRSSI(bool bIsNarrow)
 void BK4819_SetFilterBandwidth(bool bIsNarrow)
 {
 	// Check if modulation is FM
-	if (gMainVfo->gModulationType == 0) { // if FM
+	if (gMainVfo->gModulationType == MOD_FM) {
 #ifndef ENABLE_REGISTER_EDIT
 		if (bIsNarrow) {
 			BK4819_WriteRegister(0x43, 0x1008); // as per DS default for 12,5 kHz
@@ -729,8 +729,8 @@ void BK4819_StartAudio(void)
 	gpio_bits_set(GPIOA, BOARD_GPIOA_LED_GREEN);
 	gRadioMode = RADIO_MODE_RX;
 	OpenAudio(gMainVfo->bIsNarrow, gMainVfo->gModulationType);
-///	if (gMainVfo->gModulationType == 0) {								// FM
-	if(1){
+	if (gMainVfo->gModulationType == MOD_FM) {
+
 		BK4819_WriteRegister(0x4D, 0xA080); /// Glitch threshold for Squelch
 		BK4819_WriteRegister(0x4E, 0x6F7C); /// Squelch delay
 
@@ -754,7 +754,7 @@ void BK4819_StartAudio(void)
 		uint16_t reg_73 = BK4819_ReadRegister(0x73);
 		BK4819_WriteRegister(0x73, reg_73 | 0x10U);
 		BK4819_WriteRegister(0x43, 0b0100000001011000); // Filter 6.25KHz					///WT: previously commented
-		if (gMainVfo->gModulationType > 1) { // if SSB
+		if (gMainVfo->gModulationType > MOD_AM) { // if SSB
 			BK4819_WriteRegister(0x43, 0b0010000001011000); // Filter 6.25KHz
 			BK4819_WriteRegister(0x37, 0b0001011000001111);
     		BK4819_WriteRegister(0x3D, 0b0010101101000101);
@@ -769,7 +769,7 @@ void BK4819_StartAudio(void)
 
 void BK4819_SetAfGain(uint16_t Gain)
 {
-
+/*
 	if (gMainVfo->gModulationType) {			// AM, SSB
 		//if ((Gain & 15) > 4) { ///WT: testing
 		//	Gain -= 4;
@@ -792,12 +792,26 @@ void BK4819_SetAfGain(uint16_t Gain)
 			break;
 		}
 	}
+*/
+uint8_t G,G1,G2;
+// NOTE:
+//	Calls to this functiion must be corrected for not to ask for an absolute register value
+IFDBG UART_printf(1,"Requested AfGain = %X\r\n",Gain);
+
+	if (gMainVfo->gModulationType){
+		G1=58u;
+	}
+	else{
+		G1=0;
+	}
+	G2 = (Gain & 0b1111110000) >> 4;
+	G  = Gain & 0b1111;
 
 	BK4819_WriteRegister(0x48,	//  0xB3A8);     // 1011 00 111010 1000
-		(11u << 12) |     // ??? 0..15
-		( 0u << 10) |     // AF Rx Gain-1
-		(58u <<  4) |     // AF Rx Gain-2
-		( 8u <<  0));     // AF DAC Gain (after Gain-1 and Gain-2)
+		(0u << 12) |     // ??? .. 0 to 15, doesn't seem to make any difference
+		(G1 << 10) |     // AF Rx Gain-1
+		(G2 <<  4) |     // AF Rx Gain-2 (volume?)
+		(G  <<  0));     // AF DAC Gain (after Gain-1 and Gain-2)
 
 }
 
@@ -836,7 +850,7 @@ void BK4819_EnableTone1(bool bEnable)
 			BK4819_SetAF(BK4819_AF_MUTE);
 		} else {
 			OpenAudio(gMainVfo->bIsNarrow, gMainVfo->gModulationType);
-			if (gMainVfo->gModulationType > 0) {
+			if (gMainVfo->gModulationType > MOD_FM) {
 				BK4819_EnableScramble(0); // AM, SSB
 			} else {
 				BK4819_EnableScramble(gMainVfo->Scramble); // FM

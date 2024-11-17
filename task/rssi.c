@@ -161,7 +161,7 @@ void Task_CheckRSSI(void)
 			if (gReceptionMode) {
 				RADIO_StartAudio();
 			}
-			else if ((gVfoInfo[gCurrentDial].CodeType == CODE_TYPE_OFF && !gMainVfo->bMuteEnabled) || gMainVfo->gModulationType > 0 || Status == STATUS_GOT_TONE) {
+			else if ((gVfoInfo[gCurrentDial].CodeType == CODE_TYPE_OFF && !gMainVfo->bMuteEnabled) || gMainVfo->gModulationType > MOD_FM || Status == STATUS_GOT_TONE) {
 				RADIO_StartRX();
 			}
 #ifdef ENABLE_NOAA

@@ -12,6 +12,7 @@ char gLatS[ 2];
 char gLonX[16];
 char gLonS[ 2];
 char gAlti[8];
+bool gGPS_Fix;
 
 
 void GPSRead_xRMC(char *data){
@@ -59,6 +60,50 @@ uint8_t cnt;
 		gLonS[cnt++]=*data;
 		++data;
 	}
+	++data;
+	// ------------------------ skip speed
+	cnt=0;
+	while(*data!=0x2C && data){
+
+		++data;
+	}
+	++data;
+	// ------------------------ skip track
+	cnt=0;
+	while(*data!=0x2C && data){
+
+		++data;
+	}
+	++data;
+	// ------------------------ skip UTC date
+	cnt=0;
+	while(*data!=0x2C && data){
+
+		++data;
+	}
+	++data;
+	// ------------------------ skip mag.decl
+	cnt=0;
+	while(*data!=0x2C && data){
+
+		++data;
+	}
+	++data;
+	// ------------------------ skip mag.decl sign
+	cnt=0;
+	while(*data!=0x2C && data){
+
+		++data;
+	}
+	++data;
+	// ------------------------ Get Mode
+	cnt=0;
+	if(*data != 'N')
+		gGPS_Fix=1;
+	else
+		gGPS_Fix=0;
+
+	
 
 }
 	
@@ -102,10 +147,14 @@ uint8_t cnt;
 	++data;
 	// ------------------------ skip Position Quality
 	cnt=0;
-	while(*data!=0x2C && data){
-		;
-		++data;
+	if(*data > '0'){
+		gGPS_Fix=1;
 	}
+	else{
+		gGPS_Fix=0;
+	}	
+		++data;
+	
 	++data;
 	// ------------------------ skip Number of Satellites
 	cnt=0;

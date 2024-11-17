@@ -55,8 +55,8 @@ typedef struct FreqPreset {
   uint32_t EndFreq;
   uint8_t StepCountIndex;
   uint8_t StepSizeIndex;
-  uint8_t ModulationType; // 0=FM, 1=AM, 2=SSB
-  uint8_t bNarrow; // 0 = Wide, 1 = Narrow
+  uint8_t ModulationType;
+  uint8_t bNarrow;
 } FreqPreset;
 
 static const FreqPreset FreqPresets[] = {

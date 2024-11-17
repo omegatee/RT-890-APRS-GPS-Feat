@@ -419,7 +419,7 @@ void UI_DrawExtra(uint8_t Mode, uint8_t gModulationType, uint8_t Vfo)
 	case 0: // idle mode
 	case 2: // RX mode
 		gColorForeground = COLOR_BLUE;
-		UI_DrawSmallString(2, Y, gModulationType == 0 ? " FM" : gModulationType == 1 ? " AM" : gModulationType == 2 ? "LSB" : "USB", 3);
+		UI_DrawSmallString(2, Y, gModulationType == MOD_FM ? " FM" : gModulationType == MOD_AM ? " AM" : gModulationType == MOD_LSB ? "LSB" : "USB", 3);
         break;
 
 	case 1: // TX mode

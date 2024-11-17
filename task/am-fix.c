@@ -300,7 +300,8 @@ void Task_AM_fix()
 		return;
 	}
 
-	if(gVfoState[gSettings.CurrentDial].gModulationType == 1) {	///WT: 0=FM 1=AM 2=USB 3=LSB
+	///if(gVfoState[gSettings.CurrentDial].gModulationType == 1) {	///WT: 0=FM 1=AM 2=USB 3=LSB
+	if (gMainVfo->gModulationType == MOD_AM){
 		int16_t diff_dB;
 		int16_t rssi;
 		const int vfo = gCurrentDial;

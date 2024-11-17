@@ -1,4 +1,5 @@
 #include <string.h>
+#include "misc.h"
 #include "app/shell.h"
 #include "app/radio.h"
 #include "driver/uart.h"
@@ -14,7 +15,7 @@ bool gShellMode;
 void SCPI_ProcessGeneric(char * cmd){
 	
 	if(strncmp(cmd,"IDN?",4)==0){
-		UART_printf(1,"RADTEL,RT-890,%s,0.6\r\n",WelcomeString);/// now, "Serial Number"
+		UART_printf(1,"RADTEL,RT-890,%s,%s\r\n",WelcomeString,FW_VERSION);/// now, "Serial Number"
 		return;
 	}
 	

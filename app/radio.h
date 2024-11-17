@@ -20,6 +20,11 @@
 #include "radio/channels.h"
 #include "radio/frequencies.h"
 
+#define MOD_FM 0
+#define MOD_AM 1
+#define MOD_LSB 2
+#define MOD_USB 3
+
 extern uint8_t gCurrentDial;
 extern ChannelInfo_t *gMainVfo;
 extern ChannelInfo_t gVfoState[4];
