@@ -1,7 +1,7 @@
 #include <string.h>
 #include "external/printf/printf.h"
 #include "driver/uart.h"
-#include "driver/speaker.h"///
+//#include "driver/speaker.h"///
 #include "driver/delay.h"
 #include "driver/gps.h"
 #include "driver/bk4819.h"
@@ -11,7 +11,7 @@
 #include "app/aprs.h"
 #include "task/aprs.h"
 #include "ui/vfo.h"
-#include "misc.h"
+//#include "misc.h"
 
 #define SYM_TIME 770	// nominal must be 833 (1/1200)
 // 760 - fail
@@ -210,9 +210,18 @@ char msg[64];
 				uint8_t d;
 				uint8_t u;
 
-	/// set APRS frequency first
+	// set APRS frequency first
 	gVfoState[gSettings.CurrentDial]=gAPRSDefaultChannels[0];
 
+#if 0
+/// this needs some investigation; RADIO_Tune, perhaps ?
+	// check if channel is free
+	RADIO_StartRX();
+	if ((gRadioMode != RADIO_MODE_QUIET) || (gScreenMode == SCREEN_MENU)){
+			//gAPRSCounter=ONE_MIN/5; // re-try in 12 s
+			return;
+	}
+#endif
 	BK4819_SetAfGain(0xB32A);
 	BK4819_EnableTone1(true);
 //SPEAKER_TurnOn(SPEAKER_OWNER_SYSTEM);
@@ -236,26 +245,31 @@ char msg[64];
 
 		// compose payload -----------------
 		switch(Type){
-			case 0:
+			case 0: // ================================================ STATUS PACKET
 				vv = BATTERY_GetVoltage();
 					d = vv/10;// trick to avoid atof
 					u = vv-(d*10);
-				snprintf(msg,sizeof(msg),"Hola.RT-890 APRS Test.Batt=%d.%dV",d,u);
+				snprintf(msg,sizeof(msg),"HELLO.RT-890 APRS Test.Batt=%d.%dV",d,u);
 				APRS_add_Status(msg);
 				break;
-			case 1:
-
+			case 1: // ============================================== POSITION PACKET
 /* //for no GPS
 sprintf(gTime,"235959");
-sprintf(gLatY,"4024.30");
+sprintf(gLatY,"4026.00");
 sprintf(gLatS,"N");
-sprintf(gLonX,"00330.00");
+sprintf(gLonX,"00328.00");
 sprintf(gLonS,"W");
 gGPS_Fix=1;*/
-				if(gGPS_Fix)
+				if(gGPS_Fix){
 					APRS_add_Pos();
-				else
+				}
+				else{
 					gAPRSCounter=ONE_MIN;
+					return;
+				}
+				break;
+			case 2: // ============================================== MESSAGE PACKET
+				/// TBCoded...
 				break;
 		}
 	
@@ -275,7 +289,7 @@ gGPS_Fix=1;*/
 
 	BK4819_EnableTone1(false);
 	
-	/// restore initial dial mode
+	// restore initial dial mode
 	if (gSettings.WorkModeA) {
 		CHANNELS_LoadChannel(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
 	} else {

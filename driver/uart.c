@@ -29,10 +29,6 @@ uint8_t Buffer1Length;
 uint8_t Buffer2[256];
 uint8_t Buffer2Length;
 
-uint16_t UART1_Timer;
-bool UART1_IsRunning;
-
-
 static void usart_reset_ex(usart_type *uart, uint32_t baudrate)
 {
 	crm_clocks_freq_type info;
@@ -98,8 +94,8 @@ void HandlerUSART1(void)
 			// Check for CHIRP commands -------------------------------
 			Cmd = Buffer1[0];
 			if (Buffer1Length == 1 && Cmd != 0x35 && !(Cmd >= 0x40 && Cmd <= 0x4C) && Cmd != 0x52 && Cmd!=0x3A) { /// added 0x3A
-				UART1_IsRunning = false;
-				UART1_Timer = 0;
+				Prog_IsRunning = false;
+				Prog_Timer = 0;
 				UART_SendByte(1,0xFF);
 				Buffer1Length = 0;
 			}

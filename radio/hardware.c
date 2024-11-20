@@ -199,8 +199,8 @@ void HARDWARE_Init(void)
 	CRM_InitPeripherals();
 	InitGPIO();
 	SCHEDULER_Init();
-	UART_Init(1,115200);
-	UART_Init(2,9600);		///WT: for GPS Receiver
+	UART_Init(1,115200);	///WT: for command shell & program
+	UART_Init(2,38400);		///WT: for GPS Receiver
 	BATTERY_Init();
 	PWM_Init();
 	HARDWARE_EnableInterrupts(true);

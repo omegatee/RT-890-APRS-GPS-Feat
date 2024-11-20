@@ -130,10 +130,15 @@ void UI_DrawBattery(bool bDisplayVoltage)
 	
 	
 /// rented space to display GPS clock
-if(gAPRSInterval)
+if(gAPRSInterval){
 	gColorForeground = COLOR_RED;
-else
-	 gColorForeground = COLOR_GREY;
+}
+else{
+	if(gGPS_Fix)
+		gColorForeground = COLOR_GREEN;
+	else
+	 	gColorForeground = COLOR_GREY;
+}
 UI_DrawSmallString(78,86,gTime,6);
 gColorForeground = COLOR_FOREGROUND;
 

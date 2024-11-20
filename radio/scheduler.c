@@ -31,6 +31,7 @@
 #endif
 #include "task/scanner.h"
 #include "task/vox.h"
+#include "app/prog.h"
 
 static uint16_t SCHEDULER_Tasks;
 static uint16_t SCHEDULER_Counter;
@@ -136,11 +137,11 @@ void HandlerTMR1_BRK_OVF_TRG_HALL(void)
 	if (gDetectorTimer) {
 		gDetectorTimer--;
 	}
-	if (UART1_Timer) {
-		UART1_Timer--;
+	if (Prog_Timer) {
+		Prog_Timer--;
 	} else {
-		if (UART1_IsRunning) {
-			UART1_IsRunning = false;
+		if (Prog_IsRunning) {
+			Prog_IsRunning = false;
 		}
 	}
 	if (!VOX_IsTransmitting && gRadioMode == RADIO_MODE_TX) {

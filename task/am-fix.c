@@ -92,7 +92,7 @@ typedef struct
 //
 static const t_gain_table gain_table[] =
 {
-#if 0
+#if 1
 /// OEFW tble =================================================================
 	{0x03BE, -7},          //        3 5 3 6 ..   0dB   -4dB 0dB  -3dB ..  -7dB original
 	{0x0000, -98},         //   1 .. 0 0 0 0 .. -33dB -24dB -8dB -33dB .. -98dB
@@ -237,8 +237,9 @@ static const t_gain_table gain_table[] =
 	{0x03BF,-4},    // 40 .. 3 5 3 7 ..   0dB  -4dB  0dB   0dB ..  -4dB
 	{0x03DF,-2},    // 41 .. 3 6 3 7 ..   0dB - 2dB  0dB   0dB ..  -2dB
 	{0x03FF,0}      // 42 .. 3 7 3 7 ..   0dB   0dB  0dB   0dB ..   0dB
-};
 #endif
+};
+
 
 static const unsigned int original_index = 90;
 uint16_t gAmFixCountdown;
@@ -299,8 +300,11 @@ void Task_AM_fix()
 	if(gAmFixCountdown != 0 || !gExtendedSettings.AmFixEnabled) {
 		return;
 	}
-
-	///if(gVfoState[gSettings.CurrentDial].gModulationType == 1) {	///WT: 0=FM 1=AM 2=USB 3=LSB
+#if 0
+	if (gMainVfo->gModulationType == MOD_AM){
+		int16_t rssi = BK4819_GetRSSI();
+	}
+#else
 	if (gMainVfo->gModulationType == MOD_AM){
 		int16_t diff_dB;
 		int16_t rssi;
@@ -321,9 +325,10 @@ void Task_AM_fix()
 		// sample the current RSSI level
 		// average it with the previous rssi (a bit of noise/spike immunity)
 		const int16_t new_rssi = BK4819_GetRSSI();
-IFDBG UART_printf(1,"RSSI:%d\r",new_rssi);
+
 		rssi                   = (prev_rssi[vfo] > 0) ? (prev_rssi[vfo] + new_rssi) / 2 : new_rssi;
 		prev_rssi[vfo]         = new_rssi;
+IFDBG UART_printf(1,"RSSI:%d->%d\r\n",new_rssi,rssi);
 		
 
 		// automatically adjust the RF RX gain
@@ -333,8 +338,10 @@ IFDBG UART_printf(1,"RSSI:%d\r",new_rssi);
 			hold_counter[vfo]--;
 		}
 
-		// dB difference between actual and desired RSSI level
-		diff_dB = (rssi - desired_rssi) / 2;
+		// dB difference between actual and desired RSSI level (const 142)
+		//diff_dB = (rssi - desired_rssi) / 2 ; ///WT:
+		diff_dB = (rssi - (-100)); ///WT:
+IFDBG UART_printf(1,"diff:%d\r\n",diff_dB);
 
 		if (diff_dB > 0) {
 			// decrease gain
@@ -372,9 +379,9 @@ IFDBG UART_printf(1,"RSSI:%d\r",new_rssi);
 			}
 		}
 
-		if (diff_dB >= -6) {                   // 6dB hysterisis (help reduce gain hunting)
-			hold_counter[vfo] = 250;           // 300ms hold
-		}
+///		if (diff_dB >= -6) {                   // 6dB hysterisis (help reduce gain hunting)
+///			hold_counter[vfo] = 250;           // 300ms hold
+///		}
 
 		if (hold_counter[vfo] == 0) {
 			// hold has been released, we're free to increase gain
@@ -387,7 +394,6 @@ IFDBG UART_printf(1,"RSSI:%d\r",new_rssi);
 
 			// remember the new table index
 			gain_table_index_prev[vfo] = index;
-///currentGainDiff = gain_table[0].gain_dB - gain_table[index].gain_dB;/// esta linea no estaba
 			BK4819_WriteRegister(0x13, gain_table[index].reg_val);
 
 			// offset the RSSI reading to the rest of the firmware to cancel out the gain adjustments we make
@@ -399,9 +405,10 @@ IFDBG UART_printf(1,"RSSI:%d\r",new_rssi);
 	}
 	else {
 		gAmFixCountdown = 1000;
-		BK4819_RestoreGainSettings();
+		//BK4819_RestoreGainSettings();
 	}
-	BK4819_RestoreGainSettings();///WT: not a good solution
+	BK4819_RestoreGainSettings();///WT: not a good solution (?)
+#endif
 }
 
 #endif

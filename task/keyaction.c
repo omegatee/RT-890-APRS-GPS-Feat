@@ -57,7 +57,7 @@
 
 void SetDefaultKeyShortcuts(uint8_t IncludeSideKeys) {
 	if (IncludeSideKeys) {
-		gSettings.Actions[0] = ACTION_FREQUENCY_DETECT;			//Side 1 long
+		gSettings.Actions[0] = ACTION_APRS_SEND_POS;			//Side 1 long
 		gSettings.Actions[1] = ACTION_MONITOR;					//Side 1 short
 		gSettings.Actions[2] = ACTION_REMOTE_ALARM;				//Side 2 long
 		gSettings.Actions[3] = ACTION_ROGER_BEEP;				//Side 2 short

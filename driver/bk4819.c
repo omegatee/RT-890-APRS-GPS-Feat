@@ -26,6 +26,8 @@
 #include "misc.h"
 #include "radio/settings.h"
 
+#include "ui/helper.h"///
+
 enum {
 	GPIO_FILTER_UHF     = 1U << 5,
 	GPIO_FILTER_VHF     = 1U << 6,
@@ -680,11 +682,14 @@ void BK4819_RestoreGainSettings()
 	BK4819_WriteRegister(0x14, 0x0000); 
 }
 
+
 void BK4819_ToggleAGCMode()
 {
 	// REG_7E[15] - AGC Mode
-	// 1 - Fixed, 0 - Auto
-
+	// 		1 - Fixed, 0 - Auto
+	// REG_7E[14:12] - AGC Index
+	//		uint8_t idx[]={0x04,0x05,0x06,0x07,0x00,0x01,0x02,0x03}; /// min .. max
+	
 	uint16_t Value = BK4819_ReadRegister(0x7E);
 	uint16_t AGCIndex = (Value & 0x7000) >> 12; // Extract bits 14, 13 and 12
 
@@ -696,7 +701,31 @@ void BK4819_ToggleAGCMode()
 		Value =  (Value & 0x8FFFU) | (AGCIndex << 12); // Set bits 14:12 (AGC Index)
 	}
 	BK4819_WriteRegister(0x7E, Value);
+if(Value & 0x8000){
+	Int2Ascii(AGCIndex, 1);
+	UI_DrawSmallString(78,86,gShortString,1);
 }
+else{
+	UI_DrawSmallString(78,86,"AU",2);
+}
+}
+
+void BK4819_SetAGCMode(uint8_t lvl)
+{
+uint8_t idx[]={0xFF,0x04,0x05,0x06,0x07,0x00,0x01,0x02,0x03}; /// min .. max
+uint16_t regVAL = BK4819_ReadRegister(0x7E);
+	
+	if(lvl==0){
+		regVAL |= 0x8000;
+	}
+	else{
+		regVAL = (regVAL & 0x8FFFU) | (idx[lvl] << 12);
+	}
+	
+	BK4819_WriteRegister(0x7E,regVAL);
+}
+	
+
 
 void BK4819_SetToneFrequency(bool Tone2, uint16_t Tone)
 {
@@ -769,49 +798,25 @@ void BK4819_StartAudio(void)
 
 void BK4819_SetAfGain(uint16_t Gain)
 {
-/*
-	if (gMainVfo->gModulationType) {			// AM, SSB
-		//if ((Gain & 15) > 4) { ///WT: testing
-		//	Gain -= 4;
-		//}
-		BK4819_WriteRegister(0x48, Gain);
-	} else {									// FM
-		switch (BK4819_ReadRegister(0x01)) {
-		case 0:
-		case 4:
-			BK4819_WriteRegister(0x48, Gain);
-			break;
-		case 2: case 3: case 6: case 7:
-			if ((Gain & 15) > 3) {
-				Gain -= 3;
-			}
-			BK4819_WriteRegister(0x48, Gain);
-			break;
-		default:
-			BK4819_WriteRegister(0x48, Gain);
-			break;
-		}
-	}
-*/
-uint8_t G,G1,G2;
+
+uint8_t Gdac,G1,G2;
 // NOTE:
 //	Calls to this functiion must be corrected for not to ask for an absolute register value
-IFDBG UART_printf(1,"Requested AfGain = %X\r\n",Gain);
+//IFDBG UART_printf(1,"Requested AfGain = %X\r\n",Gain);
 
-	if (gMainVfo->gModulationType){
-		G1=58u;
-	}
-	else{
-		G1=0;
-	}
+	G1 = 0;
 	G2 = (Gain & 0b1111110000) >> 4;
-	G  = Gain & 0b1111;
+	Gdac  = Gain & 0b1111;
+	
+	if (gMainVfo->gModulationType==MOD_FM){
+		G1=0x02;
+	}
 
 	BK4819_WriteRegister(0x48,	//  0xB3A8);     // 1011 00 111010 1000
-		(0u << 12) |     // ??? .. 0 to 15, doesn't seem to make any difference
-		(G1 << 10) |     // AF Rx Gain-1
-		(G2 <<  4) |     // AF Rx Gain-2 (volume?)
-		(G  <<  0));     // AF DAC Gain (after Gain-1 and Gain-2)
+		(0u    << 12) |     // ??										 doesn't seem to make any difference
+		(G1    << 10) |     // AF Rx Gain-1 							0x00=0dB;0x01=-6dB;0x02=-12dB;0x03=-18dB
+		(G2    <<  4) |     // AF Rx Gain-2 (volume?)					0x00=mute;0x01=-26dB .. 0x3F=5.5dB
+		(Gdac  <<  0));     // AF DAC Gain (after Gain-1 and Gain-2)	0x00=min .. 0x0F=max
 
 }
 

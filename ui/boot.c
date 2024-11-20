@@ -14,6 +14,7 @@
  *     limitations under the License.
  */
 
+#include "misc.h"
 #include "driver/beep.h"
 #include "driver/delay.h"
 #include "driver/speaker.h"
@@ -25,7 +26,6 @@
 #include "ui/helper.h"
 #include "ui/logo.h"
 #include "ui/welcome.h"
-#include "misc.h"
 
 static void PlayStartupTone(void)
 {
@@ -83,9 +83,9 @@ void UI_DrawBoot(void)
 	if (gSettings.DisplayLabel) {
 		UI_DrawWelcome();
 	}
-///	if (gSettings.DisplayVoltage) {
-///		UI_DrawBootVoltage(24, 24);
-///	}
+	if (gSettings.DisplayVoltage) {
+		UI_DrawBootVoltage(24, 24);
+	}
 	if (gSettings.DisplayLabel || gSettings.DisplayVoltage) {
 		DELAY_WaitMS(900);
 	}

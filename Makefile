@@ -1,5 +1,7 @@
 TARGET = firmwareWT
 
+FW_VERSION := "V0.9"
+
 MOTO_STARTUP_TONE			?= 1
 ENABLE_AM_FIX				?= 1
 ENABLE_ALT_SQUELCH			?= 0
@@ -171,6 +173,7 @@ CFLAGS = -Os -Wall -Werror -mcpu=cortex-m4 -fno-builtin -fshort-enums -fno-delet
 CFLAGS += -DAT32F421C8T7
 CFLAGS += -DPRINTF_INCLUDE_CONFIG_H
 CFLAGS += -DGIT_HASH=\"$(GIT_HASH)\"
+CFLAGS += -DFW_VERSION=\"$(FW_VERSION)\"
 LDFLAGS = -mcpu=cortex-m4 -nostartfiles -Wl,-T,firmware.ld
 
 ifeq ($(ENABLE_OPTIMIZED),1)

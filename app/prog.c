@@ -26,6 +26,8 @@ static uint8_t Region;
 static bool bFlashing;
 static uint8_t g_Unused;
 
+bool Prog_IsRunning;
+uint16_t Prog_Timer;
 
 static uint8_t CalcSum(const uint8_t *pBytes, uint8_t Size)
 {
@@ -58,8 +60,6 @@ static void FlashCmd(uint8_t Command, uint8_t Hi, uint8_t Lo)
 	}
 
 	TMR1->ctrl1_bit.tmren = FALSE;
-	// Why? Is this some left over from another radio?
-	///USART2->ctrl1_bit.uen = FALSE;
 
 	switch (Command) {
 	case 0x40:
@@ -119,8 +119,8 @@ void Program(uint8_t Cmd){
 	if ((Cmd == 0x35 && Buffer1Length == 5) || (Cmd == 0x52 && Buffer1Length == 4) || (Cmd >= 0x40 && Cmd <= 0x4C && Buffer1Length == 132)) {
 		if (CalcSum(Buffer1, Buffer1Length - 1) == Buffer1[Buffer1Length - 1]) {
 			gpio_bits_flip(GPIOA, BOARD_GPIOA_LED_RED);
-			UART1_IsRunning = true;
-			UART1_Timer = 1000;
+			Prog_IsRunning = true;
+			Prog_Timer = 1000;
 			if (Cmd == 0x35) {
 				if (Buffer1[3] == 16) {
 					g_Unused = 0;
@@ -139,8 +139,8 @@ void Program(uint8_t Cmd){
 						Region = 0;
 						HARDWARE_Reboot();
 					}
-					UART1_IsRunning = false;
-					UART1_Timer = 0;
+					Prog_IsRunning = false;
+					Prog_Timer = 0;
 				}
 			} 
 			else {
@@ -155,8 +155,8 @@ void Program(uint8_t Cmd){
 	} 
 	else if (Cmd == 0x32 && Buffer1Length == 5) {
 		if (CalcSum(Buffer1, 4) + 1 == Buffer1[4]) {
-			UART1_IsRunning = true;
-			UART1_Timer = 1000;
+			Prog_IsRunning = true;
+			Prog_Timer = 1000;
 			if (Buffer1[3] != 0x16 && Buffer1[3] == 0x10) {
 				UART_SendByte(1,6);
 			}
@@ -164,8 +164,8 @@ void Program(uint8_t Cmd){
 		else {
 			gpio_bits_reset(GPIOA, BOARD_GPIOA_LED_RED);
 			UART_SendByte(1,0xFF);
-			UART1_IsRunning = false;
-			UART1_Timer = 0;
+			Prog_IsRunning = false;
+			Prog_Timer = 0;
 		}
 		Buffer1Length = 0;
 	}

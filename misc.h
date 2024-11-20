@@ -25,7 +25,6 @@
 	#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif
 
-#define FW_VERSION "0.8"
 #define IFDBG if(gShellMode)
 
 

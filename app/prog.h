@@ -18,9 +18,13 @@
 #define APP_PROG_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 extern uint8_t Buffer1[256];
 extern uint8_t Buffer1Length;
+
+extern bool Prog_IsRunning;
+extern uint16_t Prog_Timer;
 
 void Program(uint8_t Cmd);
 

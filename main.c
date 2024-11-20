@@ -15,14 +15,15 @@
  */
 
 #include <at32f421.h>
+#include "misc.h"
 #include "app/radio.h"
+#include "app/prog.h"
 #include "driver/bk4819.h"
 #include "driver/crm.h"
 #include "driver/delay.h"
 #include "driver/key.h"
 #include "driver/uart.h"
 #include "helper/helper.h"
-#include "misc.h"
 #include "radio/data.h"
 #include "radio/hardware.h"
 #include "radio/settings.h"
@@ -76,7 +77,7 @@ void Main(void)
 
 	while (1) {
 		do {
-			while (!UART1_IsRunning && gSettings.DtmfState != DTMF_STATE_KILLED) {
+			while (!Prog_IsRunning && gSettings.DtmfState != DTMF_STATE_KILLED) {
 				Task_VoicePlayer();
 				Task_CheckKeyPad();
 				Task_CheckSideKeys();
@@ -109,12 +110,13 @@ void Main(void)
 //	IFDBG UART_printf(1,"Dial=%d\n",gSettings.CurrentDial);
 //	IFDBG UART_printf(1,"Freq = %d\n",gVfoInfo[gSettings.CurrentDial].Frequency);
 //IFDBG UART_printf(1,"gAPRSInterval=%d\tgAPRSCounter=%d\r\n",gAPRSInterval,gAPRSCounter);
-
+//uint16_t AGCReg = BK4819_ReadRegister(0x7E);
+//IFDBG UART_printf(1,"AGCauto = %d\tlev = %X\r\n",(AGCReg & 0x8000)>>15,(AGCReg & 0x7000)>>12 );
 				
 			}
 		} while (gSettings.DtmfState != DTMF_STATE_KILLED);
 		if (BK4819_ReadRegister(0x0C) & 0x0001U) { /// 0x0C[0] = Interrupt Indicator
-IFDBG UART_printf(1,"DATA!\n");
+//IFDBG UART_printf(1,"DATA!\n");
 			DATA_ReceiverCheck();
 		}
 		DELAY_WaitMS(1);

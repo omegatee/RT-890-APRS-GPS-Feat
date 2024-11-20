@@ -25,10 +25,6 @@ extern uint8_t Buffer1Length;
 extern uint8_t Buffer2[256];
 extern uint8_t Buffer2Length;
 
-extern uint16_t UART1_Timer;
-extern bool UART1_IsRunning;
-
-
 void UART_Init(uint8_t Port, uint32_t BaudRate);
 
 void HandlerUSART1(void);
