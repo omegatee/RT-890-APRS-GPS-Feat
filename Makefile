@@ -1,6 +1,6 @@
 TARGET = firmwareWT
 
-FW_VERSION := "V0.9"
+FW_VERSION := "V0.10"
 
 MOTO_STARTUP_TONE			?= 1
 ENABLE_AM_FIX				?= 1

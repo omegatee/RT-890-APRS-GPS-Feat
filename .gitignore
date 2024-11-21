@@ -1,6 +1,6 @@
 *.o
 *.d
 firmwareWT
-firmwareWT.bin
+*.bin
 .tags
 .external/*

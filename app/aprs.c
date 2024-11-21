@@ -210,6 +210,11 @@ char msg[64];
 				uint8_t d;
 				uint8_t u;
 
+	if(Type==1 && gGPS_Fix==0){
+		gAPRSCounter=ONE_MIN/5;
+		return;
+	}
+	
 	// set APRS frequency first
 	gVfoState[gSettings.CurrentDial]=gAPRSDefaultChannels[0];
 
@@ -253,20 +258,7 @@ char msg[64];
 				APRS_add_Status(msg);
 				break;
 			case 1: // ============================================== POSITION PACKET
-/* //for no GPS
-sprintf(gTime,"235959");
-sprintf(gLatY,"4026.00");
-sprintf(gLatS,"N");
-sprintf(gLonX,"00328.00");
-sprintf(gLonS,"W");
-gGPS_Fix=1;*/
-				if(gGPS_Fix){
-					APRS_add_Pos();
-				}
-				else{
-					gAPRSCounter=ONE_MIN;
-					return;
-				}
+				APRS_add_Pos();
 				break;
 			case 2: // ============================================== MESSAGE PACKET
 				/// TBCoded...
@@ -295,7 +287,6 @@ gGPS_Fix=1;*/
 	} else {
 		CHANNELS_LoadChannel(gSettings.CurrentDial ? 1000 : 999, gSettings.CurrentDial);
 	}
-	RADIO_Tune(gSettings.CurrentDial);
 	UI_DrawVfo(gSettings.CurrentDial);
 
 }

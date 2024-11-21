@@ -199,10 +199,12 @@ void HARDWARE_Init(void)
 	CRM_InitPeripherals();
 	InitGPIO();
 	SCHEDULER_Init();
-	UART_Init(1,115200);	///WT: for command shell & program
-	UART_Init(2,38400);		///WT: for GPS Receiver
+	UART_Init(1,115200);	// for command shell & program
+	//UART_Init(2,38400);		// for BZ-121 GPS Receiver
+	UART_Init(2,9600);	// for ATGM336H GPS Receiver
 	BATTERY_Init();
 	PWM_Init();
+	
 	HARDWARE_EnableInterrupts(true);
 
 	while (gBatteryVoltage < 60) {

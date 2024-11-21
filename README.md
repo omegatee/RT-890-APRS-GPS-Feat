@@ -43,6 +43,7 @@ There is no "free radio" but GMRS, and this devices do not comply whith GMRS spe
 ![image](https://github.com/user-attachments/assets/ff4816d5-8ab2-4709-805b-d65616095407)
 
 Do it as you can.
+NOTE: GPS board baudrate is fixed on FW. Trim line 203 in radio/hardware.c as your need.
 
 ## Command Shell
 At boot, the device works as usual.

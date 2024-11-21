@@ -188,7 +188,7 @@ char *pBuff;
 //	$GNGGA,164017.000,4027.25749,N,00328.45394,W,1,13,1.2,604.7,M,52.0,M,,*5C
 	
 	pBuff=buffer;
-UART_printf(1,"GPS: %s\r\n",buffer);	
+//UART_printf(1,"GPS: %s\r\n",buffer);	
 	while(*pBuff!=0x2C && pBuff++);			// get command
 
 	pBuff++;
