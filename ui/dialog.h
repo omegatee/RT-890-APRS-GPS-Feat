@@ -34,7 +34,7 @@ enum UI_DialogText_t {
 
 typedef enum UI_DialogText_t UI_DialogText_t;
 
-void UI_DrawDialogText(UI_DialogText_t Text, bool bSet);
+void UI_DrawDialogText(UI_DialogText_t Dialog, bool bSet);
 
 #endif
 

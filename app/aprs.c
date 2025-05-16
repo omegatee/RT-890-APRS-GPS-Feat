@@ -6,12 +6,16 @@
 #include "driver/gps.h"
 #include "driver/bk4819.h"
 #include "driver/battery.h"
+#include "driver/beep.h"
 #include "radio/settings.h"
 #include "app/radio.h"
 #include "app/aprs.h"
 #include "task/aprs.h"
 #include "ui/vfo.h"
+//#include "ui/gfx.h"
+#include "ui/dialog.h"
 //#include "misc.h"
+#include "helper/helper.h"
 
 #define SYM_TIME 770	// nominal must be 833 (1/1200)
 // 760 - fail
@@ -26,6 +30,9 @@ uint16_t 	pFrameBUFF=0;
 // DESTINATION
 char dest[8] = "APRS";
 char destssid = 0;
+
+char peer[]="EA1RJ";
+char peerssid = 10;
 
 // MYCALL
 // extern myCALL
@@ -51,6 +58,8 @@ char myssid = 7;
 // DIGI
 char digi[8] = "WIDE2";
 char digissid = 2;
+//char digi[8] = "TRACE3";
+//char digissid = 3;
 	
 
 uint16_t crc = 0xFFFF;
@@ -62,10 +71,10 @@ void send_tone(bool ton)
 {
 	// Nominal for Bell 202 AFSK: MARK(1) - 1200 SPACE(0) - 2200
 	if(ton==1){
-		BK4819_SetToneFrequency(false, 1200);// trimmed 1200
+		BK4819_SetToneFrequency(0, 1200);// trimmed 1200
 	}
 	else {
-		BK4819_SetToneFrequency(false, 2200);// trimmed 2200 
+		BK4819_SetToneFrequency(0, 2200);// trimmed 2200 
 	}
 
 	DELAY_WaitUS(SYM_TIME);
@@ -164,9 +173,29 @@ uint8_t cnt,slen;
 		FrameBUFF[pFrameBUFF++]=text[cnt];
 }
 
+void APRS_add_Msg(char *target, char *text )
+{
+uint8_t cnt,slen,clen;
+	
+	slen=strlen(text);
+	clen=strlen(target);
+
+	// compose destination
+	FrameBUFF[pFrameBUFF++]=':';
+	for(cnt=0;cnt<clen;cnt++)
+		FrameBUFF[pFrameBUFF++]=target[cnt];
+	FrameBUFF[pFrameBUFF++]=':';
+	
+	// add message text
+	for(cnt=0;cnt<slen;cnt++)
+		FrameBUFF[pFrameBUFF++]=text[cnt];
+
+}
+
 void APRS_add_Pos(void)
 {
 uint8_t cnt;
+int32_t aFeet;
 	
 	FrameBUFF[pFrameBUFF++]='!';
 	
@@ -175,14 +204,35 @@ uint8_t cnt;
 		FrameBUFF[pFrameBUFF++]=gLatY[cnt];
 	FrameBUFF[pFrameBUFF++]=gLatS[0];
 	
-	FrameBUFF[pFrameBUFF++]='T';
+	FrameBUFF[pFrameBUFF++]='/';// icon table
 	
 	gLonX[8]=0;
 	for(cnt=0;cnt<8;cnt++)
 		FrameBUFF[pFrameBUFF++]=gLonX[cnt];
 	FrameBUFF[pFrameBUFF++]=gLonS[0];
 	
-	FrameBUFF[pFrameBUFF++]='a';
+	FrameBUFF[pFrameBUFF++]='[';// icon from table to show on map
+	
+	// try to add altitude
+	FrameBUFF[pFrameBUFF++]='/';
+	FrameBUFF[pFrameBUFF++]='A';
+	FrameBUFF[pFrameBUFF++]='=';
+
+	gAlti[3]=0;//remove decimals
+	aFeet=Ascii2Int(gAlti);
+	aFeet*=1000;aFeet/=328; // convert m to feet
+	Int2Ascii(aFeet,6);
+	for(cnt=0;cnt<6;cnt++)
+		FrameBUFF[pFrameBUFF++]=gShortString[cnt];
+
+/*
+	FrameBUFF[pFrameBUFF++]='0';// altitude in feet
+	FrameBUFF[pFrameBUFF++]='0';
+	FrameBUFF[pFrameBUFF++]='2';
+	FrameBUFF[pFrameBUFF++]='0';
+	FrameBUFF[pFrameBUFF++]='0';
+	FrameBUFF[pFrameBUFF++]='0';*/
+	
 }
 
 
@@ -206,73 +256,76 @@ void APRS_send_FCS(void)
 void APRS_send_Packet(uint8_t Type)
 {
 char msg[64];
-				uint8_t vv;
-				uint8_t d;
-				uint8_t u;
+uint8_t vv;
+uint8_t d;
+uint8_t u;
 
-	// set APRS frequency first
-	gVfoState[gSettings.CurrentDial]=gAPRSDefaultChannels[0];
-
-#if 0
-/// this needs some investigation; RADIO_Tune, perhaps ?
-	// check if channel is free
-	RADIO_StartRX();
-	if ((gRadioMode != RADIO_MODE_QUIET) || (gScreenMode == SCREEN_MENU)){
-			//gAPRSCounter=ONE_MIN/5; // re-try in 12 s
-			return;
+	if(Type==1 && gGPS_Fix==0){
+		gAPRSCounter=ONE_MIN/4;
+		return;
 	}
-#endif
+	
+	// set APRS frequency first
+	//gVfoState[gSettings.CurrentDial]=gAPRSDefaultChannels[0];	// load fixed channel template
+	if(CHANNELS_LoadChannel(898, gSettings.CurrentDial)){		// Load channel number - 1
+		// invalid channel
+		UI_DrawDialogText(DIALOG_NO_CH_AVAILABLE,0);
+
+		// restore initial dial mode
+		if (gSettings.WorkModeA) {
+			CHANNELS_LoadChannel(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
+		} else {
+			CHANNELS_LoadChannel(gSettings.CurrentDial ? 1000 : 999, gSettings.CurrentDial);
+		}
+		UI_DrawDial(gSettings.CurrentDial);
+		return;
+	}
+
+	// check if APRS channel is free
+	RADIO_Tune(gSettings.CurrentDial);
+	if ((gRadioMode != RADIO_MODE_QUIET) || (gScreenMode == SCREEN_MENU)){
+		gAPRSCounter=ONE_MIN/12; // re-try in 5 s
+		return;
+	}
+
 	BK4819_SetAfGain(0xB32A);
 	BK4819_EnableTone1(true);
 //SPEAKER_TurnOn(SPEAKER_OWNER_SYSTEM);
 
-	RADIO_StartTX(0);
+	/* ================================================================== Compose Frame  */
+	FrameBUFF[0]=0;
+	pFrameBUFF=0;
+	// compose header -----------------
+	// DEST
+	APRS_add_Address(dest,destssid,0);
+	// SOURCE
+	APRS_add_Address(myCALL,myssid,0);
+	// DIGI
+	APRS_add_Address(digi,digissid,1); // 1=last Address
+	// CTRL
+	APRS_add_CTRL();
 
-	/* ==============================================================  */
+	// compose payload -----------------
+	switch(Type){
+		case 0: // ================================================ STATUS PACKET
+			vv = BATTERY_GetVoltage();
+				d = vv/10;// trick to avoid atof
+				u = vv-(d*10);
+			snprintf(msg,sizeof(msg),"RT-890 FW:%s Freq:%d Batt:%d.%d",FW_VERSION,gVfoState[gSettings.CurrentDial].RX.Frequency*10,d,u);
+			APRS_add_Status(msg);
+			break;
+		case 1: // ============================================== POSITION PACKET
+			APRS_add_Pos();
+			break;
+		case 2: // ============================================== MESSAGE PACKET
+			/// TBCoded...
+			snprintf(msg,sizeof(msg),"HELLO. RT-890 APRS Test. Copy?");
+			APRS_add_Msg("EA1FAQ-7 ",msg); // NOTE: destination must be 9 chars, space padded
+			break;
+	}
 	
-	// Compose Frame
-		FrameBUFF[0]=0;
-		pFrameBUFF=0;
-		// compose header -----------------
-		// DEST
-		APRS_add_Address(dest,destssid,0);
-		// SOURCE
-		APRS_add_Address(myCALL,myssid,0);
-		// DIGI
-		APRS_add_Address(digi,digissid,1); // 1=last Address
-		// CTRL
-		APRS_add_CTRL();
-
-		// compose payload -----------------
-		switch(Type){
-			case 0: // ================================================ STATUS PACKET
-				vv = BATTERY_GetVoltage();
-					d = vv/10;// trick to avoid atof
-					u = vv-(d*10);
-				snprintf(msg,sizeof(msg),"HELLO.RT-890 APRS Test.Batt=%d.%dV",d,u);
-				APRS_add_Status(msg);
-				break;
-			case 1: // ============================================== POSITION PACKET
-/* //for no GPS
-sprintf(gTime,"235959");
-sprintf(gLatY,"4026.00");
-sprintf(gLatS,"N");
-sprintf(gLonX,"00328.00");
-sprintf(gLonS,"W");
-gGPS_Fix=1;*/
-				if(gGPS_Fix){
-					APRS_add_Pos();
-				}
-				else{
-					gAPRSCounter=ONE_MIN;
-					return;
-				}
-				break;
-			case 2: // ============================================== MESSAGE PACKET
-				/// TBCoded...
-				break;
-		}
-	
+	/* ================================================================== Start Sending  */
+	RADIO_StartTX(0);	
 	// send flag -----------------
 	APRS_send_Flag(48);
 
@@ -285,8 +338,7 @@ gGPS_Fix=1;*/
 	
 	// send flag -----------------
 	APRS_send_Flag(4);
-	//	AFSK_SendByte(0x7E,0);
-
+	
 	BK4819_EnableTone1(false);
 	
 	// restore initial dial mode
@@ -295,7 +347,7 @@ gGPS_Fix=1;*/
 	} else {
 		CHANNELS_LoadChannel(gSettings.CurrentDial ? 1000 : 999, gSettings.CurrentDial);
 	}
-	RADIO_Tune(gSettings.CurrentDial);
-	UI_DrawVfo(gSettings.CurrentDial);
+	UI_DrawDial(gSettings.CurrentDial);
+//BEEP_Play(880,2,100,1); // troubles here
 
 }

@@ -213,7 +213,7 @@ void SetFreqMinMax(bool getCurrentBand) {
 	}
 #endif
 	FREQUENCY_SelectBand(FreqCenter);
-	BK4819_EnableFilter(bFilterEnabled);
+	BK4819_SelectRFPath(bFilterEnabled);
 	RssiValue[CurrentFreqIndex] = 0; // Force a rescan
 }
 
@@ -325,7 +325,7 @@ void ChangeDisplayMode(void) {
 
 void ToggleFilter(void) {
 	bFilterEnabled ^= 1;
-	BK4819_EnableFilter(bFilterEnabled);
+	BK4819_SelectRFPath(bFilterEnabled);
 	bResetSquelch = TRUE;
 	bRestartScan = TRUE;
 	DrawLabels();
@@ -365,13 +365,6 @@ void JumpToVFO(void) {
 		CHANNELS_LoadVfoMode();
 	}
 
-/*
-IFDBG	Int2Ascii(gSettings.WorkModeA, 1);
-IFDBG	UART_printf(1,"gSettings.WorkModeA: ");
-IFDBG	UART_printf(1,gShortString);
-IFDBG	UART_printf(1,"     -----     ");
-*/
-
 	SETTINGS_SaveGlobals();
 	gVfoState[gSettings.CurrentDial].bIsNarrow = bNarrow;
 	CHANNELS_UpdateVFOFreq(CurrentFreq);
@@ -402,19 +395,19 @@ void DrawSpectrum(uint16_t ActiveBarColor) {
 		Power = GetAdjustedLevel(RssiValue[i], BarLow, BarHigh, BarScale);
 		SquelchPower = GetAdjustedLevel(SquelchLevel, BarLow, BarHigh, BarScale);
 		if (Power < SquelchPower) {
-			DISPLAY_DrawRectangle1(BarX, BarY, Power, BarWidth, (i == CurrentFreqIndex) ? ActiveBarColor : COLOR_FOREGROUND);
-			DISPLAY_DrawRectangle1(BarX, BarY + Power, SquelchPower - Power, BarWidth, COLOR_BACKGROUND);
-			DISPLAY_DrawRectangle1(BarX, BarY + SquelchPower + 1, BarScale - SquelchPower, BarWidth, COLOR_BACKGROUND);
+			DISPLAY_DrawRectangle(BarX, BarY, BarWidth,Power,  (i == CurrentFreqIndex) ? ActiveBarColor : COLOR_FOREGROUND);
+			DISPLAY_DrawRectangle(BarX, BarY + Power, BarWidth,SquelchPower - Power, COLOR_BACKGROUND);
+			DISPLAY_DrawRectangle(BarX, BarY + SquelchPower + 1, BarWidth,BarScale - SquelchPower, COLOR_BACKGROUND);
 		} else { 
-			DISPLAY_DrawRectangle1(BarX, BarY, SquelchPower, BarWidth, (i == CurrentFreqIndex) ? ActiveBarColor : COLOR_FOREGROUND);
-			DISPLAY_DrawRectangle1(BarX, BarY + SquelchPower + 1, Power - SquelchPower, BarWidth, (i == CurrentFreqIndex) ? ActiveBarColor : COLOR_FOREGROUND);
-			DISPLAY_DrawRectangle1(BarX, BarY + Power + 1, BarScale - Power, BarWidth, COLOR_BACKGROUND);
+			DISPLAY_DrawRectangle(BarX, BarY, SquelchPower, BarWidth, (i == CurrentFreqIndex) ? ActiveBarColor : COLOR_FOREGROUND);
+			DISPLAY_DrawRectangle(BarX, BarY + SquelchPower + 1, BarWidth,Power - SquelchPower, (i == CurrentFreqIndex) ? ActiveBarColor : COLOR_FOREGROUND);
+			DISPLAY_DrawRectangle(BarX, BarY + Power + 1, BarWidth,BarScale - Power, COLOR_BACKGROUND);
 		} 
 	}
 
 	//Squelch Line
 	Power = GetAdjustedLevel(SquelchLevel, BarLow, BarHigh, BarScale);
-	DISPLAY_DrawRectangle1(0, BarY + Power, 1, 160, COLOR_RED);
+	DISPLAY_DrawRectangle(0, BarY + Power, 160, 1, COLOR_RED);
 }
 
 uint16_t MapColor(uint16_t Level){
@@ -479,8 +472,8 @@ void DrawWaterfall()
 		ST7735S_SendU16(wf); // write to screen using waterfall color from palette
 	}
 
-	DISPLAY_DrawRectangle1(52, 0, 128, 3, COLOR_BACKGROUND);
-	DISPLAY_DrawRectangle1(52, CurrentFreqIndex, 1, 3, COLOR_FOREGROUND);
+	DISPLAY_DrawRectangle(52, 0, 3,128, COLOR_BACKGROUND);
+	DISPLAY_DrawRectangle(52, CurrentFreqIndex, 3, 1, COLOR_FOREGROUND);
 }
 
 void StopSpectrum(void) {
@@ -607,7 +600,7 @@ void Spectrum_StartAudio(void) {
 		if (CurrentModulation > 1) { // if SSB
 			BK4819_WriteRegister(0x43, 0b0010000001011000); // Filter 6.25KHz
 			BK4819_WriteRegister(0x37, 0b0001011000001111);
-			BK4819_WriteRegister(0x3D, 0b0010101101000101);
+			BK4819_WriteRegister(0x3D, 0b0010101101000101); // 0x2B45 --> undocumented IF selection
 			BK4819_WriteRegister(0x48, 0b0000001110101000);
 		}
 	} else {
@@ -668,7 +661,7 @@ void Spectrum_Loop(void) {
 				i = 0;
 			}
 
-			BK4819_set_rf_frequency(FreqToCheck, TRUE);
+			BK4819_SetRFFrequency(FreqToCheck, TRUE);
 
 			DELAY_WaitMS(CurrentScanDelay);
 
@@ -699,7 +692,7 @@ void Spectrum_Loop(void) {
 		}
 
 		if (RssiValue[CurrentFreqIndex] > SquelchLevel) {
-			BK4819_set_rf_frequency(CurrentFreq, TRUE);
+			BK4819_SetRFFrequency(CurrentFreq, TRUE);
 			DELAY_WaitMS(CurrentScanDelay);
 			RunRX();
 		}

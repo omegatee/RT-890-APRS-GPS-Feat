@@ -59,10 +59,10 @@ static const ChannelInfo_t VfoTemplate[2] = {
 		.gBandWidth = 0x0F,
 		.gTXPower = 0x0F,
 		.Scramble = 0x00,
-		.IsInscanList = 0xFF,
+		.IsInscanList = 0x00,
 		._0x14 = 0xFF,
 		._0x15 = 0xFF,
-		.Name = "----------",
+		.Name = "          ",
 	},
 	{
 
@@ -85,10 +85,10 @@ static const ChannelInfo_t VfoTemplate[2] = {
 		.gBandWidth = 0x0F,
 		.gTXPower = 0x0F,
 		.Scramble = 0x00,
-		.IsInscanList = 0xFF,
+		.IsInscanList = 0x00,
 		._0x14 = 0xFF,
 		._0x15 = 0xFF,
-		.Name = "----------",
+		.Name = "          ",
 	},
 };
 
@@ -114,10 +114,10 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.gBandWidth = 0x0F,
 		.gTXPower = 0x0F,
 		.Scramble = 0x00,
-		.IsInscanList = 0xFF,
+		.IsInscanList = 0x00,
 		._0x14 = 0xFF,
 		._0x15 = 0xFF,
-		.Name = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
+		.Name = "          ",
 	},
 	{
 		.RX = { .Frequency = 16240000, .Code = 0x000, .CodeType = CODE_TYPE_OFF, },
@@ -139,10 +139,10 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.gBandWidth = 0x0F,
 		.gTXPower = 0x0F,
 		.Scramble = 0x00,
-		.IsInscanList = 0xFF,
+		.IsInscanList = 0x00,
 		._0x14 = 0xFF,
 		._0x15 = 0xFF,
-		.Name = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
+		.Name = "          ",
 	},
 	{
 		.RX = { .Frequency = 16247500, .Code = 0x000, .CodeType = CODE_TYPE_OFF, },
@@ -164,10 +164,10 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.gBandWidth = 0x0F,
 		.gTXPower = 0x0F,
 		.Scramble = 0x00,
-		.IsInscanList = 0xFF,
+		.IsInscanList = 0x00,
 		._0x14 = 0xFF,
 		._0x15 = 0xFF,
-		.Name = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
+		.Name = "          ",
 	},
 	{
 		.RX = { .Frequency = 16242500, .Code = 0x000, .CodeType = CODE_TYPE_OFF, },
@@ -189,10 +189,10 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.gBandWidth = 0x0F,
 		.gTXPower = 0x0F,
 		.Scramble = 0x00,
-		.IsInscanList = 0xFF,
+		.IsInscanList = 0x00,
 		._0x14 = 0xFF,
 		._0x15 = 0xFF,
-		.Name = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
+		.Name = "          ",
 	},
 	{
 		.RX = { .Frequency = 16245000, .Code = 0x000, .CodeType = CODE_TYPE_OFF, },
@@ -214,10 +214,10 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.gBandWidth = 0x0F,
 		.gTXPower = 0x0F,
 		.Scramble = 0x00,
-		.IsInscanList = 0xFF,
+		.IsInscanList = 0x00,
 		._0x14 = 0xFF,
 		._0x15 = 0xFF,
-		.Name = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
+		.Name = "          ",
 	},
 	{
 		.RX = { .Frequency = 16250000, .Code = 0x000, .CodeType = CODE_TYPE_OFF, },
@@ -239,10 +239,10 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.gBandWidth = 0x0F,
 		.gTXPower = 0x0F,
 		.Scramble = 0x00,
-		.IsInscanList = 0xFF,
+		.IsInscanList = 0x00,
 		._0x14 = 0xFF,
 		._0x15 = 0xFF,
-		.Name = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
+		.Name = "          ",
 	},
 	{
 		.RX = { .Frequency = 16252500, .Code = 0x000, .CodeType = CODE_TYPE_OFF, },
@@ -264,10 +264,10 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.gBandWidth = 0x0F,
 		.gTXPower = 0x0F,
 		.Scramble = 0x00,
-		.IsInscanList = 0xFF,
+		.IsInscanList = 0x00,
 		._0x14 = 0xFF,
 		._0x15 = 0xFF,
-		.Name = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
+		.Name = "          ",
 	},
 	{
 		.RX = { .Frequency = 16165000, .Code = 0x000, .CodeType = CODE_TYPE_OFF, },
@@ -289,10 +289,10 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.gBandWidth = 0x0F,
 		.gTXPower = 0x0F,
 		.Scramble = 0x00,
-		.IsInscanList = 0xFF,
+		.IsInscanList = 0x00,
 		._0x14 = 0xFF,
 		._0x15 = 0xFF,
-		.Name = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
+		.Name = "          ",
 	},
 	{
 		.RX = { .Frequency = 16177500, .Code = 0x000, .CodeType = CODE_TYPE_OFF, },
@@ -314,10 +314,10 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.gBandWidth = 0x0F,
 		.gTXPower = 0x0F,
 		.Scramble = 0x00,
-		.IsInscanList = 0xFF,
+		.IsInscanList = 0x00,
 		._0x14 = 0xFF,
 		._0x15 = 0xFF,
-		.Name = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
+		.Name = "          ",
 	},
 	{
 		.RX = { .Frequency = 16175000, .Code = 0x000, .CodeType = CODE_TYPE_OFF, },
@@ -339,10 +339,10 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.gBandWidth = 0x0F,
 		.gTXPower = 0x0F,
 		.Scramble = 0x00,
-		.IsInscanList = 0xFF,
+		.IsInscanList = 0x00,
 		._0x14 = 0xFF,
 		._0x15 = 0xFF,
-		.Name = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
+		.Name = "          ",
 	},
 	{
 		.RX = { .Frequency = 16200000, .Code = 0x000, .CodeType = CODE_TYPE_OFF, },
@@ -364,10 +364,10 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 		.gBandWidth = 0x0F,
 		.gTXPower = 0x0F,
 		.Scramble = 0x00,
-		.IsInscanList = 0xFF,
+		.IsInscanList = 0x00,
 		._0x14 = 0xFF,
 		._0x15 = 0xFF,
-		.Name = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
+		.Name = "          ",
 	},
 };
 #endif
@@ -389,7 +389,7 @@ bool CHANNELS_NextChannelMr(uint8_t Key, bool OnlyFromScanlist) {
 #ifdef ENABLE_FM_RADIO
 	if (gFM_Mode < FM_MODE_PLAY) {
 #endif
-	UI_DrawVfo(gSettings.CurrentDial);
+	UI_DrawDial(gSettings.CurrentDial);
 #ifdef ENABLE_FM_RADIO
 	}
 #endif
@@ -471,7 +471,7 @@ void CHANNELS_NextChannelVfo(uint8_t Key)
 #ifdef ENABLE_FM_RADIO
 	if (gFM_Mode < FM_MODE_PLAY) {
 #endif
-		UI_DrawVfo(gSettings.CurrentDial);
+		UI_DrawDial(gSettings.CurrentDial);
 #ifdef ENABLE_FM_RADIO
 	}
 #endif
@@ -531,14 +531,14 @@ void CHANNELS_UpdateChannel(void)
 				gSettings.VfoChNo[gSettings.CurrentDial] = Channel;
 				SETTINGS_SaveGlobals();
 				RADIO_Tune(gSettings.CurrentDial);
-				UI_DrawVfo(gSettings.CurrentDial);
+				UI_DrawDial(gSettings.CurrentDial);
 			}
 			return;
 		}
 	}
 	CHANNELS_LoadChannel(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
 	RADIO_Tune(gSettings.CurrentDial);
-	UI_DrawVfo(gSettings.CurrentDial);
+	UI_DrawDial(gSettings.CurrentDial);
 }
 
 void CHANNELS_UpdateVFO(void)
@@ -574,7 +574,7 @@ void CHANNELS_UpdateVFOFreq(uint32_t Frequency)
 		CHANNELS_LoadChannel(gSettings.CurrentDial ? 1000 : 999, gSettings.CurrentDial);
 		RADIO_Tune(gSettings.CurrentDial);
 	}
-	UI_DrawVfo(gSettings.CurrentDial);
+	UI_DrawDial(gSettings.CurrentDial);
 }
 
 bool CHANNELS_LoadChannel(uint16_t ChNo, uint8_t Vfo)
@@ -650,9 +650,11 @@ void CHANNELS_LoadVfoMode(void)
 	} else {
 		CHANNELS_LoadChannel(999, 0);
 	}
+#ifdef ENABLE_VOICE
 	if (gScreenMode == SCREEN_MAIN && gSettings.DtmfState != DTMF_STATE_KILLED) {
 		AUDIO_PlaySampleOptional(0);
 	}
+#endif
 }
 
 void CHANNELS_LoadWorkMode(void)
@@ -675,9 +677,11 @@ void CHANNELS_LoadWorkMode(void)
 		SETTINGS_SaveGlobals();
 	}
 	CHANNELS_LoadChannel(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
+#ifdef ENABLE_VOICE
 	if (gScreenMode == SCREEN_MAIN && gSettings.DtmfState != DTMF_STATE_KILLED) {
 		AUDIO_PlayChannelNumber();
 	}
+#endif
 }
 
 uint16_t CHANNELS_GetChannelUp(uint16_t Channel, uint8_t Vfo)

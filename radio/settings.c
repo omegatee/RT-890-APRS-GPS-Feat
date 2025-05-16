@@ -33,6 +33,7 @@ Calibration_t gCalibration;
 char myCALL[16];
 gSettings_t gSettings;
 char WelcomeString[32];
+//	char WelcomeString[]={"your SN"};
 uint32_t gFrequencyStep = 25;
 gExtendedSettings_t gExtendedSettings;
 
@@ -100,11 +101,14 @@ void SETTINGS_LoadSettings(void)
 uint8_t cnt;
 	
 	SFLASH_Read(WelcomeString, 0x3C1000, sizeof(WelcomeString));	/// "Startup Label" in CHIRP (now, used as Serial Number)
-	cnt=0;/// let's remove the annoying spaces here
+	cnt=0;/// let's remove the annoying padding spaces here
 	while(WelcomeString[cnt]!=0x20 && WelcomeString[cnt])	
 		cnt++;
 	WelcomeString[cnt]=0;
-	SFLASH_Read(myCALL, 0x3C1020, sizeof(myCALL));		/// "Personal ID" in CHIRP
+	
+//SFLASH_Update(WelcomeString, 0x3C1000, sizeof(WelcomeString));
+	
+	SFLASH_Read(myCALL, 0x3C1020, sizeof(myCALL));					/// "Personal ID" in CHIRP
 	cnt=0;/// again
 	while(myCALL[cnt]!=0x20 && myCALL[cnt])	
 		cnt++;

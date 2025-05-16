@@ -20,9 +20,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-extern uint8_t Buffer1[256];
+#define UART_BSIZE 256
+
+extern uint8_t Buffer1[UART_BSIZE];
 extern uint8_t Buffer1Length;
-extern uint8_t Buffer2[256];
+extern uint8_t Buffer2[UART_BSIZE];
 extern uint8_t Buffer2Length;
 
 void UART_Init(uint8_t Port, uint32_t BaudRate);

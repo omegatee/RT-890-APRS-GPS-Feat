@@ -21,11 +21,11 @@
 #include <stdbool.h>
 
 #ifdef ENABLE_AM_FIX
-	extern int16_t rssi_gain_diff[2];
+	//extern int16_t rssi_gain_diff[2];
     extern uint16_t gAmFixCountdown;
 
-	void AM_fix_init(void);
-	void AM_fix_reset(const int vfo);
+	//void AM_fix_init(void);
+	//void AM_fix_reset(const int vfo);
 	void Task_AM_fix(void);
 		
 #endif

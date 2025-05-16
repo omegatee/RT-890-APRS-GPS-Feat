@@ -101,20 +101,24 @@ static void TuneCurrentDial(void)
 	gRadioMode = RADIO_MODE_QUIET;
 	EnableTxAmp(false);
 	BK4819_SetFrequency(gVfoInfo[gCurrentDial].Frequency);
+	BK4819_SelectRFPath(gVfoInfo[gCurrentDial].Frequency);///
 	gCode = gVfoInfo[gCurrentDial].Code;
 	if (gMainVfo->bMuteEnabled) {
-		CSS_SetCustomCode(gMainVfo->bIs24Bit, gMainVfo->Golay, gMainVfo->bIsNarrow);
+		CSS_SetCustomCode(gMainVfo->bIs24Bit, gMainVfo->Golay, !gMainVfo->bIsNarrow);///
 	}
 	else {
-		CSS_SetStandardCode(gVfoInfo[gCurrentDial].CodeType, gCode, gMainVfo->Encrypt, gMainVfo->bIsNarrow);
+		CSS_SetStandardCode(gVfoInfo[gCurrentDial].CodeType, gCode, gMainVfo->Encrypt, !gMainVfo->bIsNarrow);///
 	}
 	BK4819_SetSquelchMode();
-	BK4819_SetSquelchGlitch(gMainVfo->bIsNarrow);
-	BK4819_SetSquelchNoise(gMainVfo->bIsNarrow);
-	BK4819_SetSquelchRSSI(gMainVfo->bIsNarrow);
+	///BK4819_SetSquelchGlitch(!gMainVfo->bIsNarrow);
+	///BK4819_SetSquelchNoise(!gMainVfo->bIsNarrow);
+	///BK4819_SetSquelchRSSI(!gMainVfo->bIsNarrow);
+		BK4819_SetSquelchGlitch(gMainVfo->gBandWidth);///
+		BK4819_SetSquelchNoise(gMainVfo->gBandWidth);///
+		BK4819_SetSquelchRSSI(gMainVfo->gBandWidth);///
 	BK4819_EnableRX();
-	BK4819_SetFilterBandwidth(gMainVfo->bIsNarrow,0);
-	BK4819_EnableFilter(true);
+	BK4819_SetFilterBandwidth(gMainVfo->gBandWidth,0);///
+	///BK4819_EnableFilter(true);
 }
 
 static bool TuneTX(bool bUseMic)
@@ -133,10 +137,11 @@ static bool TuneTX(bool bUseMic)
 
 	gCode = gVfoInfo[gCurrentDial].Code;
 	BK4819_SetFrequency(gVfoInfo[gCurrentDial].Frequency);
-	if(1)/*	if (gSettings.BandInfo[gCurrentFrequencyBand] == BAND_136MHz && gVfoInfo[gCurrentDial].Frequency >= 13600000/) */{	///WT:
-		BK4819_EnableFilter(false);
+///	if (gSettings.BandInfo[gCurrentFrequencyBand] == BAND_136MHz && gVfoInfo[gCurrentDial].Frequency >= 13600000/) {	///WT:
+		///BK4819_EnableFilter(false);
+			BK4819_SelectRFPath(gVfoInfo[gCurrentDial].Frequency);
 		if (gMainVfo->bMuteEnabled) {
-			CSS_SetCustomCode(gMainVfo->bIs24Bit, gMainVfo->Golay, gMainVfo->bIsNarrow);
+			CSS_SetCustomCode(gMainVfo->bIs24Bit, gMainVfo->Golay, !gMainVfo->bIsNarrow);///
 			gTxCodeType = CODE_TYPE_DCS_N;
 		}
 		else {
@@ -144,7 +149,7 @@ static bool TuneTX(bool bUseMic)
 			gTxCodeType = gMainVfo->TX.CodeType;
 		}
 		gRadioMode = RADIO_MODE_TX;
-		BK4819_EnableRfTxDeviation();
+		BK4819_SetRFTXDeviation(gMainVfo->gBandWidth);
 		BK4819_EnableTX(bUseMic);
 		BK4819_EnableScramble(gMainVfo->Scramble);
 		if (gMainVfo->Scramble == 0) {
@@ -154,23 +159,14 @@ static bool TuneTX(bool bUseMic)
 		}
 		EnableTxAmp(true);
 		///BK4819_SetupPowerAmplifier(gMainVfo->bIsLowPower ? gTxPowerLevelLow : gTxPowerLevelHigh, gVfoInfo[gCurrentDial].Frequency);
-		
-		///  10 -   25 uW
-		//   40 -  190 mW
-		//   50 -  360 mW
-		//   80 -  1,2  W
-		//  100 -  2,0  W
-		//  150 -  4,7  W
-		//  200 -  6,2  W
-		BK4819_SetupPowerAmplifier(gMainVfo->bIsLowPower ? 78 : 155, gVfoInfo[gCurrentDial].Frequency);
-
+		BK4819_SetupPowerAmplifier(gMainVfo->gTXPower, gVfoInfo[gCurrentDial].Frequency);
 
 		return true;
-	} else {
-		TuneCurrentDial();
+///	} else {
+///		TuneCurrentDial();
 
-		return false;
-	}
+///		return false;
+///	}
 }
 
 static void SpecialRxTxLoop(void)
@@ -204,6 +200,7 @@ static void TuneNOAA(void)
 	gRadioMode = RADIO_MODE_QUIET;
 	EnableTxAmp(false);
 	BK4819_SetFrequency(gMainVfo->RX.Frequency);
+	BK4819_SelectRFPath(gMainVfo->RX.Frequency);///
 	if (!gNoaaMode) {
 		BK4819_WriteRegister(0x51, 0x0000);
 	} else {
@@ -217,8 +214,8 @@ static void TuneNOAA(void)
 	BK4819_EnableScramble(0);
 	BK4819_EnableCompander(false);
 	BK4819_EnableRX();
-	BK4819_SetFilterBandwidth(false,0);
-	BK4819_EnableFilter(true);
+	BK4819_SetFilterBandwidth(1,0);// 1 - narrow
+	///BK4819_EnableFilter(true);
 }
 #endif
 
@@ -253,7 +250,7 @@ void RADIO_Init(void)
 
 	BK4819_Init();
 #ifdef ENABLE_AM_FIX
-	AM_fix_init();
+	//AM_fix_init();
 #endif
 
 	if (gSettings.DtmfState != DTMF_STATE_KILLED) {
@@ -274,7 +271,7 @@ void RADIO_Init(void)
 
 	if (gSettings.DtmfState != DTMF_STATE_KILLED) {
 		UI_DrawMain(false);
-		BK4819_EnableVox(gSettings.Vox);
+		BK4819_EnableVox(gSettings.VoxLevel);
 		if (!gpio_input_data_bit_read(GPIOB, BOARD_GPIOB_KEY_PTT)) {
 			if (!gpio_input_data_bit_read(GPIOF, BOARD_GPIOF_KEY_SIDE1)) {
 				if (!gpio_input_data_bit_read(GPIOA, BOARD_GPIOA_KEY_SIDE2)) {
@@ -332,9 +329,9 @@ void RADIO_StartRX(void)
 				DISPLAY_Fill(1, 158, 1 + Y, 40 + Y, COLOR_BACKGROUND);
 				DISPLAY_Fill(1, 158, 1 + ((!gCurrentDial) * 41), 40 + ((!gCurrentDial) * 41), COLOR_BACKGROUND);
 
-				UI_DrawVoltage(!gCurrentDial);
+				UI_DrawRegisters(!gCurrentDial);
 			}
-			UI_DrawVfo(gCurrentDial);
+			UI_DrawDial(gCurrentDial);
 			UI_DrawMainBitmap(true, gSettings.CurrentDial);///
 ///			UI_DrawRX(gCurrentDial); draws walky rx icon
 		}
@@ -415,7 +412,8 @@ void RADIO_EndAudio(void)
 {
 	gpio_bits_reset(GPIOA, BOARD_GPIOA_LED_GREEN);
 	gReceivingAudio = false;
-	RADIO_Tune(2);
+	///RADIO_Tune(2);
+		RADIO_Tune(gSettings.CurrentDial);
 	SPEAKER_TurnOff(SPEAKER_OWNER_RX);
 	gRxLinkCounter = 0;
 	gNoToneCounter = 0;
@@ -428,7 +426,7 @@ void RADIO_EndAudio(void)
 void RADIO_Sleep(void)
 {
 	EnableTxAmp(false);
-	BK4819_EnableFilter(false);
+	///BK4819_EnableFilter(false);
 	BK4819_WriteRegister(0x30, 0x0000);
 	BK4819_WriteRegister(0x37, 0x1D00);
 	gSaveMode = true;
@@ -547,7 +545,7 @@ void RADIO_StartTX(bool bUseMic)
 		}
 		Task_UpdateScreen();
 		UI_DrawMainBitmap(true, gSettings.CurrentDial);///
-		UI_DrawVfo(gSettings.CurrentDial);
+		UI_DrawDial(gSettings.CurrentDial);
 /// Moved to end of transmission
 ///		if (gSettings.RogerBeep == 3) {
 ///			// Play a tone for 300ms to make sure squelch opens on remote end before FSK ID
@@ -591,7 +589,7 @@ void RADIO_EndTX(void)
 			PlayRogerBeep(gSettings.RogerBeep);
 		}
 	}
-	BK4819_GenTail(gMainVfo->bIsNarrow);
+	BK4819_GenTail(!gMainVfo->bIsNarrow);///
 	gpio_bits_reset(GPIOA, BOARD_GPIOA_LED_RED);
 	BK4819_SetupPowerAmplifier(0,0);
 	TuneCurrentDial();
@@ -623,7 +621,7 @@ void RADIO_DisableSaveMode(void)
 {
 	if (gSaveMode) {
 		BK4819_EnableRX();
-		BK4819_EnableFilter(true);
+		///BK4819_EnableFilter(true);
 		gSaveMode = false;
 		DELAY_WaitMS(10);
 	}
@@ -636,11 +634,11 @@ void RADIO_DrawFmMode(void)
 	UI_DrawFMFrequency(gSettings.FmFrequency);
 }
 
-void RADIO_DrawWorkMode(void)
+void RADIO_DrawChannelMode(void)
 {
 	gInputBoxWriteIndex = 0;
 	INPUTBOX_Pad(0, '-');
-	UI_DrawVfo(gSettings.CurrentDial);
+	UI_DrawDial(gSettings.CurrentDial);
 }
 
 void RADIO_DrawFrequencyMode(void)

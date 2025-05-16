@@ -94,12 +94,12 @@ static void UpdateBand(bool bToggleBand)
 		gSettings.bUseVHF ^= 1;
 	}
 	gUseUhfFilter = !gSettings.bUseVHF;
-	BK4819_EnableFilter(true);
+	BK4819_SelectRFPath(true);
 	if (bToggleBand) {
 		SETTINGS_SaveGlobals();
 	}
 	UI_DrawBand();
-	BEEP_Play(740, 2, 100);
+	BEEP_Play(740, 2, 100,0);
 }
 
 static void CtdcScan(void)
@@ -112,7 +112,7 @@ static void CtdcScan(void)
 	RADIO_Tune(gSettings.CurrentDial);
 	UI_DrawCtdcScan();
 	UI_DrawScanFrequency(gVfoState[gSettings.CurrentDial].RX.Frequency);
-	BEEP_Play(740, 2, 100);
+	BEEP_Play(740, 2, 100,0);
 }
 
 static void StopDetect(void)
@@ -275,14 +275,14 @@ static void DETECTOR_Loop(void)
 				Key = KEY_CurrentKey;
 			}
 			KEY_CurrentKey = Key;
-		} while ((!bScan || !BK4819_CheckSquelchLink()) && gpio_input_data_bit_read(GPIOB, BOARD_GPIOB_KEY_PTT));
+		} while ((!bScan || !BK4819_CheckSquelchStat()) && gpio_input_data_bit_read(GPIOB, BOARD_GPIOB_KEY_PTT));
 
 		if (!gpio_input_data_bit_read(GPIOB, BOARD_GPIOB_KEY_PTT)) {
 			gPttPressed = true;
 			KEY_SideKeyLongPressed = false;
 			KEY_KeyCounter = 0;
 			StopDetect();
-			BEEP_Play(440, 4, 80);
+			BEEP_Play(440, 4, 80,0);
 			return;
 		}
 		BK4819_DisableAutoCssBW();
@@ -298,7 +298,7 @@ static void DETECTOR_Loop(void)
 				KEY_SideKeyLongPressed = false;
 				KEY_KeyCounter = 0;
 				StopDetect();
-				BEEP_Play(440, 4, 80);
+				BEEP_Play(440, 4, 80,0);
 				return;
 			}
 			Key = KEY_GetButton();
@@ -320,13 +320,13 @@ static void DETECTOR_Loop(void)
 						KEY_SideKeyLongPressed = false;
 						KEY_KeyCounter = 0;
 						StopDetect();
-						BEEP_Play(740, 3, 80);
+						BEEP_Play(740, 3, 80,0);
 						return;
 					}
 					if (KEY_CurrentKey == KEY_EXIT) {
 						KEY_CurrentKey = KEY_NONE;
 						RADIO_EndRX();
-						BEEP_Play(740, 2, 100);
+						BEEP_Play(740, 2, 100,0);
 						break;
 					}
 					if (KEY_CurrentKey == KEY_HASH && !bCtdcScan) {
@@ -363,7 +363,9 @@ void RADIO_FrequencyDetect(void)
 	gScreenMode = SCREEN_FREQ_DETECT;
 	SPEAKER_State = 0;
 	gpio_bits_reset(GPIOA, BOARD_GPIOA_SPEAKER);
+#ifdef ENABLE_VOICE
 	gAudioOffsetIndex = gAudioOffsetLast;
+#endif
 	gFrequencyDetectMode = true;
 	gVfoState[gSettings.CurrentDial].RX.Frequency = 10000000;
 	UI_DrawRadar();
@@ -371,7 +373,7 @@ void RADIO_FrequencyDetect(void)
 	UI_DrawBand();
 	VFO_ClearCss();
 	VFO_ClearMute();
-	BK4819_EnableFilter(true);
+	BK4819_SelectRFPath(true);
 	DETECTOR_Loop();
 	gScreenMode = SCREEN_MAIN;
 }

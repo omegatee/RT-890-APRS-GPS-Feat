@@ -134,7 +134,7 @@ void APP_RegEdit(void) {
 			return;
 		}
 
-		UI_DrawVoltage(0);
+		UI_DrawRegisters(0);
 
 		ActiveGainReg = BK4819_ReadRegister(0x7e);
 		ActiveGainReg >>= 12;

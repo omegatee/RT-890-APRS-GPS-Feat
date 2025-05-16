@@ -116,8 +116,10 @@ static void MAIN_KeyHandler(KEY_t Key)
 			} else {
 				VFO_AppendDigit(Key);
 			}
+#ifdef ENABLE_VOICE
 			AUDIO_PlayDigit(Key);
-			BEEP_Play(740, 2, 100);
+#endif
+			BEEP_Play(740, 2, 100,0);
 #ifdef ENABLE_FM_RADIO
 		}
 #endif
@@ -135,7 +137,7 @@ IFDBG UART_printf(1,"k:MENU\r\n");
 				gVfoState[gSettings.CurrentDial].RX.Frequency = gScanLastRxFreqOrChannel;
 			}
 			RADIO_Tune(gSettings.CurrentDial);
-			UI_DrawVfo(gSettings.CurrentDial);
+			UI_DrawDial(gSettings.CurrentDial);
 			SETTINGS_SaveState();
 			return;
 		}
@@ -162,7 +164,7 @@ IFDBG UART_printf(1,"k:MENU\r\n");
 				CHANNELS_UpdateVFO();
 			}
 		}
-		BEEP_Play(740, 3, 80);
+		BEEP_Play(740, 3, 80,0);
 		break;
 
 	case KEY_UP:
@@ -173,15 +175,20 @@ IFDBG UART_printf(1,"k:MENU\r\n");
 #endif
 				if (!gReceptionMode) {
 					if (!gScannerMode) {
-#ifndef ENABLE_KEEP_MONITOR_MODE_UP_DN
+#ifdef ENABLE_KEEP_MONITOR_MODE_UP_DN
+						;/// TODO: write something about gMonitorMode here
+						if(!gMonitorMode)
+							RADIO_CancelMode();
+#else
 						RADIO_CancelMode();
 #endif
 						if (gSettings.WorkModeA) {
 							CHANNELS_NextChannelMr(Key, false);
 							SETTINGS_SaveGlobals();
+#ifdef ENABLE_AUDIO
 							AUDIO_PlayChannelNumber();
+#endif
 						} else {
-							RADIO_Tune(gSettings.CurrentDial);
 							CHANNELS_NextChannelVfo(Key);
 							CHANNELS_SaveChannel(gSettings.CurrentDial ? 1000 : 999, &gVfoState[gSettings.CurrentDial]);
 							CHANNELS_LoadChannel(gSettings.CurrentDial ? 1000 : 999, gSettings.CurrentDial);
@@ -210,7 +217,7 @@ IFDBG UART_printf(1,"k:MENU\r\n");
 			}
 #endif
 		}
-		BEEP_Play(740, 2, 100);
+		BEEP_Play(740, 2, 100,0);
 		break;
 
 	case KEY_EXIT:
@@ -227,7 +234,7 @@ IFDBG UART_printf(1,"k:EXIT\r\n");
 				gVfoState[gSettings.CurrentDial].RX.Frequency = gScanStartFreqOrChannel;
 			}
 			RADIO_Tune(gSettings.CurrentDial);
-			UI_DrawVfo(gSettings.CurrentDial);
+			UI_DrawDial(gSettings.CurrentDial);
 			SETTINGS_SaveState();
 			return;
 		}
@@ -238,11 +245,11 @@ IFDBG UART_printf(1,"k:EXIT\r\n");
 			} else
 #endif
 			if (gSettings.WorkModeA) {
-				RADIO_DrawWorkMode();
+				RADIO_DrawChannelMode();
 			} else {
 				RADIO_DrawFrequencyMode();
 			}
-			BEEP_Play(440, 4, 80);
+			BEEP_Play(440, 4, 80,0);
 			break;
 		}
 #ifdef ENABLE_FM_RADIO
@@ -250,28 +257,30 @@ IFDBG UART_printf(1,"k:EXIT\r\n");
 #endif
 			if (gFrequencyReverse) {
 				gFrequencyReverse = false;
-				UI_DrawVfo(gSettings.CurrentDial);
-				BEEP_Play(440, 4, 80);
+				UI_DrawDial(gSettings.CurrentDial);
+				BEEP_Play(440, 4, 80,0);
 				break;
 			}
 			RADIO_CancelMode();
 			if (gSettings.DualDisplay == 0) {
 				DISPLAY_Fill(1, 158, 1 + (gCurrentDial * 41), 40 + (gCurrentDial * 41), COLOR_BACKGROUND);
 				DISPLAY_Fill(1, 158, 1 + ((!gCurrentDial) * 41), 40 + ((!gCurrentDial) * 41), COLOR_BACKGROUND);
-				UI_DrawVoltage(gSettings.CurrentDial);
+				UI_DrawRegisters(gSettings.CurrentDial);
 			}
 			UI_DrawMainBitmap(false, gSettings.CurrentDial);
 			gSettings.CurrentDial ^= 1;
+#ifdef ENABLE_VOICE
 			gAudioOffsetIndex = gAudioOffsetLast;
+#endif
 			RADIO_Tune(gSettings.CurrentDial);
 			SETTINGS_SaveGlobals();
 			gFrequencyReverse = false;
-			UI_DrawVfo(gCurrentDial);
+			UI_DrawDial(gCurrentDial);
 			UI_DrawMainBitmap(true, gSettings.CurrentDial);
 			if (Vfo != 0) {
-				BEEP_Play(740, 3, 80);
+				BEEP_Play(740, 3, 80,0);
 			} else {
-				BEEP_Play(440, 4, 80);
+				BEEP_Play(440, 4, 80,0);
 			}
 #ifdef ENABLE_FM_RADIO
 		}
@@ -292,7 +301,9 @@ IFDBG UART_printf(1,"k:EXIT\r\n");
 				break;
 			}
 			gInputBoxWriteIndex = 0;
+#ifdef ENABLE_VOICE
 			gAudioOffsetIndex = gAudioOffsetLast;
+#endif
 			gSettings.WorkModeA ^= 1;							///WT:
 			SETTINGS_SaveGlobals();
 			if (gSettings.WorkModeA) {
@@ -302,15 +313,15 @@ IFDBG UART_printf(1,"k:EXIT\r\n");
 			}
 			RADIO_Tune(gSettings.CurrentDial);
 			if (gSettings.DualDisplay == 0) {
-				UI_DrawVfo(gSettings.CurrentDial);
+				UI_DrawDial(gSettings.CurrentDial);
 			} else {
-				UI_DrawVfo(0);
-				UI_DrawVfo(1);
+				UI_DrawDial(0);
+				UI_DrawDial(1);
 			}
 			if (Vfo != 0) {
-				BEEP_Play(740, 3, 80);
+				BEEP_Play(740, 3, 80,0);
 			} else {
-				BEEP_Play(440, 4, 80);
+				BEEP_Play(440, 4, 80,0);
 			}
 #ifdef ENABLE_FM_RADIO
 		}
@@ -319,9 +330,9 @@ IFDBG UART_printf(1,"k:EXIT\r\n");
 
 	default:
 		if (Vfo != 0) {
-			BEEP_Play(740, 3, 80);
+			BEEP_Play(740, 3, 80,0);
 		} else {
-			BEEP_Play(440, 4, 80);
+			BEEP_Play(440, 4, 80,0);
 		}
 		break;
 	}
@@ -357,7 +368,7 @@ static void HandlerLong(KEY_t Key)
 {
 	if (gSettings.bEnableDisplay && gEnableBlink) {
 		SCREEN_TurnOn();
-		BEEP_Play(740, 2, 100);
+		BEEP_Play(740, 2, 100,0);
 		return;
 	}
 
@@ -382,7 +393,9 @@ static void HandlerLong(KEY_t Key)
 								CHANNELS_NextChannelMr(Key, false);
 							} while (KEY_GetButton() != KEY_NONE);
 							SETTINGS_SaveGlobals();
+#ifdef ENABLE_AUDIO
 							AUDIO_PlayChannelNumber();
+#endif
 						} else {
 							do {
 								RADIO_Tune(gSettings.CurrentDial);
@@ -454,7 +467,6 @@ static void HandlerLong(KEY_t Key)
 			do {
 				if (gScreenMode == SCREEN_MENU) {
 					MENU_Next(Key);
-IFDBG UART_printf(1,"HandlerLong: UP or DWN\r\n");
 				} else if (gScreenMode == SCREEN_SETTING) {
 					MENU_ScrollSetting(Key);
 				}
@@ -465,9 +477,9 @@ IFDBG UART_printf(1,"HandlerLong: UP or DWN\r\n");
 			bBeep740 = Key - KEY_UP;
 		}
 		if (bBeep740) {
-			BEEP_Play(740, 3, 80);
+			BEEP_Play(740, 3, 80,0);
 		} else {
-			BEEP_Play(440, 4, 80);
+			BEEP_Play(440, 4, 80,0);
 		}
 	}
 }
@@ -491,7 +503,7 @@ void Task_CheckKeyPad(void)
 				KEY_KeyCounter = 0;
 				if (gSettings.bEnableDisplay && gEnableBlink) {
 					SCREEN_TurnOn();
-					BEEP_Play(700, 2, 100);
+					BEEP_Play(700, 2, 100,0);
 				} else if (!gDTMF_InputMode) {
 					HandlerShort(KEY_CurrentKey);
 				} else {
@@ -499,7 +511,7 @@ void Task_CheckKeyPad(void)
 						gDTMF_Input.String[gDTMF_Input.Length++] = DTMF_GetCharacterFromKey(KEY_CurrentKey);
 						UI_DrawDTMF();
 					}
-					BEEP_Play(700, 2, 100);
+					BEEP_Play(700, 2, 100,0);
 				}
 				SCREEN_TurnOn();
 				gLockTimer = 0;

@@ -24,8 +24,8 @@ void UI_DrawWelcome(void)
 	UI_DrawString(10, 85, myCALL, sizeof(myCALL)); /// "Personal ID"
 	
 	gColorForeground = COLOR_RED;
-	///UI_DrawString(gSettings.WelcomeX, gSettings.WelcomeY, WelcomeString, sizeof(WelcomeString));
 	UI_DrawString(40, 60, "RT-890", 6);
-	UI_DrawString(40, 40, WelcomeString, sizeof(WelcomeString)); /// now, "Serial Number"
+	///UI_DrawString(gSettings.WelcomeX, gSettings.WelcomeY, WelcomeString, sizeof(WelcomeString));
+		UI_DrawString(40, 40, WelcomeString, sizeof(WelcomeString)); /// now, "Serial Number"
 }
 

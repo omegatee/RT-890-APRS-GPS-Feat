@@ -78,8 +78,8 @@ typedef struct __attribute__((packed)) {
 	uint8_t WorkModeB:1;
 	uint8_t Unknown2:2;
 	uint8_t ScanDirection:1;
-	uint8_t StandbyArea:1;
-	uint8_t DualStandby:1;
+	uint8_t StandbyArea:1;				///WT: not used
+	uint8_t DualWatch:1;
 	uint8_t FmStandby:1;
 	// 0x0C
 	uint16_t VfoChNo[2];
@@ -88,7 +88,7 @@ typedef struct __attribute__((packed)) {
 	uint8_t bUseVHF:1;
 	uint8_t bEnableDisplay:1;
 	uint8_t Lock:1;
-	uint8_t Vox:1;
+	uint8_t Vox:1;					/// unused; replaced by VoxLevel
 	uint8_t TailTone:1;
 	uint8_t CurrentDial:1;
 	uint8_t bFLock:1;

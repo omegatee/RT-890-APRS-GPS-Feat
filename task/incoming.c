@@ -30,31 +30,44 @@ void Task_CheckIncoming(void)
 {
 	if (
 #ifdef ENABLE_FM_RADIO
-			(gFM_Mode == FM_MODE_OFF || gSettings.FmStandby) &&
+		(gFM_Mode == FM_MODE_OFF || gSettings.FmStandby) &&
 #endif
-			gRadioMode != RADIO_MODE_TX && !gSaveMode && SCHEDULER_CheckTask(TASK_CHECK_INCOMING) && gIncomingTimer == 0) {
+		gRadioMode != RADIO_MODE_TX && !gSaveMode && SCHEDULER_CheckTask(TASK_CHECK_INCOMING) &&  gIncomingTimer == 0) {
 		bool bGotLink;
 
 		SCHEDULER_ClearTask(TASK_CHECK_INCOMING);
 
-		bGotLink = BK4819_CheckSquelchLink();
+#if 1
+		bGotLink = BK4819_CheckSquelchStat();
+#else
+		// Very simple RSSI squelch
+		int16_t sig=BK4819_GetRSSI_DBM();
+		int16_t thres=-130+((int16_t)gSettings.Squelch*10);
+		if(sig>thres || gMonitorMode)
+		   bGotLink=1;
+		else
+		   bGotLink=0;
+#endif		
 		if (!bGotLink || gRadioMode != RADIO_MODE_QUIET) {
 			if (bGotLink || gRadioMode == RADIO_MODE_QUIET) {
 				gRxLinkCounter = 0;
-			} else if (gRxLinkCounter++ > 5) {
+			} 
+			else if (gRxLinkCounter++ > 5) {
 				gRxLinkCounter = 0;
 				PTT_ClearLock(PTT_LOCK_INCOMING);
 				gpio_bits_reset(GPIOA, BOARD_GPIOA_LED_RED);
 				if (gRadioMode == RADIO_MODE_RX || gFrequencyDetectMode) {
 					if (!gReceptionMode) {
 						RADIO_EndRX();
-					} else {
+					} 
+					else {
 						RADIO_EndAudio();
 					}
 				}
 				gRadioMode = RADIO_MODE_QUIET;
 			}
-		} else {
+		} 
+		else {
 			if (gRxLinkCounter++ > 5) {
 				gRxLinkCounter = 0;
 				gSaveModeTimer = 300;

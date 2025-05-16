@@ -162,20 +162,20 @@ void UI_DrawActions(uint8_t Index)
 		"VOX         ",
 		"TX Power    ",
 		"SQ Level    ",
-		"Dual Standby",
+		"Dual Watch  ",
 		"Backlight   ",
 		"Freq Step   ",
 		"Key Beep    ",
 		"Toggle SList",
 		"DTMF Decode ",
-		"Dual Display",
+//		"Dual Display",
 		"TX Frequency",
 		"Lock        ",
 #ifdef ENABLE_SPECTRUM
 		"Spectrum    ",
 #endif
 		"Dark Mode   ",
-		"AGC Mode    ",
+//		"AGC Mode    ",
 #ifdef ENABLE_REGISTER_EDIT
 		"Reg Editor  ",
 #endif
@@ -274,7 +274,7 @@ void UI_DrawScrambler(uint8_t Index)
 void UI_DrawActivateBy(void)
 {
 	DISPLAY_Fill(1, 158, 1, 19, gColorBackground);
-	DISPLAY_DrawRectangle0(1, 20, 159, 1, gSettings.BorderColor);
+	DISPLAY_DrawRectangle(1, 20, 159, 1, gSettings.BorderColor);
 	gColorForeground = COLOR_RED;
 	UI_DrawString(20, 18, "Activate by [#]", 15);
 	gColorForeground = COLOR_FOREGROUND;
@@ -290,7 +290,7 @@ void UI_DrawCursor(uint8_t X, bool bVisible)
 	} else {
 		Color = gColorBackground;
 	}
-	DISPLAY_DrawRectangle1(4 + (X * 8), 32, 20, 1, Color);
+	DISPLAY_DrawRectangle(4 + (X * 8), 32, 1, 20, Color);
 }
 
 void UI_DrawTxPriority(void)
@@ -377,6 +377,25 @@ void UI_DrawLevel(uint8_t Index)
 	UI_DrawSettingOptionEx(&Digit, 1, 1);
 }
 
+void UI_DrawVoxLevel(uint8_t Index)
+{
+	static const char Mode[10][3] = {
+		"OFF",
+		"  1",
+		"  2",
+		"  3",
+		"  4",
+		"  5",
+		"  6",
+		"  7",
+		"  8",
+		"  9",
+	};
+
+	UI_DrawSettingOptionEx(Mode[Index], 3, 0);
+	UI_DrawSettingOptionEx(Mode[(Index + 1) % 10], 3, 1);
+}
+
 void UI_DrawScanDirection(void)
 {
 	UI_DrawSettingOptionEx("Up  ", 4, 0);
@@ -415,10 +434,17 @@ void UI_DrawSettingRepeaterMode(uint8_t Index)
 	UI_DrawSettingOptionEx(Mode[(Index + 1) % 3], 13, 1);
 }
 
-void UI_DrawSettingTxPower(void)
+void UI_DrawSettingTxPower(uint8_t Index)
 {
-	UI_DrawSettingOptionEx("High", 4, 0);
-	UI_DrawSettingOptionEx("Low ", 4, 1);
+	static const char Mode[4][4] = {
+		"OFF ",
+		"Low ",
+		"Mid ",
+		"High",
+	};
+
+	UI_DrawSettingOptionEx(Mode[Index], 4, 0);
+	UI_DrawSettingOptionEx(Mode[(Index + 1) % 4], 4, 1);
 }
 
 void UI_DrawSettingSquelchMode(uint8_t Index)
@@ -447,10 +473,17 @@ void UI_DrawSettingModulation(uint8_t Index)
 	UI_DrawSettingOptionEx(Mode[(Index + 1) % 4], 3, 1);
 }
 
-void UI_DrawSettingBandwidth(void)
+void UI_DrawSettingBandwidth(uint8_t Index)
 {
-	UI_DrawSettingOptionEx("Wide  ", 6, 0);
-	UI_DrawSettingOptionEx("Narrow", 6, 1);
+	static const char Mode[4][5] = {
+		" 6k25",
+		" 12k5",
+		" 25k ",
+		"125k ",
+	};
+
+	UI_DrawSettingOptionEx(Mode[Index], 5, 0);
+	UI_DrawSettingOptionEx(Mode[(Index + 1) % 4], 5, 1);
 }
 
 void UI_DrawSettingBusyLock(uint8_t Index)

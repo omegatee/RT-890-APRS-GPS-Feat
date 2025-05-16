@@ -23,7 +23,7 @@
 void BEEP_Interrupt(void);
 void BEEP_Enable(void);
 void BEEP_Disable(void);
-void BEEP_Play(uint16_t Frequency, uint8_t Type, uint16_t Duration);
+void BEEP_Play(uint16_t Frequency, uint8_t Type, uint16_t Duration, bool force);
 void BEEP_SetFrequency(uint16_t Frequency);
 void BEEP_SetTone2Frequency(uint16_t Frequency);
 

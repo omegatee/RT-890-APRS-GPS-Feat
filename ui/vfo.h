@@ -19,7 +19,7 @@
 
 #include <stdint.h>
 
-void UI_DrawVfo(uint8_t Vfo);
+void UI_DrawDial(uint8_t dial);
 
 #endif
 

@@ -48,7 +48,7 @@ void Task_CheckBattery(void)
 			&& gFM_Mode == FM_MODE_OFF
 #endif
 			&& !gDTMF_InputMode) {
-		UI_DrawVoltage(!gSettings.CurrentDial);
+		UI_DrawRegisters(!gSettings.CurrentDial);
 	}
 	UI_DrawBattery(!(gSettings.RepeaterMode)); /// Battery voltage text shares location with RepeaterMode icon
 
@@ -57,14 +57,7 @@ void Task_CheckBattery(void)
 		ChargeTimer = 0;
 		if (gScreenMode == SCREEN_MAIN) {
 			UI_DrawDialogText(DIALOG_PLEASE_CHARGE, true);
-			if(gSettings.KeyBeep){
-				BEEP_Play(740, 2, 100);
-			}
-			else{
-				gSettings.KeyBeep^= 1;
-				BEEP_Play(740, 2, 100);
-				gSettings.KeyBeep^= 1;
-			}
+			BEEP_Play(1200, 2, 100,1);
 		}
 	}
 	if (BatteryLevel != 0) {

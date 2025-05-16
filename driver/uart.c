@@ -24,9 +24,9 @@
 #include "app/prog.h"
 #include "app/shell.h"
 
-uint8_t Buffer1[256];
+uint8_t Buffer1[UART_BSIZE];
 uint8_t Buffer1Length;
-uint8_t Buffer2[256];
+uint8_t Buffer2[UART_BSIZE];
 uint8_t Buffer2Length;
 
 static void usart_reset_ex(usart_type *uart, uint32_t baudrate)
@@ -71,13 +71,13 @@ void HandlerUSART1(void)
 		uint8_t Cmd;
 
 		Buffer1[Buffer1Length++] = USART1->dt;
-		Buffer1Length %= 256;
+		Buffer1Length %= UART_BSIZE;
 	
 		if(gShellMode){
 			// Read shell commands
 			if(Buffer1[Buffer1Length-1]==0x0D || Buffer1[Buffer1Length-1]==0x0A){	
 				SHELL_Process((char *)Buffer1);
-				UART_printf(1,"\r\nA>");
+				//UART_printf(1,"\r\nA>");
 				Buffer1Length = 0;
 				Buffer1[0]=0;
 			}
@@ -113,7 +113,7 @@ void HandlerUSART2(void)
 	if (USART2->ctrl1_bit.rdbfien && USART2->sts & USART_RDBF_FLAG) {
 
 		Buffer2[Buffer2Length++] = USART2->dt;
-		Buffer2Length %= 256;
+		Buffer2Length %= UART_BSIZE;
 
 		// Check for GPS commands ------------------------------------
 		if(Buffer2Length==1 && Buffer2[0] != 0x24){ /// '$'

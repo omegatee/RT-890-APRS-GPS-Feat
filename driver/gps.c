@@ -11,11 +11,14 @@ char gLatY[16];
 char gLatS[ 2];
 char gLonX[16];
 char gLonS[ 2];
-char gAlti[8];
+char gAlti[ 8];
 bool gGPS_Fix;
 
 
 void GPSRead_xRMC(char *data){
+// $xxRMC,time,status,lat,NS,lon,EW,spd,cog,date,mv,mvEW,posMode,navStatus*cs\r\n
+// EXAMPLE:
+// $GNRMC,164015.000,A,4027.25753,N,00328.45384,W,0.00,0.00,101024,,,A,V*19
 
 uint8_t cnt;
 	
@@ -26,12 +29,16 @@ uint8_t cnt;
 		++data;
 	}
 	++data;
-	// ------------------------ skip
+	// ------------------------ Get status
 	cnt=0;
-	while(*data!=0x2C && data){
-		;
-		++data;
+	if(*data=='A'){
+		gGPS_Fix=1;
 	}
+	else{
+		gGPS_Fix=0;
+	}	
+		++data;
+	
 	++data;
 	// ------------------------ Get Latitude
 	cnt=0;
@@ -108,6 +115,10 @@ uint8_t cnt;
 }
 	
 void GPSRead_xGGA(char *data){
+// $xxGGA,time,lat,NS,lon,EW,quality,numSV,HDOP,alt,altUnit,sep,sepUnit,diffAge,diffStation*cs\r\n
+// EXAMPLE:
+// $GNGGA,164017.000,4027.25749,N,00328.45394,W,1,13,1.2,604.7,M,52.0,M,,*5C
+
 uint8_t cnt;
 	
 	// ------------------------ Get GPS Time
@@ -145,7 +156,7 @@ uint8_t cnt;
 		++data;
 	}
 	++data;
-	// ------------------------ skip Position Quality
+	// ------------------------ Get Position Quality
 	cnt=0;
 	if(*data > '0'){
 		gGPS_Fix=1;
@@ -182,13 +193,8 @@ uint8_t cnt;
 void GPSProcess(char * buffer)
 {
 char *pBuff;
-
-// EXAMPLE:
-//	$GNRMC,164015.000,A,4027.25753,N,00328.45384,W,0.00,0.00,101024,,,A,V*19
-//	$GNGGA,164017.000,4027.25749,N,00328.45394,W,1,13,1.2,604.7,M,52.0,M,,*5C
 	
 	pBuff=buffer;
-UART_printf(1,"GPS: %s\r\n",buffer);	
 	while(*pBuff!=0x2C && pBuff++);			// get command
 
 	pBuff++;

@@ -21,12 +21,12 @@
 #include <stdint.h>
 
 enum {
-	BAND_136MHz = 0,
-	BAND_400MHz = 1,
 	BAND_64MHz  = 3,
+	BAND_136MHz = 0,
 	BAND_174MHz = 4,
 	BAND_240MHz = 5,
 	BAND_320MHz = 6,
+	BAND_400MHz = 1,
 	BAND_480MHz = 7,
 };
 

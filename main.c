@@ -71,14 +71,15 @@ void Main(void)
 		DATA_ReceiverInit();
 	}
 	
-//gShellMode=1;	// for debug, start in shell mode
 	/// ------------------------------------------------------------------- MAIN LOOP
-	IFDBG UART_printf(1,"\r\n\n\n\nRADTEL RT-890\r\nOEFW by omegatee V_%s\r\n2024/11/17\r\n",FW_VERSION);
+	UART_printf(1,"\r\n\n\n\nRADTEL RT-890\r\nOEFW by omegatee V_%s\r\n2025/02/11\r\n",FW_VERSION);
 
 	while (1) {
 		do {
 			while (!Prog_IsRunning && gSettings.DtmfState != DTMF_STATE_KILLED) {
+#ifdef ENABLE_VOICE
 				Task_VoicePlayer();
+#endif
 				Task_CheckKeyPad();
 				Task_CheckSideKeys();
 				Task_UpdateScreen();
@@ -110,9 +111,9 @@ void Main(void)
 //	IFDBG UART_printf(1,"Dial=%d\n",gSettings.CurrentDial);
 //	IFDBG UART_printf(1,"Freq = %d\n",gVfoInfo[gSettings.CurrentDial].Frequency);
 //IFDBG UART_printf(1,"gAPRSInterval=%d\tgAPRSCounter=%d\r\n",gAPRSInterval,gAPRSCounter);
-//uint16_t AGCReg = BK4819_ReadRegister(0x7E);
-//IFDBG UART_printf(1,"AGCauto = %d\tlev = %X\r\n",(AGCReg & 0x8000)>>15,(AGCReg & 0x7000)>>12 );
-				
+//uint16_t val = BK4819_ReadRegister(0x64);
+//IFDBG UART_printf(1,"alevel =%04X\r\n",val);
+			
 			}
 		} while (gSettings.DtmfState != DTMF_STATE_KILLED);
 		if (BK4819_ReadRegister(0x0C) & 0x0001U) { /// 0x0C[0] = Interrupt Indicator

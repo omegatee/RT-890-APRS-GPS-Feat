@@ -20,13 +20,13 @@
 #include "ui/gfx.h"
 #include "ui/helper.h"
 
-void UI_DrawDialogText(UI_DialogText_t Text, bool bSet)
+void UI_DrawDialogText(UI_DialogText_t Dialog, bool bSet)
 {
 	UI_DrawDialog();
 
 	gColorForeground = COLOR_RED;
 
-	switch (Text) {
+	switch (Dialog) {
 	case DIALOG_AM_FIX:
 		if (bSet) {
 			UI_DrawString(10, 48, "AM Fix: On", 10);

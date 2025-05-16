@@ -57,26 +57,27 @@
 
 void SetDefaultKeyShortcuts(uint8_t IncludeSideKeys) {
 	if (IncludeSideKeys) {
-		gSettings.Actions[0] = ACTION_APRS_SEND_POS;			//Side 1 long
+		gSettings.Actions[0] = ACTION_APRS_SEND_PACK;			//Side 1 long
 		gSettings.Actions[1] = ACTION_MONITOR;					//Side 1 short
 		gSettings.Actions[2] = ACTION_REMOTE_ALARM;				//Side 2 long
-		gSettings.Actions[3] = ACTION_ROGER_BEEP;				//Side 2 short
+		gSettings.Actions[3] = ACTION_REPEATER_MODE;			//Side 2 short
 	}
-
-	gExtendedSettings.KeyShortcut[0] = ACTION_FM_RADIO;			//0 key long
-	gExtendedSettings.KeyShortcut[1] = ACTION_SCAN;				//1 key long
-	gExtendedSettings.KeyShortcut[2] = ACTION_AM_FIX;			//2 key long
-	gExtendedSettings.KeyShortcut[3] = ACTION_VOX;				//3 key long
-	gExtendedSettings.KeyShortcut[4] = ACTION_TX_POWER;			//4 key long
-	gExtendedSettings.KeyShortcut[5] = ACTION_SQ_LEVEL;			//5 key long
-	gExtendedSettings.KeyShortcut[6] = ACTION_DUAL_STANDBY;		//6 key long
-	gExtendedSettings.KeyShortcut[7] = ACTION_BACKLIGHT;		//7 key long
-	gExtendedSettings.KeyShortcut[8] = ACTION_FREQ_STEP;		//8 key long
-	gExtendedSettings.KeyShortcut[9] = ACTION_PRESET_CHANNEL;	//9 key long
-	gExtendedSettings.KeyShortcut[10] = ACTION_TX_FREQ;			//* key long
-	gExtendedSettings.KeyShortcut[11] = ACTION_LOCK;			//# key long
-	gExtendedSettings.KeyShortcut[12] = ACTION_DTMF_DECODE;		//Menu key long
-	gExtendedSettings.KeyShortcut[13] = ACTION_DUAL_DISPLAY;	//Exit key long
+#ifdef ENABLE_FM_RADIO
+	gExtendedSettings.KeyShortcut[0]  = ACTION_FM_RADIO;		//0 key long (as labelled)
+#endif
+	gExtendedSettings.KeyShortcut[1]  = ACTION_SCAN;			//1 key long (my selection)
+	gExtendedSettings.KeyShortcut[2]  = ACTION_VOX;			//2 key long
+	gExtendedSettings.KeyShortcut[3]  = ACTION_VOX;				//3 key long
+	gExtendedSettings.KeyShortcut[4]  = ACTION_FREQUENCY_DETECT;//4 key long
+	gExtendedSettings.KeyShortcut[5]  = ACTION_TX_POWER;		//5 key long (my selection)
+	gExtendedSettings.KeyShortcut[6]  = ACTION_TX_POWER;		//6 key long
+	gExtendedSettings.KeyShortcut[7]  = ACTION_VOX;				//7 key long (my selection)
+	gExtendedSettings.KeyShortcut[8]  = ACTION_FREQ_STEP;		//8 key long
+	gExtendedSettings.KeyShortcut[9]  = ACTION_PRESET_CHANNEL;	//9 key long
+	gExtendedSettings.KeyShortcut[10] = ACTION_TX_FREQ;			//* key long (as labelled)
+	gExtendedSettings.KeyShortcut[11] = ACTION_LOCK;			//# key long (as labelled)
+	gExtendedSettings.KeyShortcut[12] = ACTION_MODULATION;		//Menu key long
+	gExtendedSettings.KeyShortcut[13] = ACTION_VOX;			//Exit key long
 
 	SETTINGS_SaveGlobals();
 }
@@ -99,7 +100,7 @@ void KeypressAction(uint8_t Action) {
 			Next_ScanList();
 		} else {
 			SETTINGS_SaveState();
-			BEEP_Play(440, 4, 80);
+			BEEP_Play(440, 4, 80,0);
 		}
 		return;
 	}
@@ -110,15 +111,7 @@ void KeypressAction(uint8_t Action) {
 	}
 
 
-#ifdef ENABLE_KEEP_MONITOR_MODE_UP_DN
-	if (gMonitorMode && Action == ACTION_MONITOR) {
-#else
-	if (gMonitorMode) {
-#endif		
-		gMonitorMode = false;
-		RADIO_EndRX();
-		return;
-	}
+
 
 #ifdef ENABLE_NOAA
 	if (!gReceptionMode || Action == ACTION_NOAA_CHANNEL) {
@@ -130,8 +123,12 @@ void KeypressAction(uint8_t Action) {
 		}
 		switch (Action) {
 			case ACTION_MONITOR:
-				gMonitorMode = true;
-				RADIO_Tune(gSettings.CurrentDial);
+				///gMonitorMode = true;
+				gMonitorMode ^=1;
+				if(gMonitorMode==0)
+					RADIO_EndRX();
+				else
+					RADIO_Tune(gSettings.CurrentDial);
 				break;
 
 			case ACTION_FREQUENCY_DETECT:
@@ -152,12 +149,12 @@ void KeypressAction(uint8_t Action) {
 				RADIO_Tune(gSettings.CurrentDial);
 				UI_DrawRepeaterMode();
 				if (gSettings.DualDisplay == 0) {
-					UI_DrawVfo(gSettings.CurrentDial);
+					UI_DrawDial(gSettings.CurrentDial);
 				} else {
-					UI_DrawVfo(0);
-					UI_DrawVfo(1);
+					UI_DrawDial(0);
+					UI_DrawDial(1);
 				}
-				BEEP_Play(740, 2, 100);
+				BEEP_Play(740, 2, 100,0);
 				break;
 
 			// This action acts like previous for when used from sidekeys and like "1 call" when used from keyboard
@@ -170,13 +167,13 @@ void KeypressAction(uint8_t Action) {
 					} else {
 						gSettings.VfoChNo[gSettings.CurrentDial] = gSettings.PresetChannels[Slot];
 						RADIO_Tune(gSettings.CurrentDial);
-						UI_DrawVfo(gSettings.CurrentDial);
+						UI_DrawDial(gSettings.CurrentDial);
 					}
-					BEEP_Play(740, 2, 100);
+					BEEP_Play(740, 2, 100,0);
 				}
 				break;
 
-			case ACTION_APRS_SEND_POS:
+			case ACTION_APRS_SEND_PACK:
 				if (gRadioMode != RADIO_MODE_QUIET)
 					break;
 				
@@ -191,22 +188,22 @@ void KeypressAction(uint8_t Action) {
 				break;
 
 #ifdef ENABLE_NOAA
-				case ACTION_NOAA_CHANNEL:
-					if (gRadioMode != RADIO_MODE_TX) {
-						gInputBoxWriteIndex = 0;
-						gReceptionMode = !gReceptionMode;
-						if (!gReceptionMode) {
-							RADIO_NoaaRetune();
-							BEEP_Play(440, 4, 80);
-						} else {
-							if (gRadioMode == RADIO_MODE_RX) {
-								RADIO_EndRX();
-							}
-							RADIO_NoaaTune();
-							BEEP_Play(740, 2, 100);
+			case ACTION_NOAA_CHANNEL:
+				if (gRadioMode != RADIO_MODE_TX) {
+					gInputBoxWriteIndex = 0;
+					gReceptionMode = !gReceptionMode;
+					if (!gReceptionMode) {
+						RADIO_NoaaRetune();
+						BEEP_Play(440, 4, 80,0);
+					} else {
+						if (gRadioMode == RADIO_MODE_RX) {
+							RADIO_EndRX();
 						}
+						RADIO_NoaaTune();
+						BEEP_Play(740, 2, 100,0);
 					}
-					break;
+				}
+				break;
 #endif
 
 			case ACTION_SEND_TONE:
@@ -220,7 +217,7 @@ void KeypressAction(uint8_t Action) {
 			case ACTION_ROGER_BEEP:
 				gSettings.RogerBeep = (gSettings.RogerBeep + 1) % 4;
 				SETTINGS_SaveGlobals();
-				BEEP_Play(740, 2, 100);
+				BEEP_Play(740, 2, 100,0);
 				UI_DrawRoger();
 				break;
 
@@ -239,7 +236,7 @@ void KeypressAction(uint8_t Action) {
 			case ACTION_FM_RADIO:
 				if (gFM_Mode == FM_MODE_OFF) {
 					RADIO_DisableSaveMode();
-					if (gSettings.DualStandby) {
+					if (gSettings.DualWatch) {
 						RADIO_Tune(gSettings.CurrentDial);
 						gIdleMode = IDLE_MODE_DUAL_STANDBY;
 					}
@@ -250,32 +247,37 @@ void KeypressAction(uint8_t Action) {
 				break;
 #endif
 
-			case ACTION_AM_FIX:
 #ifdef ENABLE_AM_FIX
-				BK4819_RestoreGainSettings();
+			case ACTION_AM_FIX:
+				//BK4819_RestoreGainTables();
 				gExtendedSettings.AmFixEnabled = !gExtendedSettings.AmFixEnabled;
 				SETTINGS_SaveGlobals();
 				UI_DrawDialogText(DIALOG_AM_FIX, gExtendedSettings.AmFixEnabled);
-#endif
+				if(gExtendedSettings.AmFixEnabled==0)
+					BK4819_SetAGCLevel(0);	
 				break;
-
+#endif
 			case ACTION_VOX:
+				gMenuIndex = MENU_VOX_LEVEL;
+				DISPLAY_Fill(0, 159, 1, 81, COLOR_BACKGROUND);
+				MENU_DrawSetting();
+/*
 				RADIO_CancelMode();
-				gSettings.Vox ^= 1;
-				BK4819_EnableVox(gSettings.Vox);
+				gSettings.VoxLevel ^= 1;
+				BK4819_EnableVox(gSettings.VoxLevel);
 				SETTINGS_SaveGlobals();
 				if (VOX_IsTransmitting) {
 					RADIO_EndTX();
 					VOX_IsTransmitting = false;
 				}
-				UI_DrawStatusIcon(80, ICON_VOX, gSettings.Vox, COLOR_FOREGROUND);
-				UI_DrawDialogText(DIALOG_VOX, gSettings.Vox);
+				UI_DrawStatusIcon(80, ICON_VOX, gSettings.VoxLevel, COLOR_FOREGROUND);/// shares space with clock
+				UI_DrawDialogText(DIALOG_VOX, gSettings.VoxLevel);*/
 				break;
 
 			case ACTION_TX_POWER:
 				RADIO_CancelMode();
-				gVfoState[gSettings.CurrentDial].bIsLowPower ^= 1;
-				UI_DrawTxPower(gVfoState[gSettings.CurrentDial].bIsLowPower, gSettings.CurrentDial);
+				gVfoState[gSettings.CurrentDial].gTXPower = (gVfoState[gSettings.CurrentDial].gTXPower + 1) % 4;
+				UI_DrawTxPower(gVfoState[gSettings.CurrentDial].gTXPower, gSettings.CurrentDial);
 				CHANNELS_SaveVfo();
 				break;
 
@@ -291,24 +293,24 @@ void KeypressAction(uint8_t Action) {
 				MENU_DrawSetting();
 				break;
 
-			case ACTION_DUAL_STANDBY:
+			case ACTION_DUAL_WATCH:
 				RADIO_CancelMode();
-				gSettings.DualStandby ^= 1;
+				gSettings.DualWatch ^= 1;
 				RADIO_Tune(gSettings.CurrentDial);
 				SETTINGS_SaveGlobals();
 				gIdleMode = IDLE_MODE_OFF;
-				UI_DrawStatusIcon(56, ICON_DUAL_WATCH, gSettings.DualStandby, COLOR_FOREGROUND);
-				UI_DrawDialogText(DIALOG_DUAL_STANDBY, gSettings.DualStandby);
+				///UI_DrawStatusIcon(56, ICON_DUAL_WATCH, gSettings.DualWatch, COLOR_FOREGROUND);
+				UI_DrawDialogText(DIALOG_DUAL_STANDBY, gSettings.DualWatch);
 				break;
 
 			case ACTION_BACKLIGHT:
 				gSettings.bEnableDisplay ^= 1;
 				if (gSettings.bEnableDisplay) {
 					SCREEN_TurnOn();
-					BEEP_Play(740, 3, 80);
+					BEEP_Play(740, 3, 80,0);
 				} else {
 					gpio_bits_reset(GPIOA, BOARD_GPIOA_LCD_RESX);
-					BEEP_Play(440, 4, 80);
+					BEEP_Play(440, 4, 80,0);
 				}
 				SETTINGS_SaveGlobals();
 				break;
@@ -353,7 +355,7 @@ void KeypressAction(uint8_t Action) {
 				}
 				break;
 
-			case ACTION_DUAL_DISPLAY:
+/*			case ACTION_DUAL_DISPLAY:
 #ifdef ENABLE_FM_RADIO
 				if (gFM_Mode != FM_MODE_OFF) {
 					return;
@@ -363,12 +365,12 @@ void KeypressAction(uint8_t Action) {
 				SETTINGS_SaveGlobals();
 				VOX_Timer = 0;
 				UI_DrawMain(true);
-				break;
+				break;*/
 
 			case ACTION_TX_FREQ:
 				gFrequencyReverse = !gFrequencyReverse;
 				bBeep740 = gFrequencyReverse;
-				UI_DrawVfo(gSettings.CurrentDial);
+				UI_DrawDial(gSettings.CurrentDial);
 				gInputBoxWriteIndex = 0;
 				INPUTBOX_Pad(0, 10);
 				break;
@@ -390,11 +392,11 @@ void KeypressAction(uint8_t Action) {
 		        UI_SetColors(gExtendedSettings.DarkMode);
                 UI_DrawMain(FALSE);
                 break;
-			
+/*
 			case ACTION_AGC_MODE:
 				BK4819_ToggleAGCMode();
-				UI_DrawVoltage(!gCurrentDial);
-				break;
+				UI_DrawRegisters(!gCurrentDial);
+				break;*/
 	
 #ifdef ENABLE_SPECTRUM
 			case ACTION_SPECTRUM:
@@ -411,14 +413,17 @@ void KeypressAction(uint8_t Action) {
 
 			case ACTION_MODULATION:
 				gVfoState[gSettings.CurrentDial].gModulationType = (gVfoState[gSettings.CurrentDial].gModulationType + 1) % 4; // 4 is gSettingMaxValues
-				UI_DrawVfo(gSettings.CurrentDial);
+				UI_DrawDial(gSettings.CurrentDial);
 				CHANNELS_SaveVfo();
 				break;
 
 			case ACTION_BANDWIDTH:
-				gVfoState[gSettings.CurrentDial].bIsNarrow ^= 1;
-				UI_DrawVfo(gSettings.CurrentDial);
-				CHANNELS_SaveVfo();
+				//gVfoState[gSettings.CurrentDial].gBandWidth ^= 1;
+				//UI_DrawDial(gSettings.CurrentDial);
+				//CHANNELS_SaveVfo();
+				gMenuIndex = MENU_BAND_WIDTH;
+				DISPLAY_Fill(0, 159, 1, 81, COLOR_BACKGROUND);
+				MENU_DrawSetting();
 				break;
 		}
 	}

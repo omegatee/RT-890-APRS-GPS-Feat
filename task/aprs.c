@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "radio/channels.h"
+#include "driver/beep.h"
 #include "app/aprs.h"
 #include "task/aprs.h"
 
@@ -12,10 +13,10 @@ void Task_APRSBeacon(void){
 	
 	if(gAPRSInterval>0 && gAPRSCounter==0){
 		if ((gRadioMode != RADIO_MODE_QUIET) || (gScreenMode == SCREEN_MENU)){
-			//gAPRSCounter=ONE_MIN/5; // re-try in 12 s
+			gAPRSCounter=ONE_MIN/12; // re-try in 5 s
 			return;
 		}
-		
+				
 		APRS_send_Packet(1);
 		
 		switch(gAPRSInterval){

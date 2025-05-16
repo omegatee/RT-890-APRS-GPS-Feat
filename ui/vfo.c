@@ -17,25 +17,35 @@
 #include "app/radio.h"
 #include "misc.h"
 #include "radio/settings.h"
+#include "driver/uart.h"//
 #include "ui/gfx.h"
 #include "ui/helper.h"
 #include "ui/vfo.h"
 
-static void DrawBandwidth(bool bIsNarrow, uint8_t Vfo)
+static void DrawBandwidth(uint8_t width, uint8_t dial)
 {
-	const uint8_t Y = 43 - (Vfo * 41);
+	const uint8_t Y = 43 - (dial * 41);
 
 	gColorForeground = COLOR_FOREGROUND;
-	if (bIsNarrow) {
-		UI_DrawSmallString(150, Y, "N", 1);
-	} else {
-		UI_DrawSmallString(150, Y, "W", 1);
+	switch(width){
+		case 0:
+			UI_DrawSmallString(148, Y, "NN", 2);
+			break;
+		case 1:
+			UI_DrawSmallString(148, Y, "N ", 2);
+			break;
+		case 2:
+			UI_DrawSmallString(148, Y, "W ", 2);
+			break;
+		case 3:
+			UI_DrawSmallString(148, Y, "WW", 2);
+			break;
 	}
 }
 
-void UI_DrawVfo(uint8_t Vfo)
+void UI_DrawDial(uint8_t dial)
 {
-	UI_DrawName(Vfo, gVfoState[Vfo].Name);
+	UI_DrawName(dial, gVfoState[dial].Name);
 	gColorForeground = COLOR_FOREGROUND;
 #ifdef ENABLE_SCANLIST_DISPLAY
 	if (gSettings.WorkModeA && gRadioMode == RADIO_MODE_QUIET
@@ -43,55 +53,49 @@ void UI_DrawVfo(uint8_t Vfo)
 		&& !gMonitorMode
 #endif
 	) {
-		UI_DrawScanLists(Vfo);
+		UI_DrawScanLists(dial);
 	} else {
 #endif
 #if defined ENABLE_RX_BAR || defined ENABLE_TX_BAR
-		UI_DrawVfoFrame(Vfo);
+		UI_DrawVfoFrame(dial);
 #endif
 #ifdef ENABLE_SCANLIST_DISPLAY
 	}
 #endif
 
-	if (Vfo == gCurrentDial) {
+	if (dial == gCurrentDial) {
 		if (gRadioMode == RADIO_MODE_RX) {
-#ifdef ENABLE_RX_BAR
-			///UI_DrawRX(Vfo);
-#endif
-			UI_DrawExtra(2, gVfoState[Vfo].gModulationType, Vfo);
+			UI_DrawModType(2, gVfoState[dial].gModulationType, dial);
 			gColorForeground = COLOR_BLUE;
 		} else if (gRadioMode == RADIO_MODE_TX) {
-#ifdef ENABLE_RX_BAR
-			///UI_DrawRX(Vfo);
-#endif
-			UI_DrawExtra(1, gVfoState[Vfo].gModulationType, Vfo);
+			UI_DrawModType(1, gVfoState[dial].gModulationType, dial);
 			gColorForeground = COLOR_RED;
 		} else {
-			UI_DrawExtra(0, gVfoState[Vfo].gModulationType, Vfo);
+			UI_DrawModType(0, gVfoState[dial].gModulationType, dial);
 			gColorForeground = COLOR_FOREGROUND;
 		}
 	} else {
-		UI_DrawExtra(0, gVfoState[Vfo].gModulationType, Vfo);
+		UI_DrawModType(0, gVfoState[dial].gModulationType, dial);
 		gColorForeground = COLOR_FOREGROUND;
 	}
 
-	if (gSettings.CurrentDial == Vfo && gFrequencyReverse) {
+	if (gSettings.CurrentDial == dial && gFrequencyReverse) {
 		gColorForeground = COLOR_RED;
-		UI_DrawFrequency(gVfoState[Vfo].TX.Frequency, Vfo, COLOR_RED);
-		UI_DrawCss(gVfoState[Vfo].TX.CodeType, gVfoState[Vfo].TX.Code, gVfoState[Vfo].Encrypt, gVfoState[Vfo].bMuteEnabled, Vfo);
+		UI_DrawFrequency(gVfoState[dial].TX.Frequency, dial, COLOR_RED);
+		UI_DrawCss(gVfoState[dial].TX.CodeType, gVfoState[dial].TX.Code, gVfoState[dial].Encrypt, gVfoState[dial].bMuteEnabled, dial);
 	} else {
-		UI_DrawFrequency(gVfoInfo[Vfo].Frequency, Vfo, gColorForeground);
-		UI_DrawCss(gVfoInfo[Vfo].CodeType, gVfoInfo[Vfo].Code, gVfoState[Vfo].Encrypt, gVfoState[Vfo].bMuteEnabled, Vfo);
+		UI_DrawFrequency(gVfoInfo[dial].Frequency, dial, gColorForeground);
+		UI_DrawCss(gVfoInfo[dial].CodeType, gVfoInfo[dial].Code, gVfoState[dial].Encrypt, gVfoState[dial].bMuteEnabled, dial);
 	}
 
-	UI_DrawTxPower(gVfoState[Vfo].bIsLowPower, Vfo);
+	UI_DrawTxPower(gVfoState[dial].gTXPower, dial);
 	gColorForeground = COLOR_FOREGROUND;
 	if (gSettings.WorkModeA) {
-		UI_DrawChannel(gSettings.VfoChNo[Vfo], Vfo);
+		UI_DrawChannel(gSettings.VfoChNo[dial], dial);
 	} else {
-		UI_DrawChannel(Vfo ? 1000 : 999, Vfo);
+		UI_DrawChannel(dial ? 1000 : 999, dial);
 	}
 
-	DrawBandwidth(gVfoState[Vfo].bIsNarrow, Vfo);
+	DrawBandwidth(gVfoState[dial].gBandWidth, dial);
 }
 

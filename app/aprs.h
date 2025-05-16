@@ -17,16 +17,15 @@ static const ChannelInfo_t gAPRSDefaultChannels[3] = {
 		.gModulationType = MOD_FM,
 		.BCL = BUSY_LOCK_OFF,
 		.ScanAdd = 1,
-		.bIsLowPower = 0, // for debug
+		.bIsLowPower = 0,
 		.bIsNarrow = 1,
 
 		.gBandWidth = 0x0F,
 		.gTXPower = 0x0F,
 		.Scramble = 0x00,
-		.IsInscanList = 0xFF,
+		.IsInscanList = 0x00,
 		._0x14 = 0xFF,
 		._0x15 = 0xFF,
-//		.Name = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF },
 		.Name = { "APRS EUR V" }
 	},
 	
@@ -50,7 +49,7 @@ static const ChannelInfo_t gAPRSDefaultChannels[3] = {
 		.gBandWidth = 0x0F,
 		.gTXPower = 0x0F,
 		.Scramble = 0x00,
-		.IsInscanList = 0xFF,
+		.IsInscanList = 0x00,
 		._0x14 = 0xFF,
 		._0x15 = 0xFF,
 		.Name = { "APRS EUR U" }
@@ -76,7 +75,7 @@ static const ChannelInfo_t gAPRSDefaultChannels[3] = {
 		.gBandWidth = 0x0F,
 		.gTXPower = 0x0F,
 		.Scramble = 0x00,
-		.IsInscanList = 0xFF,
+		.IsInscanList = 0x00,
 		._0x14 = 0xFF,
 		._0x15 = 0xFF,
 		.Name = { "APRS USA V" }

@@ -59,7 +59,7 @@ void RADIO_CancelMode(void);
 void RADIO_DisableSaveMode(void);
 
 void RADIO_DrawFmMode(void);
-void RADIO_DrawWorkMode(void);
+void RADIO_DrawChannelMode(void);
 void RADIO_DrawFrequencyMode(void);
 
 #endif

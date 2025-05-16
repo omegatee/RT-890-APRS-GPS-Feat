@@ -25,8 +25,14 @@ There is no "free radio" but GMRS, and this devices do not comply whith GMRS spe
     - New keyaction to send Test Message by APRS
     - New Menu to activate APRS Position Beacon
     - Personal ID (editable with CHIRP) used as "myCALL" for APRS. SSID is fixed to 7
+	- Channel 899 used for APRS operation
     - Startup Label (editable with CHIRP) used as Device Serial Number
     - GPS Time shown on display
+	- Four TX power levels, 6W, 2.5W, 500mW and zero.
+	- Three bandwith values, 12.5k, 25k and 200k (200k only on TX)
+	- Improved AM Fix algorithm, faster, smaller and not altering RSSI indication
+	- Added "1" for frequencies higher than 999 MHz
+	- Removed "0" for frequencies lower than 100 MHz
 
 - Removed / unbugged:
     - Removed "[DISABLE]" options in menu
@@ -43,6 +49,8 @@ There is no "free radio" but GMRS, and this devices do not comply whith GMRS spe
 ![image](https://github.com/user-attachments/assets/ff4816d5-8ab2-4709-805b-d65616095407)
 
 Do it as you can.
+[NOTE:] GPS board baudrate is fixed on FW. Trim line 203 in radio/hardware.c as your need.
+
 
 ## Command Shell
 At boot, the device works as usual.
@@ -51,16 +59,19 @@ While in Shell mode, device operates normally, except CHIRP that will fail. Type
 .
 
 Implemented commands:
-- *IDN?                Returns Manufacturer, Model, Serial Number and FW Version.
-- *RST                    Reboots the device
+- *IDN?                  Returns Manufacturer, Model, Serial Number and FW Version.
+- *RST                   Reboots the device
 - RADIO:FREQ?            Returns current RX Frequency, TX Frequency
-- RADIO:TX 1            Puts the device on TX (just a millisecond... by now)
-- RADIO:TX 0            Puts the device on RX
-- RADIO:APRS:SEND POS    Sends APRS Position Packet
-- GPS:TIME?                Returns GPS Time
-- GPS:LAT?                Returns GPS Latitude
-- GPS:LON?                Returns GPS Longitude
-- EXIT                    Exits Shell mode
+- RADIO:TX 1             Puts the device on TX (just a millisecond... by now)
+- RADIO:TX 0             Puts the device on RX
+- RADIO:AGC n            Sets AGC to level n (0=auto)
+- APRS:SEND POS          Sends APRS Position Packet
+- GPS:TIME?              Returns GPS Time
+- GPS:LAT?               Returns GPS Latitude
+- GPS:LON?               Returns GPS Longitude
+- REG XX?                Return XX register value (in hex, zero-padded)
+- REG XX YYYY            Writes YYYY in register XX (in hex, zero-padded)
+- EXIT                   Exits Shell mode
 
 
 ## Telegram group

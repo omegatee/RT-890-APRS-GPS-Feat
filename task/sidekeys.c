@@ -69,7 +69,7 @@ void Task_CheckSideKeys(void)
 	Action = gSettings.Actions[gSlot];
 	if (gSettings.bEnableDisplay && gEnableBlink) {
 		SCREEN_TurnOn();
-		BEEP_Play(740, 2, 100);
+		BEEP_Play(740, 2, 100,0);
 		return;
 	}
 

@@ -101,13 +101,13 @@ void IDLE_SelectMode(void)
 {
 	RADIO_DisableSaveMode();
 #ifdef ENABLE_NOAA
-	if (gSettings.DualStandby || gSettings.NoaaAlarm) {
+	if (gSettings.DualWatch || gSettings.NoaaAlarm) {
 #else
-	if (gSettings.DualStandby) {
+	if (gSettings.DualWatch) {
 #endif
 		RADIO_Tune(gSettings.CurrentDial);
 	}
-	if (gSettings.DualStandby) {
+	if (gSettings.DualWatch) {
 		gIdleMode = IDLE_MODE_DUAL_STANDBY;
 #ifdef ENABLE_NOAA
 	} else if (gSettings.NoaaAlarm) {

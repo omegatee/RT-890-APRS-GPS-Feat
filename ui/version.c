@@ -30,7 +30,7 @@ void UI_DrawVersion(void)
 	}
 	DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
 	UI_DrawString(24, 48, "wt APRS", 7);
-	UI_DrawString(24, 24, FW_VERSION, 4);
+	UI_DrawString(24, 24, FW_VERSION, 6);
 	UI_DrawString(80, 24, Version, 10);
 }
 

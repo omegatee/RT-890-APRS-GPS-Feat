@@ -69,9 +69,9 @@ void BEEP_Disable(void)
 	BK4819_EnableTone1(false);
 }
 
-void BEEP_Play(uint16_t Frequency, uint8_t Type, uint16_t Duration)
+void BEEP_Play(uint16_t Frequency, uint8_t Type, uint16_t Duration, bool force)
 {
-	if (gSettings.KeyBeep) {
+	if (gSettings.KeyBeep || force==1) {
 		if (BeepType != 0) {
 			BeepType = 0;
 			BeepDuration = 0;

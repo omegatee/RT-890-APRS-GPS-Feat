@@ -59,7 +59,7 @@ static void PlayDTMF(uint8_t Code)
 	};
 
 	struct data DTMF_tones_register_values [16]={
-		{.reg_71 = 0x25F3,  .reg_72 = 0x35E1,},
+		{.reg_71 = 0x25F3, .reg_72 = 0x35E1,},
 		{.reg_71 = 0x1C1C, .reg_72 = 0x30C2,},
 		{.reg_71 = 0x1C1C, .reg_72 = 0x35E1,},
 		{.reg_71 = 0x1C1C, .reg_72 = 0x3B91,},

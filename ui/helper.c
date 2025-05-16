@@ -20,6 +20,7 @@
 #include "driver/battery.h"
 #include "driver/st7735s.h"
 #include "driver/bk4819.h"
+#include "driver/uart.h"///
 #include "helper/dtmf.h"
 #include "helper/helper.h"
 #include "helper/inputbox.h"
@@ -81,10 +82,10 @@ static const uint8_t FontSmall[47][5] = {
 	{ 0xC2, 0xA2, 0x92, 0x8A, 0x86 },
 };
 
-static const uint16_t FontBigDigits[][10] = {
-	{ 0x0FFC, 0x1FFE, 0x3FFF, 0x3103, 0x2081, 0x2041, 0x3023, 0x3FFF, 0x1FFE, 0x0FFC },
-	{ 0x0000, 0x0000, 0x0000, 0x0004, 0x0004, 0x3FFE, 0x3FFF, 0x3FFF, 0x0000, 0x0000 },
-	{ 0x3804, 0x3C06, 0x3E07, 0x2703, 0x2381, 0x21C1, 0x20E3, 0x207F, 0x203E, 0x203C },
+static const uint16_t FontBigDigits[][11] = {
+	{ 0x0FFC, 0x1FFE, 0x3FFF, 0x3103, 0x2081, 0x2041, 0x3023, 0x3FFF, 0x1FFE, 0x0FFC }, // 0
+	{ 0x0000, 0x0000, 0x0000, 0x0004, 0x0004, 0x3FFE, 0x3FFF, 0x3FFF, 0x0000, 0x0000 }, // 1
+	{ 0x3804, 0x3C06, 0x3E07, 0x2703, 0x2381, 0x21C1, 0x20E3, 0x207F, 0x203E, 0x203C }, // 2
 	{ 0x0804, 0x1806, 0x3807, 0x3003, 0x2001, 0x20C1, 0x31E3, 0x3FFF, 0x1F3E, 0x0E1C },
 	{ 0x0380, 0x03C0, 0x0260, 0x0230, 0x0218, 0x020C, 0x3FFE, 0x3FFF, 0x3FFF, 0x0200 },
 	{ 0x08FF, 0x18FF, 0x38FF, 0x3061, 0x2021, 0x2021, 0x3061, 0x3FE1, 0x1FC1, 0x0F81 },
@@ -92,7 +93,8 @@ static const uint16_t FontBigDigits[][10] = {
 	{ 0x0001, 0x0001, 0x0001, 0x3FC1, 0x3FE1, 0x3FF1, 0x0039, 0x001F, 0x000F, 0x0007 },
 	{ 0x0E1C, 0x1F3E, 0x3FFF, 0x31E3, 0x20C1, 0x20C1, 0x31E3, 0x3FFF, 0x1F3E, 0x0E1C },
 	{ 0x083C, 0x187E, 0x38FF, 0x31C3, 0x2181, 0x2181, 0x30C3, 0x3FFF, 0x1FFE, 0x0FFC },
-	{ 0x00C0, 0x00C0, 0x00C0, 0x00C0, 0x00C0, 0x00C0, 0x00C0, 0x00C0, 0x00C0, 0x00C0 },
+	{ 0x00C0, 0x00C0, 0x00C0, 0x00C0, 0x00C0, 0x00C0, 0x00C0, 0x00C0, 0x00C0, 0x00C0 }, // minus
+	{ 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 }, // space
 };
 
 static const uint16_t Icons[] = {
@@ -317,67 +319,70 @@ void UI_DrawRoger(void)
 							   gSettings.RogerBeep == 2 ? "2 " : "ID", 2);
 }
 
-void UI_DrawVoltage(uint8_t Vfo)
+void UI_DrawRegisters(uint8_t Vfo)
 {
+REGx10 reg10;
+REGx43 reg43;
+REGx7E reg7E;
+	
 	if ((gSettings.DualDisplay == 0 && gScreenMode == SCREEN_MAIN)
 #ifdef ENABLE_REGISTER_EDIT
 		|| (gScreenMode == SCREEN_REGEDIT)
 #endif
 	) {
 		const uint8_t Y = 72 - (Vfo * 41);
+	
 		gColorForeground = COLOR_BLUE;
-		/* Replacing voltage display with register display */
-		uint16_t regValue = BK4819_ReadRegister(0x7E);
-		// Extract bits 15, 14, 13 and 12
-		regValue = (regValue & 0xF000) >> 12;
-		// If bit 15 is set, display AUTO, otherwise display FIX
-		if ((regValue & 0x8) == 0x8) {
-			UI_DrawSmallString(16, Y, "FIX ", 4);
+
+		// ------------------------------ AGC status
+		reg7E.val = BK4819_ReadRegister(0x7E);
+		if(reg7E.AGC_Mode==1){
+			UI_DrawSmallString(64, Y-24, "FIX ", 4);
+			Int2Ascii(reg7E.AGC_Index, 1);
+			UI_DrawSmallString(90, Y-24, gShortString, 1);//88
 		} else {
-			UI_DrawSmallString(16, Y, "AUTO", 4);
+			UI_DrawSmallString(64, Y-24, "AUT ", 4);
+			Int2Ascii(reg7E.AGC_Index, 1);
+			UI_DrawSmallString(90, Y-24, gShortString, 1);//88
 		}
-		// Display bits 14:12 as an integer
-		unsigned char curRegValue = (regValue & 0x7);
-		Int2Ascii(regValue & 0x7, 1);
-		UI_DrawSmallString(40, Y, gShortString, 1);
-		// Now, read register (0x10 + curRegValue) and output the following as separate values:
-		// 2:0 - PGA Gain
-		// 4:3 - Mixer Gain
-		// 7:5 - LNA Gain
-		// 9:8 - LNA Gain Short
-		regValue = BK4819_ReadRegister(0x10 + curRegValue);
-		// Extract bits 2:0
-		Int2Ascii(regValue & 0x7, 1);
-		UI_DrawSmallString(16, Y-8, "PGA ", 4);
-		UI_DrawSmallString(40, Y-8, gShortString, 1);
-		// Extract bits 4:3
-		Int2Ascii((regValue & 0x18) >> 3, 1);
-		UI_DrawSmallString(64, Y-8, "MIX ", 4);
-		UI_DrawSmallString(88, Y-8, gShortString, 1);
-		// Extract bits 7:5
-		Int2Ascii((regValue & 0xE0) >> 5, 1);
-		UI_DrawSmallString(112, Y-8, "LNA ", 4);
-		UI_DrawSmallString(136, Y-8, gShortString, 1);
-		// Extract bits 9:8
-		Int2Ascii((regValue & 0x300) >> 8, 1);
-		UI_DrawSmallString(16, Y-16, "LNAS", 4);
-		UI_DrawSmallString(48, Y-16, gShortString, 1);
-		// Next, logic to handle REG_43<14:12> (RF filter bandwidth)
-		regValue = BK4819_ReadRegister(0x43);
-		// Extract bits 14:12
-		Int2Ascii((regValue & 0x7000) >> 12, 1);
-		UI_DrawSmallString(64, Y, "BW", 2);
-		UI_DrawSmallString(88, Y, gShortString, 1);
-		// Extract bits 11:9
-		Int2Ascii((regValue & 0xE00) >> 9, 1);
-		UI_DrawSmallString(112, Y, "Weak", 4);
-		UI_DrawSmallString(136, Y, gShortString, 1);
-		Int2Ascii(gBatteryVoltage, 2);
-		gShortString[2] = gShortString[1];
-		gShortString[1] = '.';
-		gShortString[3] = 'V';
-		UI_DrawSmallString(64, Y-24, gShortString, 4);
-		UI_DrawSmallString(64, Y-16, "S-METER", 7);
+		
+		// ------------------------ Front-end gains
+		reg10.val = BK4819_ReadRegister(0x10 + reg7E.AGC_Index);
+
+		UI_DrawSmallString(16, Y-24, "PGA ", 4);
+		Int2Ascii(reg10.PGA_Gain, 1);
+		UI_DrawSmallString(45, Y-24, gShortString, 1);
+
+		UI_DrawSmallString(16, Y-16, "MIX ", 4);
+		Int2Ascii(reg10.MIX_Gain, 1);
+		UI_DrawSmallString(45, Y-16, gShortString, 1);
+
+		UI_DrawSmallString(16, Y-8, "LNA ", 4);
+		Int2Ascii(reg10.LNA_Gain, 1);
+		UI_DrawSmallString(45, Y-8, gShortString, 1);
+
+		UI_DrawSmallString(16, Y, "LNAS", 4);
+		Int2Ascii(reg10.LNA_GainS, 1);
+		UI_DrawSmallString(45, Y, gShortString, 1);
+		
+		// --------------------- RF filter bandwidth
+		reg43.val = BK4819_ReadRegister(0x43);
+
+		UI_DrawSmallString(105, Y, "BW", 2);
+		Int2Ascii(reg43.BWd, 1);/////// <---------------------
+		UI_DrawSmallString(130, Y, gShortString, 1);
+
+		UI_DrawSmallString(105, Y-8, "BWW", 3);
+		Int2Ascii(reg43.BWdW, 1);/////// <---------------------
+		UI_DrawSmallString(130, Y-8, gShortString, 1);
+
+		UI_DrawSmallString(105, Y-16, "LP2", 3);
+		Int2Ascii(reg43.AFTX_LPF2, 1);
+		UI_DrawSmallString(130, Y-16, gShortString, 1);
+
+		UI_DrawSmallString(105, Y-24, "MOD", 3);
+		Int2Ascii(reg43.BW_Mode, 1);
+		UI_DrawSmallString(130, Y-24, gShortString, 1);
 		
 	}
 }
@@ -397,12 +402,12 @@ void UI_DrawVfoFrame(uint8_t Y)
 //	DISPLAY_DrawRectangle1( 95, Y,   5, 1, COLOR_FOREGROUND);
 
 // 80% size - allow room to right for dBM reading
-	DISPLAY_DrawRectangle0( 20, Y, 80, 1, COLOR_FOREGROUND);
-	DISPLAY_DrawRectangle1( 20, Y,   6, 1, COLOR_FOREGROUND);
-	DISPLAY_DrawRectangle1(100, Y,   6, 1, COLOR_FOREGROUND);
-	DISPLAY_DrawRectangle1( 40, Y,   5, 1, COLOR_FOREGROUND);
-	DISPLAY_DrawRectangle1( 60, Y,   5, 1, COLOR_FOREGROUND);
-	DISPLAY_DrawRectangle1( 80, Y,   5, 1, COLOR_FOREGROUND);
+	DISPLAY_DrawRectangle( 20, Y, 80, 1, COLOR_FOREGROUND);
+	DISPLAY_DrawRectangle( 20, Y,   1, 6, COLOR_FOREGROUND);
+	DISPLAY_DrawRectangle(100, Y,   1, 6, COLOR_FOREGROUND);
+	DISPLAY_DrawRectangle( 40, Y,   1, 5, COLOR_FOREGROUND);
+	DISPLAY_DrawRectangle( 60, Y,   1, 5, COLOR_FOREGROUND);
+	DISPLAY_DrawRectangle( 80, Y,   1, 5, COLOR_FOREGROUND);
 }
 
 void UI_DrawName(uint8_t Vfo, const char *pName)
@@ -411,9 +416,9 @@ void UI_DrawName(uint8_t Vfo, const char *pName)
 	UI_DrawString(34, 83 - (Vfo * 41), pName, 10);
 }
 
-void UI_DrawExtra(uint8_t Mode, uint8_t gModulationType, uint8_t Vfo)
+void UI_DrawModType(uint8_t Mode, uint8_t gModulationType, uint8_t dial)
 {
-	const uint8_t Y = 43 - (Vfo * 41);
+	const uint8_t Y = 43 - (dial * 41);
 
 	switch (Mode) {
 	case 0: // idle mode
@@ -424,7 +429,10 @@ void UI_DrawExtra(uint8_t Mode, uint8_t gModulationType, uint8_t Vfo)
 
 	case 1: // TX mode
 		gColorForeground = COLOR_RED;
-		UI_DrawSmallString(2, Y, " FM", 3);									///WT:
+		if(gExtendedSettings.AmFixEnabled && gModulationType == MOD_AM)
+			UI_DrawSmallString(2, Y, " AM", 3);
+		else
+			UI_DrawSmallString(2, Y, " FM", 3);
 		break;
 	}
 }
@@ -440,7 +448,10 @@ void UI_DrawFrequency(uint32_t Frequency, uint8_t Vfo, uint16_t Color)
 	DISPLAY_Fill(56, 57, Y, Y + 1, Color);
 
 	for (i = 0; i < 8; i++) {
-		UI_DrawBigDigit(X, Y, (Frequency / Divider) % 10U);
+		if(i==0 && (Frequency / Divider==0))					///
+		   UI_DrawBigDigit(X, Y, 11U);							///
+		else													///
+			UI_DrawBigDigit(X, Y, (Frequency / Divider) % 10U);
 		Divider /= 10;
 		if (i == 2) {
 			X += 16;
@@ -448,6 +459,10 @@ void UI_DrawFrequency(uint32_t Frequency, uint8_t Vfo, uint16_t Color)
 			X += 12;
 		}
 	}
+	if(Frequency>=100000000U)
+		UI_DrawBigDigit(8, Y, 1U);
+	else
+		UI_DrawBigDigit(8, Y, 11U);
 }
 
 void UI_DrawBigDigit(uint8_t X, uint8_t Y, uint8_t Digit)
@@ -503,17 +518,65 @@ void UI_DrawCss(uint8_t CodeType, uint16_t Code, uint8_t Encrypt, bool bMute, ui
 	}
 }
 
-void UI_DrawTxPower(bool bIsLow, uint8_t Vfo)
+void UI_DrawTxPower(uint8_t pLevel, uint8_t Vfo)
 {
 	uint8_t Y = 43 - (Vfo * 41);
 
-	if (bIsLow) {
-		gColorForeground = COLOR_RED;
-		UI_DrawSmallString(132, Y, "L", 1);
-	} else {
-		gColorForeground = COLOR_GREEN;
-		UI_DrawSmallString(132, Y, "H", 1);
+	switch (pLevel) {
+		case 0:
+			gColorForeground = COLOR_GREY;
+			UI_DrawSmallString(132, Y, "0", 1);
+			break;
+		case 1:
+			gColorForeground = COLOR_BLUE;
+			UI_DrawSmallString(132, Y, "L", 1);
+			break;
+		case 2:
+			gColorForeground = COLOR_GREEN;
+			UI_DrawSmallString(132, Y, "M", 1);
+			break;
+		case 3:
+			gColorForeground = COLOR_RED;
+			UI_DrawSmallString(132, Y, "H", 1);
+			break;
+
 	}
+}
+
+void FormatRssiDbm(int16_t RssidB) {
+
+uint16_t udBM;
+uint8_t bNeg;
+uint16_t len;
+
+	if (RssidB < 0) {
+		udBM = -RssidB;
+		bNeg = true;
+	} else {
+		udBM = RssidB;
+		bNeg = false;
+	}
+
+	for (int i = 0; i < 8; i++) {
+		gShortString[i] = ' ';
+	}
+
+	if (udBM < 10) {
+		len = 1;
+	} else if (udBM < 100) {
+		len = 2;
+	} else {
+		len = 3;
+	}
+
+	Int2Ascii(udBM, len);
+
+	if (bNeg) {
+		for (uint8_t i = len; i > 0; i--){
+			gShortString[i] = gShortString[i-1];
+		}
+		gShortString[0] = '-';
+	}	
 }
 
 void ConvertRssiToDbm(uint16_t Rssi) {
@@ -637,9 +700,9 @@ void UI_DrawRxSmeter (uint8_t Vfo, bool Clear)
 		UI_DrawSmallString(112, Y-16, "     ", 5);
 }
 
-void UI_DrawChannel(uint16_t Channel, uint8_t Vfo)
+void UI_DrawChannel(uint16_t Channel, uint8_t Dial)
 {
-	uint8_t Y = 73 - (Vfo * 41);
+	uint8_t Y = 73 - (Dial * 41);
 
 	gColorForeground = COLOR_FOREGROUND;
 	if (Channel > 998) {
@@ -725,7 +788,7 @@ void UI_DrawFM(void)
 	gColorForeground = COLOR_GREY;
 	DISPLAY_Fill(0, 159, 1, 81, COLOR_BACKGROUND);
 	#ifndef ENABLE_STATUS_BAR_LINE
-		DISPLAY_DrawRectangle0(0, 81, 160, 1, gSettings.BorderColor);
+		DISPLAY_DrawRectangle(0, 81, 160, 1, gSettings.BorderColor);
 	#endif
 	UI_DrawFrame(12, 150, 6, 74, 2, gColorForeground);
 	UI_DrawFrame(72, 144, 36, 64, 2, gColorForeground);
@@ -776,26 +839,32 @@ void UI_DrawBar(uint8_t Level, uint8_t Vfo)
 	uint8_t Y = 44 - (Vfo * 41);
 	uint8_t i;
 
-	// Adjust for 80% bar
+	// Level is [0..100], but bar is [0..80]
 	Level = (Level * 80) / 100;
 
-	if (Level < 20) {
-		gColorForeground = COLOR_RED;
-	} else if (Level < 40) {
-		gColorForeground = COLOR_RGB(31, 41, 0);
-	} else {
-		gColorForeground = COLOR_GREEN;
+	// Too high level
+	if(Level>80){
+		gColorForeground = COLOR_BLUE;
+		Level=80;
 	}
-
+	else{
+		if (Level < 20) {
+			gColorForeground = COLOR_RED;
+		} else if (Level < 40) {
+			gColorForeground = COLOR_RGB(31, 41, 0);/// orange?
+		} else {
+			gColorForeground = COLOR_GREEN;
+		}
+	}
 	for (i = 0; i < Level; i++) {
 		if (i != 0 && i != 20 && i != 40 && i != 60) {
-			DISPLAY_DrawRectangle1(20 + i, Y, 4, 1, gColorForeground);
+			DISPLAY_DrawRectangle(20 + i, Y, 1, 4, gColorForeground);
 		}
 	}
 
 	for (; Level < 80; Level++) {
 		if (Level != 0 && Level != 20 && Level != 40 && Level != 60) {
-			DISPLAY_DrawRectangle1(20 + Level, Y, 4, 1, gColorBackground);
+			DISPLAY_DrawRectangle(20 + Level, Y, 1, 4, gColorBackground);
 		}
 	}
 }
@@ -807,8 +876,8 @@ void UI_DrawSomething(void)
 	if (gSettings.DualDisplay == 0 && gSettings.CurrentDial != gCurrentDial) {
 		DISPLAY_Fill(1, 158, 1 + Y, 40 + Y, COLOR_BACKGROUND);
 		DISPLAY_Fill(1, 158, 1 + ((!gCurrentDial) * 41), 40 + ((!gCurrentDial) * 41), COLOR_BACKGROUND);
-		UI_DrawVoltage(!gSettings.CurrentDial);
-		UI_DrawVfo(gSettings.CurrentDial);
+		UI_DrawRegisters(!gSettings.CurrentDial);
+		UI_DrawDial(gSettings.CurrentDial);
 	} else {
 
 #ifdef ENABLE_SCANLIST_DISPLAY
@@ -816,7 +885,7 @@ void UI_DrawSomething(void)
 		DISPLAY_Fill(20, 127, 43 - Y, 49 - Y, COLOR_BACKGROUND);
 #endif
 #endif
-		UI_DrawVfo(gCurrentDial);
+		UI_DrawDial(gCurrentDial);
 		if (gSettings.CurrentDial == gCurrentDial && gInputBoxWriteIndex) {
 			if (gSettings.WorkModeA) {
 				UI_DrawDigits(gInputBox, gSettings.CurrentDial);
@@ -824,13 +893,13 @@ void UI_DrawSomething(void)
 				UI_DrawFrequencyEx(gInputBox, gSettings.CurrentDial, gFrequencyReverse);
 			}
 		}
-		UI_DrawRX(gCurrentDial);
+		//UI_DrawRX(gCurrentDial);///?
 #ifndef ENABLE_SCANLIST_DISPLAY
-		UI_DrawBar(0, gCurrentDial);
-		ConvertRssiToDbm(0);
-		UI_DrawRxDBM(gCurrentDial, true);
+		//UI_DrawBar(0, gCurrentDial);
+//		ConvertRssiToDbm(0);
+//		UI_DrawRxDBM(gCurrentDial, true);
 #endif
-		UI_DrawRxSmeter(!gCurrentDial, true);
+//		UI_DrawRxSmeter(!gCurrentDial, true);
 	}
 	UI_DrawMainBitmap(true, gSettings.CurrentDial);
 }
@@ -866,9 +935,9 @@ void UI_DrawMainBitmap(bool bOverride, uint8_t Vfo)
 
 void UI_DrawSky(void)
 {
-	gColorForeground = COLOR_RGB(31, 63, 31);
+	gColorForeground = COLOR_WHITE;
 	DISPLAY_Fill(0, 159, 1, 81, COLOR_BACKGROUND);
-	DISPLAY_DrawRectangle0(0, 81, 160, 1, gSettings.BorderColor);
+	DISPLAY_DrawRectangle(0, 81, 160, 1, gSettings.BorderColor);
 	UI_DrawBitmap(90, 16, 7, 70, BitmapSKY);
 }
 
@@ -936,7 +1005,7 @@ void UI_DrawMenuPosition(const char *pString)
 
 void UI_DrawStringSwitchType(void)
 {
-	DISPLAY_DrawRectangle0(1, 20, 159, 1, COLOR_RGB(31, 53, 0));
+	DISPLAY_DrawRectangle(1, 20, 159, 1, COLOR_RGB(31, 53, 0));
 	gColorForeground = COLOR_RED;
 	UI_DrawString(4, 18, "Switch type by [*]", 18);
 	gColorForeground = COLOR_FOREGROUND;
@@ -946,7 +1015,7 @@ void UI_DrawRadar(void)
 {
 	DISPLAY_Fill(0, 159, 1, 81, COLOR_BACKGROUND);
 	#ifndef ENABLE_STATUS_BAR_LINE
-		DISPLAY_DrawRectangle0(0, 81, 160, 1, gSettings.BorderColor);
+		DISPLAY_DrawRectangle(0, 81, 160, 1, gSettings.BorderColor);
 	#endif
 	gColorForeground = COLOR_BLUE;
 	UI_DrawBitmap(4, 12, 8, 64, BitmapRadar);

@@ -97,20 +97,22 @@ void HandlerTMR1_BRK_OVF_TRG_HALL(void)
 	if (gAPRSInterval && gAPRSCounter) {
 		gAPRSCounter--;
 	}
+#ifdef ENABLE_VOICE
 	if (gAudioTimer) {
 		gAudioTimer--;
 	}
+#endif
 	if (VOX_Timer) {
 		VOX_Timer--;
 	}
 	if (gCursorCountdown) {
 		gCursorCountdown--;
 	}
-	#ifdef ENABLE_AM_FIX
+#ifdef ENABLE_AM_FIX
 	if (gAmFixCountdown) {
 		gAmFixCountdown--;
 	}
-	#endif
+#endif
 	if (gIncomingTimer) {
 		gIncomingTimer--;
 	}

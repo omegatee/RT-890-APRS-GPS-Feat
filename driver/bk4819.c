@@ -28,13 +28,13 @@
 
 #include "ui/helper.h"///
 
-enum {
+/*enum {
 	GPIO_FILTER_UHF     = 1U << 5,
 	GPIO_FILTER_VHF     = 1U << 6,
 	GPIO_FILTER_UNKWOWN = 1U << 7,
-};
+};*/
 
-static void Delay(volatile uint8_t Counter)
+static void I2C_Delay(volatile uint8_t Counter)
 {
 	while (Counter-- > 0) {
 	}
@@ -74,10 +74,10 @@ static void I2C_Send(uint8_t Data)
 		} else {
 			gpio_bits_reset(GPIOB, BOARD_GPIOB_BK4819_SDA);
 		}
-		Delay(10);
+		I2C_Delay(10);
 		gpio_bits_set(GPIOB, BOARD_GPIOB_BK4819_SCL);
 		Data <<= 1;
-		Delay(10);
+		I2C_Delay(10);
 	}
 }
 
@@ -95,28 +95,15 @@ static uint16_t I2C_RecvU16(void)
 		if (gpio_input_data_bit_read(GPIOB, BOARD_GPIOB_BK4819_SDA)) {
 			Data |= 1;
 		}
-		Delay(10);
+		I2C_Delay(10);
 		gpio_bits_reset(GPIOB, BOARD_GPIOB_BK4819_SCL);
-		Delay(10);
+		I2C_Delay(10);
 	}
 
 	return Data;
 }
 
-#if 0
-static void DisableAGC(uint32_t Unknown)
-{
-	BK4819_WriteRegister(0x13, 0x03BE);
-	BK4819_WriteRegister(0x12, 0x037B);
-	BK4819_WriteRegister(0x11, 0x027B);
-	BK4819_WriteRegister(0x10, 0x007A);
-	BK4819_WriteRegister(0x14, 0x0019);
-	BK4819_WriteRegister(0x49, 0x2A38);
-	BK4819_WriteRegister(0x7B, 0x8420);
-}
-#endif
-
-void OpenAudio(bool bIsNarrow, uint8_t gModulationType)
+void OpenAudio(uint8_t gModulationType)
 {
 	switch(gModulationType) {
 		case MOD_FM:
@@ -132,14 +119,9 @@ void OpenAudio(bool bIsNarrow, uint8_t gModulationType)
 			BK4819_SetAF(BK4819_AF_5U);
 			break;
 	}
-	if (bIsNarrow) {
-		BK4819_SetAfGain(gFrequencyBandInfo.RX_DAC_GainNarrow);
-	} else {
-		BK4819_SetAfGain(gFrequencyBandInfo.RX_DAC_GainWide);
-	}
 }
 
-// Public
+
 
 uint16_t BK4819_ReadRegister(uint8_t Reg)
 {
@@ -153,7 +135,7 @@ uint16_t BK4819_ReadRegister(uint8_t Reg)
 	gpio_bits_reset(GPIOB, BOARD_GPIOB_BK4819_CS);
 
 	I2C_Send(0x80U | Reg);
-	Delay(10);
+	I2C_Delay(10);
 	Data = I2C_RecvU16();
 
 	gpio_bits_set(GPIOB, BOARD_GPIOB_BK4819_CS);
@@ -165,6 +147,7 @@ uint16_t BK4819_ReadRegister(uint8_t Reg)
 
 void BK4819_WriteRegister(uint8_t Reg, uint16_t Data)
 {
+//IFDBG UART_printf(1,"WR %04X at %02X\r\n",Data,Reg);
 	TMR1->ctrl1_bit.tmren = FALSE;
 
 	SDA_SetOutput();
@@ -183,27 +166,51 @@ void BK4819_WriteRegister(uint8_t Reg, uint16_t Data)
 
 uint16_t BK4819_GetRSSI(void)
 {
-	return BK4819_ReadRegister(0x67) & 0x01FF;
+REGx67 reg67;
+	
+	reg67.val = BK4819_ReadRegister(0x67);
+	
+	if(gVfoState[gCurrentDial].RX.Frequency >= 24000000){
+		reg67.RSSI-=15; /// for UHF
+	}
+
+	return reg67.RSSI;
+}
+
+int16_t BK4819_GetRSSI_DBM(void)
+{
+uint16_t rVAL;
+int16_t dbVAL;
+	
+	rVAL = BK4819_GetRSSI();
+//IFDBG UART_printf(1,"RSSI =%d\t",rVAL);	
+	
+	dbVAL=rVAL/=2;
+	dbVAL-=160;
+
+	// result value could fall in range -160..95.5
+//IFDBG UART_printf(1,"(%d dBm)\r\n",dbVAL);
+	return dbVAL;
 }
 
 void BK4819_Init(void)
 {
-	BK4819_WriteRegister(0x00, 0x8000);
-	BK4819_WriteRegister(0x00, 0x0000);
+	BK4819_WriteRegister(0x00, 0x8000);// RESET
+	BK4819_WriteRegister(0x00, 0x0000);// !RESET
 	BK4819_WriteRegister(0x37, 0x1D0F);
-BK4819_WriteRegister(0x36, 0x0022); /// from UV-K5
-	// DisableAGC(0);
+	BK4819_WriteRegister(0x36, 0x0022); /// from UV-K5 (PA configuration)
 	BK4819_WriteRegister(0x33, 0x1F00);
+
 	BK4819_WriteRegister(0x35, 0x0000);
 	BK4819_WriteRegister(0x1E, 0x4C58);
 	BK4819_WriteRegister(0x1F, 0xA656);
-	BK4819_WriteRegister(0x3E, gCalibration.BandSelectionThreshold);
+	BK4819_WriteRegister(0x3E, gCalibration.BandSelectionThreshold); // this defaults to 8E6A (DS default)
 	BK4819_WriteRegister(0x3F, 0x0000);
 	BK4819_WriteRegister(0x2A, 0x4F18);
 	BK4819_WriteRegister(0x53, 0xE678);
 	BK4819_WriteRegister(0x2C, 0x5705);
 	BK4819_WriteRegister(0x4B, 0x7102);
-	//BK4819_WriteRegister(0x77, 0x88EF);
+	BK4819_WriteRegister(0x77, 0x88EF); /// squelch mode
 	BK4819_WriteRegister(0x26, 0x13A0);
 	BK4819_SetAFResponseCoefficients(false, true,  gCalibration.RX_3000Hz_Coefficient);
 	BK4819_SetAFResponseCoefficients(false, false, gCalibration.RX_300Hz_Coefficient);
@@ -211,7 +218,20 @@ BK4819_WriteRegister(0x36, 0x0022); /// from UV-K5
 	BK4819_SetAFResponseCoefficients(true,  false, gCalibration.TX_300Hz_Coefficient);
 	BK4819_EnableRX();
 	BK4819_SetAF(BK4819_AF_MUTE);
-	BK4819_RestoreGainSettings();
+
+	BK4819_SetOptGainTables();
+	BK4819_SetAGCLevel(0);
+
+	// REG 0x2B is not used ???????????????????????????????????????
+
+	BK4819_WriteRegister(0x7B, 0xAE34); // RSSI Table as per DS default
+	BK4819_WriteRegister(0x7C, 0x8000); // RSSI Table
+	
+			BK4819_WriteRegister(0x3D, 0x2AAB);				// DS: default 8.46 kHz IF
+			//BK4819_WriteRegister(0x3D, 0);				// TEST: use Zero IF
+	
+ 			//BK4819_WriteRegister(0x3E,0x9000);			// band switch !?!?!
+			BK4819_WriteRegister(0x3E,0x8E6A);				// band switch default as per DS
 }
 
 void BK4819_SetAFResponseCoefficients(bool bTx, bool bLowPass, uint8_t Index)
@@ -268,16 +288,12 @@ void BK4819_EnableRX(void)
 
 void BK4819_SetAF(BK4819_AF_Type_t Type)
 {
-	//BK4819_WriteRegister(0x47, 0x6040 | (Type << 8));		///WT:
-	BK4819_WriteRegister(0x47,
-						 			(0) 			// AF Tx Filter 0=Normal 1=Bypass All
-						 			|(Type << 8) 	// AFOutputSelection
-						 			|(1 << 13)		// AF Output Inverse Mode
-						 			|(1 << 14)		// ?
-						 			|(1 << 6)		// ?
-						 );
-						 			
+REGx47 reg47;
 	
+	reg47.AF_Byp=0;
+	reg47.AF_Out=Type;
+	reg47.AF_Inv=1;
+	BK4819_WriteRegister(0x47,reg47.val);
 }
 
 void BK4819_SetFrequency(uint32_t Frequency)
@@ -306,7 +322,7 @@ void BK4819_SetSquelchMode(void)
 	}
 }
 
-void BK4819_SetSquelchGlitch(bool bIsNarrow)
+void BK4819_SetSquelchGlitch(uint8_t BWidth)
 {
 
 #ifdef ENABLE_ALT_SQUELCH
@@ -343,18 +359,23 @@ void BK4819_SetSquelchGlitch(bool bIsNarrow)
 		0x0E,
 	};
 	
-	if (bIsNarrow) {
-		BK4819_WriteRegister(0x4D, gSquelchGlitchLevel[gSettings.Squelch] + 0x9FFF);
-		BK4819_WriteRegister(0x4E, gSquelchGlitchLevel[gSettings.Squelch] + 0x4DFE);
-	} else {
-		BK4819_WriteRegister(0x4D, gSquelchGlitchLevel[gSettings.Squelch] + 0xA000);
-		BK4819_WriteRegister(0x4E, gSquelchGlitchLevel[gSettings.Squelch] + 0x4DFF);
+	swith (BWidth) {
+		case 0:
+		case 1:
+			BK4819_WriteRegister(0x4D, gSquelchGlitchLevel[gSettings.Squelch] + 0x9FFF);
+			BK4819_WriteRegister(0x4E, gSquelchGlitchLevel[gSettings.Squelch] + 0x4DFE);
+			break;
+		case 2:
+		case 3:
+			BK4819_WriteRegister(0x4D, gSquelchGlitchLevel[gSettings.Squelch] + 0xA000);
+			BK4819_WriteRegister(0x4E, gSquelchGlitchLevel[gSettings.Squelch] + 0x4DFF);
+			break;
 	}
 #endif
 
 }
 
-void BK4819_SetSquelchNoise(bool bIsNarrow)
+void BK4819_SetSquelchNoise(uint8_t BWidth)
 {
 #ifdef ENABLE_ALT_SQUELCH
 
@@ -366,7 +387,7 @@ void BK4819_SetSquelchNoise(bool bIsNarrow)
 		Value = gExtendedSettings.SqNoiseBase - (gSettings.Squelch * 6);
 		if (gExtendedSettings.SqNoiseBase > 230) {
 			Value = (255 << 8) | Value;
-		} else if (bIsNarrow) {
+		} else if (BWidth<2) {///
 			Value = ((((Value - 5) * 10) / 9) << 8) | Value;
 		} else {
 			Value = (((Value * 10) / 9) << 8) | Value;
@@ -395,7 +416,7 @@ void BK4819_SetSquelchNoise(bool bIsNarrow)
 	uint16_t Value;
 
 	Level = gSquelchNoiseLevel[gSettings.Squelch];
-	if (bIsNarrow) {
+	if (BWidth<2) {///
 		Value = ((gSquelchNoiseNarrow + 12 + Level) << 8) | (gSquelchNoiseNarrow + 6 + Level);
 	} else {
 		Value = ((gSquelchNoiseWide   + 12 + Level) << 8) | (gSquelchNoiseWide   - 6 + Level);
@@ -407,7 +428,7 @@ void BK4819_SetSquelchNoise(bool bIsNarrow)
 
 }
 
-void BK4819_SetSquelchRSSI(bool bIsNarrow)
+void BK4819_SetSquelchRSSI(uint8_t BWidth)
 {
 #ifdef ENABLE_ALT_SQUELCH
 
@@ -441,7 +462,7 @@ void BK4819_SetSquelchRSSI(bool bIsNarrow)
 	uint16_t Value;
 
 	Level = gSquelchRssiLevel[gSettings.Squelch];
-	if (bIsNarrow) {
+	if (BWidth<2) {///
 		Value = ((gSquelchRSSINarrow - 8 + Level) << 8) | (gSquelchRSSINarrow - 14 + Level);
 	} else {
 		Value = ((gSquelchRSSIWide   - 8 + Level) << 8) | (gSquelchRSSIWide   - 14 + Level);
@@ -453,173 +474,69 @@ void BK4819_SetSquelchRSSI(bool bIsNarrow)
 
 }
 
-#if 0
-void BK4819_SetFilterBandwidth(bool bIsNarrow)
+
+void BK4819_SetFilterBandwidth(uint8_t BWidth, bool weak)
 {
-	// Check if modulation is FM
-	if (gMainVfo->gModulationType == MOD_FM) {
-#ifndef ENABLE_REGISTER_EDIT
-		if (bIsNarrow) {
-			BK4819_WriteRegister(0x43, 0x1008); // as per DS default for 12,5 kHz
-			//BK4819_WriteRegister(0x43, 0x4048); //stock
-			//BK4819_WriteRegister(0x43, 0x7B08); //kamil/fagci
-			//BK4819_WriteRegister(0x43, 0x1408);//OEFW
-			//BK4819_WriteRegister(0x43, 0x4408); //egzumer
-		} else {
-			BK4819_WriteRegister(0x43, 0x2020); // as per DS default for 25 kHz
-			//BK4819_WriteRegister(0x43, 0x3028); //stock
-			//BK4819_WriteRegister(0x43, 0x7B08); //kamil/fagci
-			//BK4819_WriteRegister(0x43, 0x1408);//OEFW
-			//BK4819_WriteRegister(0x43, 0x45A8); //egzumer
-		}
-#else
-		uint16_t Value = BK4819_ReadRegister(0x43); 
-		if (bIsNarrow) {
-			BK4819_WriteRegister(0x43, (Value & ~0x30) | 0);
-		} else {
-			BK4819_WriteRegister(0x43, (Value & ~0x30) | 32);
-		}
-#endif
-	}
-}
-#else
-//void BK4819_SetFilterBandwidth(const BK4819_FilterBandwidth_t Bandwidth, const bool weak_no_different)
-void BK4819_SetFilterBandwidth(bool Bandwidth, bool weak)
-{
+REGx43 reg43;
 	
-	// REG_43
-	// <15>    0 ???
-	//
-	// <14:12> 4 RF filter bandwidth
-	//         0 = 1.7  kHz
-	//         1 = 2.0  kHz
-	//         2 = 2.5  kHz
-	//         3 = 3.0  kHz
-	//         4 = 3.75 kHz
-	//         5 = 4.0  kHz
-	//         6 = 4.25 kHz
-	//         7 = 4.5  kHz
-	// if <5> == 1, RF filter bandwidth * 2
-	//
-	// <11:9>  0 RF filter bandwidth when signal is weak
-	//         0 = 1.7  kHz
-	//         1 = 2.0  kHz
-	//         2 = 2.5  kHz
-	//         3 = 3.0  kHz
-	//         4 = 3.75 kHz
-	//         5 = 4.0  kHz
-	//         6 = 4.25 kHz
-	//         7 = 4.5  kHz
-	// if <5> == 1, RF filter bandwidth * 2
-	//
-	// <8:6>   1 AFTxLPF2 filter Band Width
-	//         1 = 2.5  kHz (for 12.5k channel space)
-	//         2 = 2.75 kHz
-	//         0 = 3.0  kHz (for 25k   channel space)
-	//         3 = 3.5  kHz
-	//         4 = 4.5  kHz
-	//         5 = 4.25 kHz
-	//         6 = 4.0  kHz
-	//         7 = 3.75 kHz
-	//
-	// <5:4>   0 BW Mode Selection
-	//         0 = 12.5k
-	//         1 =  6.25k
-	//         2 = 25k/20k
-	//
-	// <3>     1 ???
-	//
-	// <2>     0 Gain after FM Demodulation
-	//         0 = 0dB
-	//         1 = 6dB
-	//
-	// <1:0>   0 ???
-
-	uint16_t val = 0;
-	switch (Bandwidth)
+	reg43._res3=1;
+	switch (BWidth)
 	{
-		default:
-		//case BK4819_FILTER_BW_WIDE:	// 25kHz
-		if(Bandwidth==0){
-			val = (4u << 12) |     // *3 RF filter bandwidth
-				  (6u <<  6) |     // *0 AFTxLPF2 filter Band Width
-				  (2u <<  4) |     //  2 BW Mode Selection
-				  (1u <<  3) |     //  1
-				  (0u <<  2);     //  0 Gain after FM Demodulation
-
-			if (weak) {
-				/// with weak RX signals the RX bandwidth is reduced
-				val |= (2u <<  9);     // *0 RF filter bandwidth when signal is weak
-			} else {
-				// make the RX bandwidth the same with weak signals
-				val |= (4u <<  9);     // *0 RF filter bandwidth when signal is weak
-			}
-
-		}//break;
-
-		//case BK4819_FILTER_BW_NARROW:	// 12.5kHz
-		else{
-			val = (4u << 12) |     // *4 RF filter bandwidth
-				  (0u <<  6) |     // *1 AFTxLPF2 filter Band Width
-				  (0u <<  4) |     //  0 BW Mode Selection
-				  (1u <<  3) |     //  1
-				  (0u <<  2);      //  0 Gain after FM Demodulation
-
-			if (weak) {
-				val |= (2u <<  9);
-			} else {
-				val |= (4u <<  9);     // *0 RF filter bandwidth when signal is weak
-			}
-
-		}//break;
-/*
-		case BK4819_FILTER_BW_NARROWER:	// 6.25kHz
-			val = (3u << 12) |     //  3 RF filter bandwidth
-				  (3u <<  9) |     // *0 RF filter bandwidth when signal is weak
-				  (1u <<  6) |     //  1 AFTxLPF2 filter Band Width
-				  (1u <<  4) |     //  1 BW Mode Selection
-				  (1u <<  3) |     //  1
-				  (0u <<  2);      //  0 Gain after FM Demodulation
-
-			if (weak) {
-				val |= (0u <<  9);     //  0 RF filter bandwidth when signal is weak
-			} else {
-				val |= (3u <<  9);
-			}
-			break;*/
+		case 0:						// NARROW NARROW 6,25k
+			reg43.BWd=0;
+			reg43.BWdW=0;
+			reg43.AFTX_LPF2=1;
+			reg43.BW_Mode=1u;
+			reg43.GainAfter=0u;	
+			break;
+		case 1:						// NARROW 12,5k
+			reg43.BWd=4;
+			reg43.BWdW=4;
+			reg43.AFTX_LPF2=1;
+			reg43.BW_Mode=0u;
+			reg43.GainAfter=0u;	
+			break;
+		case 2:						// WIDE 25,0k
+			reg43.BWd=3;
+			reg43.BWdW=3;
+			reg43.AFTX_LPF2=0;
+			reg43.BW_Mode=2u;
+			reg43.GainAfter=0u;	
+			break;
+		case 3:						// WIDE WIDE ?,0k
+			reg43.BWd=7;
+			reg43.BWdW=7;
+			reg43.AFTX_LPF2=0;
+			reg43.BW_Mode=3u;
+			reg43.GainAfter=0u;	
+			break;
 	}
-//IFDBG UART_printf(1,"Wid: %d/r/n",val); narrow= 0x4808 wide=0x49A8
-	BK4819_WriteRegister(0x43, val);
+	BK4819_WriteRegister(0x43, reg43.val);
 }
 
-#endif
 
-
-void BK4819_EnableFilter(bool bEnable)
+void BK4819_SelectRFPath(uint32_t Frequency)
 {
-	uint16_t Value;
+// REG33 is 1FA0 below 240MHz and 1FC0 above
+// bit 6 on = low band; bit 7 on = high band
 
-	Value = BK4819_ReadRegister(0x33);
-	Value |= 0
-		| GPIO_FILTER_UHF
-		| GPIO_FILTER_VHF
-		| GPIO_FILTER_UNKWOWN;
+REGx33 reg33;
 
-	if (bEnable) {
-		if (gCalibration.BandSelectionThreshold == 0xAAAA) {
-			if (!gUseUhfFilter) {
-				Value &= ~GPIO_FILTER_UNKWOWN;
-			} else {
-				Value &= ~GPIO_FILTER_VHF;
-			}
-		}
-		else if (!gUseUhfFilter) {
-			Value &= ~GPIO_FILTER_VHF;
-		} else {
-			Value &= ~GPIO_FILTER_UHF;
-		}
+	reg33.val = BK4819_ReadRegister(0x33);
+	//reg33._res7 = 1; What's this for ???
+	
+	if( Frequency <= (gCalibration.BandSelectionThreshold*6144/10) ){// this equates to 252MHz with reg 3E @ 0x8E6A (DS default)
+		/// LOW BAND
+		reg33.GPIO5_Val = 1;
+		reg33.GPIO6_Val = 0;
 	}
-	BK4819_WriteRegister(0x33, Value);
+	else{
+		/// HIGH BAND
+		reg33.GPIO5_Val = 0;
+		reg33.GPIO6_Val = 1;
+	}
+IFDBG UART_printf(1,"RG33 at 0x%04X\r\n",reg33.val);
+	BK4819_WriteRegister(0x33, reg33.val);
 }
 
 void BK4819_EnableScramble(uint8_t Scramble)
@@ -662,74 +579,98 @@ void BK4819_EnableVox(bool bEnable)
 	BK4819_WriteRegister(0x31, Value);
 }
 
-void BK4819_RestoreGainSettings()
+void BK4819_SetDefaultGainTables()
 {
-	/* Keep for now, may be useful for register editing
-	const uint8_t orig_lna_short = 2;
-            const uint8_t orig_lna = 5;
-            const uint8_t orig_mixer = 2;
-            const uint8_t orig_pga = 5;
-			if(BK4819_ReadRegister(0x13) != ((orig_lna_short << 8) | (orig_lna << 5) | (orig_mixer << 3) | (orig_pga << 0))) {
-            	BK4819_WriteRegister(0x13, (orig_lna_short << 8) | (orig_lna << 5) | (orig_mixer << 3) | (orig_pga << 0));
-			}
-	*/
+REGx49 reg49;
 	
-	//Default values
-	BK4819_WriteRegister(0x10, 0x0038);  
-	BK4819_WriteRegister(0x11, 0x025a);  
+	// Default values as per DS
+	BK4819_WriteRegister(0x10, 0x0038);  // 0,1,3,0
+	BK4819_WriteRegister(0x11, 0x025a);  // 2,2,3,2
 	BK4819_WriteRegister(0x12, 0x037b); 
 	BK4819_WriteRegister(0x13, 0x03de);
-	BK4819_WriteRegister(0x14, 0x0000); 
-}
-
-
-void BK4819_ToggleAGCMode()
-{
-	// REG_7E[15] - AGC Mode
-	// 		1 - Fixed, 0 - Auto
-	// REG_7E[14:12] - AGC Index
-	//		uint8_t idx[]={0x04,0x05,0x06,0x07,0x00,0x01,0x02,0x03}; /// min .. max
+	BK4819_WriteRegister(0x14, 0x0000);	 // 0,0,0,0
 	
-	uint16_t Value = BK4819_ReadRegister(0x7E);
-	uint16_t AGCIndex = (Value & 0x7000) >> 12; // Extract bits 14, 13 and 12
+	reg49.AGC_LowThres=0x30;
+	reg49.AGC_HighThres=0x50;
+	reg49.Sel_Auto=0x0;
+	BK4819_WriteRegister(0x49, reg49.val);
 
-	if (!(Value & 0x8000U) || AGCIndex == 4){ //Bit 15 = 0 (AGC on) or 14:12 = 110 (index 4/min)
-		Value ^= 0x8000U; //Toggle AGC
-	} else {
-		Value |= 0x8000U; //Turn AGC off
-		AGCIndex = (AGCIndex + 7) % 8; //Decrement ACG Index
-		Value =  (Value & 0x8FFFU) | (AGCIndex << 12); // Set bits 14:12 (AGC Index)
-	}
-	BK4819_WriteRegister(0x7E, Value);
-if(Value & 0x8000){
-	Int2Ascii(AGCIndex, 1);
-	UI_DrawSmallString(78,86,gShortString,1);
-}
-else{
-	UI_DrawSmallString(78,86,"AU",2);
-}
 }
 
-void BK4819_SetAGCMode(uint8_t lvl)
+void BK4819_SetOptGainTables()
 {
-uint8_t idx[]={0xFF,0x04,0x05,0x06,0x07,0x00,0x01,0x02,0x03}; /// min .. max
-uint16_t regVAL = BK4819_ReadRegister(0x7E);
+REGx10 reg10;
+REGx49 reg49;
 	
+	// The 5 RX AGC Gain Tables:
+	//  (Index for max. to min.: 3, 2, 1, 0, -1)
+	
+	// Gain Table[3]		// MAX GAIN
+	reg10.LNA_GainS=3;
+	reg10.LNA_Gain =7;
+	reg10.MIX_Gain =3;
+	reg10.PGA_Gain =7;
+	BK4819_WriteRegister(0x13,reg10.val);
+	
+	// Gain Table[2]
+	reg10.LNA_GainS=3;
+	reg10.LNA_Gain =4;
+	reg10.MIX_Gain =3;
+	reg10.PGA_Gain =4;	
+	BK4819_WriteRegister(0x12,reg10.val);
+	
+	// Gain Table[1]
+	reg10.LNA_GainS=2;
+	reg10.LNA_Gain =3;
+	reg10.MIX_Gain =2;
+	reg10.PGA_Gain =3;
+	BK4819_WriteRegister(0x11,reg10.val);
+	
+	// Gain Table[0]
+	reg10.LNA_GainS=2;
+	reg10.LNA_Gain =1;
+	reg10.MIX_Gain =2;
+	reg10.PGA_Gain =1;
+	BK4819_WriteRegister(0x10,reg10.val);
+
+	
+	// Gain Table[-1]		// MIN GAIN
+	reg10.LNA_GainS=0;
+	reg10.LNA_Gain =0;
+	reg10.MIX_Gain =0;
+	reg10.PGA_Gain =0;
+	BK4819_WriteRegister(0x14,reg10.val);
+
+	
+		reg49.AGC_LowThres=20;
+		reg49.AGC_HighThres=44;
+		reg49.Sel_Auto = 0;
+		BK4819_WriteRegister(0x49, reg49.val);
+}
+
+void BK4819_SetAGCLevel(uint8_t lvl)
+{
+REGx7E reg7E;
+
+	reg7E.val = BK4819_ReadRegister(0x7E);
+
 	if(lvl==0){
-		regVAL |= 0x8000;
+		//Turn AGC on
+		reg7E.AGC_Mode = 0;
 	}
 	else{
-		regVAL = (regVAL & 0x8FFFU) | (idx[lvl] << 12);
+		//Turn AGC off
+		reg7E.AGC_Mode = 1;
+		reg7E.AGC_Index = lvl>4? -1 : lvl-1;
 	}
-	
-	BK4819_WriteRegister(0x7E,regVAL);
+	BK4819_WriteRegister(0x7E,reg7E.val);
 }
-	
 
 
-void BK4819_SetToneFrequency(bool Tone2, uint16_t Tone)
+
+void BK4819_SetToneFrequency(bool Tone, uint16_t freq)
 {
-	BK4819_WriteRegister(0x71 + Tone2, (Tone * 103U) / 10U);
+	BK4819_WriteRegister(0x71 + Tone, (freq * 103U) / 10U);
 }
 
 void BK4819_EnableFFSK1200(bool bEnable)
@@ -750,45 +691,61 @@ void BK4819_ResetFSK(void)
 {
 	BK4819_WriteRegister(0x3F, 0x0000);
 	BK4819_WriteRegister(0x59, 0x0028);
-	//BK4819_WriteRegister(0x30, 0x0000);
+	BK4819_WriteRegister(0x30, 0x0000);
 }
 
 void BK4819_StartAudio(void)
 {
+uint16_t reg_73;
+	
 	gpio_bits_set(GPIOA, BOARD_GPIOA_LED_GREEN);
 	gRadioMode = RADIO_MODE_RX;
-	OpenAudio(gMainVfo->bIsNarrow, gMainVfo->gModulationType);
-	if (gMainVfo->gModulationType == MOD_FM) {
+	OpenAudio(gMainVfo->gModulationType);
+	BK4819_SetFilterBandwidth(gMainVfo->gBandWidth,0);
+	switch (gMainVfo->gModulationType){
+		case MOD_FM:
+			BK4819_SetDefaultGainTables();///BK4819_SetAGCLevel(4);
+			BK4819_SetAfGain(0);
+			
+			BK4819_WriteRegister(0x4D, 0xA080); /// Glitch threshold for Squelch
+			BK4819_WriteRegister(0x4E, 0x6F7C); /// Squelch delay
 
-		BK4819_WriteRegister(0x4D, 0xA080); /// Glitch threshold for Squelch
-		BK4819_WriteRegister(0x4E, 0x6F7C); /// Squelch delay
+			BK4819_EnableScramble(gMainVfo->Scramble);
+			BK4819_EnableCompander(true);
 
-		BK4819_EnableScramble(gMainVfo->Scramble);
-		BK4819_EnableCompander(true);
-		// BK4819_WriteRegister(0x43, 0x3028); // restore filter just in case -
-											// this gets overwritten by sane defaults anyway.
-		// Unset bit 4 of register 73 (Auto Frequency Control Disable)
-		uint16_t reg_73 = BK4819_ReadRegister(0x73);
-		BK4819_WriteRegister(0x73, reg_73 & ~0x10U); /// AFC settings
-		if (gMainVfo->Scramble == 0) {
-			BK4819_SetAFResponseCoefficients(false, true, gCalibration.RX_3000Hz_Coefficient);
-		} else {
-			BK4819_SetAFResponseCoefficients(false, true, 4);
-		}
-	}
-	else {													// AM, SSB
-		//BK4819_EnableScramble(0);															///WT: previously uncommented
-		BK4819_EnableCompander(false);														///WT: check here AM audio level
-		// Set bit 4 of register 73 (Auto Frequency Control Disable)
-		uint16_t reg_73 = BK4819_ReadRegister(0x73);
-		BK4819_WriteRegister(0x73, reg_73 | 0x10U);
-		BK4819_WriteRegister(0x43, 0b0100000001011000); // Filter 6.25KHz					///WT: previously commented
-		if (gMainVfo->gModulationType > MOD_AM) { // if SSB
-			BK4819_WriteRegister(0x43, 0b0010000001011000); // Filter 6.25KHz
-			BK4819_WriteRegister(0x37, 0b0001011000001111);
-    		BK4819_WriteRegister(0x3D, 0b0010101101000101);
-    		BK4819_WriteRegister(0x48, 0b0000001110101000);
-		}
+			// Clear bit 4 of register 73 (Enable AFC)
+			reg_73 = BK4819_ReadRegister(0x73);
+			BK4819_WriteRegister(0x73, reg_73 & ~0x10U); /// AFC settings
+
+			if (gMainVfo->Scramble == 0) {
+				BK4819_SetAFResponseCoefficients(false, true, gCalibration.RX_3000Hz_Coefficient);
+			} 
+			else {
+				BK4819_SetAFResponseCoefficients(false, true, 4);
+			}
+			break;
+
+		case MOD_AM:
+		case MOD_USB:
+		case MOD_LSB:
+			BK4819_SetOptGainTables();///BK4819_SetAGCLevel(0);
+			BK4819_SetAfGain(1);
+			
+			BK4819_EnableScramble(0);
+			BK4819_EnableCompander(false);
+
+			// Set bit 4 of register 73 (Disable AFC)
+			reg_73 = BK4819_ReadRegister(0x73);
+			BK4819_WriteRegister(0x73, reg_73 | 0x10U);
+
+			if (gMainVfo->gModulationType > MOD_AM) { // if SSB
+				BK4819_WriteRegister(0x37, 0b0001011000001111);
+				BK4819_WriteRegister(0x3D, 0b0010101101000101);	// 0x2B45 --> undocumented IF selection
+				//	BK4819_WriteRegister(0x3D, 0x2AAB);				// DS: default
+				//	BK4819_WriteRegister(0x3D, 0);					// use Zero IF selection
+				//	BK4819_WriteRegister(0x48, 0b0000001110101000);
+			}
+			break;
 	}
 	if (!gReceptionMode) {
 		BK4819_EnableFFSK1200(true);
@@ -798,32 +755,31 @@ void BK4819_StartAudio(void)
 
 void BK4819_SetAfGain(uint16_t Gain)
 {
+REGx48 reg48;
 
-uint8_t Gdac,G1,G2;
-// NOTE:
-//	Calls to this functiion must be corrected for not to ask for an absolute register value
-//IFDBG UART_printf(1,"Requested AfGain = %X\r\n",Gain);
-
-	G1 = 0;
-	G2 = (Gain & 0b1111110000) >> 4;
-	Gdac  = Gain & 0b1111;
-	
-	if (gMainVfo->gModulationType==MOD_FM){
-		G1=0x02;
+	reg48.AF_RX_Gain2 = 0x3F;
+	reg48.AF_DAC_Gain = 0xF;
+	switch (Gain){
+		case 0:
+			reg48.AF_RX_Gain1 = 0x01;	// -6dB gain
+			break;
+		case 1:
+			reg48.AF_RX_Gain1 = 0x00;	// max gain
+			break;
 	}
+	   
+	//reg48.val=0x33CF; // as default per DS
 
-	BK4819_WriteRegister(0x48,	//  0xB3A8);     // 1011 00 111010 1000
-		(0u    << 12) |     // ??										 doesn't seem to make any difference
-		(G1    << 10) |     // AF Rx Gain-1 							0x00=0dB;0x01=-6dB;0x02=-12dB;0x03=-18dB
-		(G2    <<  4) |     // AF Rx Gain-2 (volume?)					0x00=mute;0x01=-26dB .. 0x3F=5.5dB
-		(Gdac  <<  0));     // AF DAC Gain (after Gain-1 and Gain-2)	0x00=min .. 0x0F=max
+	BK4819_WriteRegister(0x48,reg48.val);
 
 }
 
-bool BK4819_CheckSquelchLink(void)
+bool BK4819_CheckSquelchStat(void)
 {
+REGx0C reg0C;
 	if (gSettings.Squelch && !gMonitorMode) {
-		return ((BK4819_ReadRegister(0x0C) >> 1) & 1);
+		reg0C.val = BK4819_ReadRegister(0x0C);
+		return reg0C.SQL;
 	}
 
 	return true;
@@ -854,7 +810,7 @@ void BK4819_EnableTone1(bool bEnable)
 		if (gRadioMode != RADIO_MODE_RX) {
 			BK4819_SetAF(BK4819_AF_MUTE);
 		} else {
-			OpenAudio(gMainVfo->bIsNarrow, gMainVfo->gModulationType);
+			OpenAudio(gMainVfo->gModulationType);/// gMainVfo->gBandWidth, 
 			if (gMainVfo->gModulationType > MOD_FM) {
 				BK4819_EnableScramble(0); // AM, SSB
 			} else {
@@ -873,7 +829,7 @@ void BK4819_GenTail(bool bIsNarrow)
 			BK4819_WriteRegister(0x51, gFrequencyBandInfo.CtcssTxGainWide | 0x9000);
 		}
 		if (gTxCodeType == CODE_TYPE_OFF || gTxCodeType == CODE_TYPE_CTCSS) {
-			BK4819_WriteRegister(0x07, 1135);
+			BK4819_WriteRegister(0x07, 0x046F);
 		} else {
 			BK4819_WriteRegister(0x52, 0x823F);
 		}
@@ -881,77 +837,59 @@ void BK4819_GenTail(bool bIsNarrow)
 	}
 }
 
-void BK4819_SetupPowerAmplifier(uint8_t Bias, uint32_t frequency)
+void BK4819_SetupPowerAmplifier(uint8_t level, uint32_t frequency)
 {
-	uint16_t Value;
-
-#if 0
-	Value = (Bias << 10) | 0x7F;
-	if (Bias) {
-		Value |= 0x80;
+REGx36 reg36;
+	
+	reg36.PA_Gain1=(frequency < 28000000) ? 1:2;
+	reg36.PA_Gain2=(frequency < 28000000) ? 2:4;
+	reg36.PA_Enable=1;// this does not cut RF
+	switch(level){
+		case 0: // OFF
+			reg36.PA_Bias=0; 
+			reg36.PA_Gain1=0;
+			reg36.PA_Gain2=0;
+			break;
+		case 1: // LOW
+			reg36.PA_Bias=0x20; //  350 mW
+			break;
+		case 2: // MID
+			reg36.PA_Bias=0x60; // 2800 mW
+			break;
+		case 3: // HIGH
+			reg36.PA_Bias=0xB0; // 5600 mW
+			break;
 	}
-	BK4819_WriteRegister(0x36, Value);
-// Bias is 15 for LOW  33 for HIGH
-// resulting Value is 0x3CFF for LOW 0x84FF for HIGH	
-#else
-
-	// REG_36 <15:8> 0 PA Bias output 0 ~ 3.2V
-	//               255 = 3.2V
-	//                 0 = 0V
-	//
-	// REG_36 <7>    0
-	//               1 = Enable PA-CTL output
-	//               0 = Disable (Output 0 V)
-	//
-	// REG_36 <5:3>  7 PA gain 1 tuning
-	//               7 = max
-	//               0 = min
-	//
-	// REG_36 <2:0>  7 PA gain 2 tuning
-	//               7 = max
-	//               0 = min
-	//
-
-	const uint8_t gain   = (frequency < 28000000) ? (1u << 3) | // PA Gain1 Tuning. 0(min)->7(max)  def. 1u
-													(1u << 0) : // PA Gain2 Tuning. 0(min)->7(max)       0u
-	
-													(4u << 3) | // PA Gain1 Tuning. 0(min)->7(max)       4u
-													(4u << 0);	// PA Gain2 Tuning. 0(min)->7(max)       2u
-
-	Value = (Bias   << 8) |										// PA Biasoutput 0x00=0V 0xFF=3.2V
-			(1      << 7) |										// 1=Enable PACTLoutput; 0=Disable(Output 0 V)
-			(gain   << 0);
-	BK4819_WriteRegister(0x36, Value);
-	
-#endif
-IFDBG UART_printf(1,"Pwr Freq: %d\r\n",frequency);
-IFDBG UART_printf(1,"Pwr Bias: %d\r\n",Bias);
-IFDBG UART_printf(1,"Pwr val: %X\r\n",Value);
-
+	BK4819_WriteRegister(0x36, reg36.val);
 }
 
-void BK4819_EnableRfTxDeviation(void)
+
+void BK4819_SetRFTXDeviation(uint8_t level)
 {
-	uint16_t Deviation;
-
-	//Deviation = gMainVfo->bIsNarrow ? gFrequencyBandInfo.TxDeviationNarrow : gFrequencyBandInfo.TxDeviationWide;// 0x34EC
-	// 0x4D0 -  12 kHz
-	// 0x6FF -  25 kHz
-	// 0x7FF -  40 kHz
-	// 0x840 -  55 kHz
-	// 0x940 - 200 kHz
-	Deviation = gMainVfo->bIsNarrow ? 0x440 : 0x540;
-	if (gMainVfo->Scramble) {
-		Deviation -= 200;
+REGx40 reg40;
+	
+	switch(level){
+		case 0:
+			reg40.TX_Deviation=0x2D0;//Deviation = 0x2D0; // 6,25 k
+			break;
+		case 1:
+			reg40.TX_Deviation=0x4D0;//Deviati.= 0x4D0; // 12,5 k
+			break;
+		case 2:
+			reg40.TX_Deviation=0x540;//Deviation.0x540; // 25 k
+			break;
+		case 3:
+			reg40.TX_Deviation=0x97F;//Deviation = 0.F; // 125 k
+			break;
 	}
-IFDBG UART_printf(1,"Dev: 0x%X\r\n",Deviation);
 
-	Deviation |=	(   1u << 12);     // Enable
-	
-	//BK4819_WriteRegister(0x40, 0x14D0); /// default on DS
-	BK4819_WriteRegister(0x40, Deviation);
-	
+	if (gMainVfo->Scramble) {
+		reg40.TX_Deviation-=200;//=Deviation -= 200;
+	}
 
+	reg40.TX_Deviation_Enable=1;
+	
+	BK4819_WriteRegister(0x40, reg40.val);
 }
 
 void BK4819_SetMicSensitivityTuning(void)
@@ -991,7 +929,7 @@ void BK4819_DisableAutoCssBW(void)
 }
 
 #ifdef ENABLE_SPECTRUM
-void BK4819_set_rf_frequency(const uint32_t frequency, const bool trigger_update)
+void BK4819_SetRFFrequency(const uint32_t frequency, const bool trigger_update)
 {
 	BK4819_WriteRegister(0x38, (frequency >> 0) & 0xFFFF);
 	BK4819_WriteRegister(0x39, (frequency >> 16) & 0xFFFF);

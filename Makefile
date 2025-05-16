@@ -1,30 +1,33 @@
-TARGET = firmwareWT
+FW_VERSION := "20250309"
 
-FW_VERSION := "V0.9"
+TARGET = FW_wt_$(FW_VERSION)
 
-MOTO_STARTUP_TONE			?= 1
-ENABLE_AM_FIX				?= 1
-ENABLE_ALT_SQUELCH			?= 0
-ENABLE_STATUS_BAR_LINE		?= 0
-ENABLE_NOAA					?= 0
-ENABLE_RX_BAR				?= 1
-ENABLE_TX_BAR				?= 1
-ENABLE_SLOWER_RSSI_TIMER	?= 1
-ENABLE_SPECTRUM				?= 0
-ENABLE_KEEP_MONITOR_MODE_UP_DN	?= 0
-
+MOTO_STARTUP_TONE				?= 1
+ENABLE_AM_FIX					?= 0
+ENABLE_ALT_SQUELCH				?= 1
+ENABLE_STATUS_BAR_LINE			?= 1
+ENABLE_NOAA						?= 0
+ENABLE_RX_BAR					?= 1
+ENABLE_TX_BAR					?= 1
+ENABLE_SLOWER_RSSI_TIMER		?= 0
+# Spectrum - 2.9 kB
+ENABLE_SPECTRUM					?= 0
 # Spectrum presets - 1.4 kB
-ENABLE_SPECTRUM_PRESETS		?= 1
+ENABLE_SPECTRUM_PRESETS			?= 0
+# TODO: monitor_mode: see misbehaviour in task/keys.c
+ENABLE_KEEP_MONITOR_MODE_UP_DN	?= 1
+# For spoken commands - 1.2 kB
+ENABLE_VOICE					?= 0
 # FM radio = 2.6 kB
-ENABLE_FM_RADIO				?= 1
+ENABLE_FM_RADIO					?= 1
 # Register Editor = .5 kB
-ENABLE_REGISTER_EDIT		?= 0
+ENABLE_REGISTER_EDIT			?= 0
 # Scanlist membership display - 252 B
-ENABLE_SCANLIST_DISPLAY		?= 1
+ENABLE_SCANLIST_DISPLAY			?= 0
 
 # Space saving options
-ENABLE_LTO					?= 0
-ENABLE_OPTIMIZED			?= 1
+ENABLE_LTO						?= 0
+ENABLE_OPTIMIZED				?= 1
 
 
 OBJS =
@@ -42,7 +45,9 @@ OBJS += bsp/misc.o
 OBJS += bsp/tmr.o
 
 # Drivers
+ifeq ($(ENABLE_VOICE), 1)
 OBJS += driver/audio.o
+endif
 OBJS += driver/battery.o
 OBJS += driver/beep.o
 ifeq ($(ENABLE_FM_RADIO), 1)
@@ -121,7 +126,9 @@ OBJS += task/scanner.o
 OBJS += task/screen.o
 OBJS += task/sidekeys.o
 OBJS += task/timeout.o
+ifeq ($(ENABLE_VOICE), 1)
 OBJS += task/voice.o
+endif
 OBJS += task/vox.o
 OBJS += task/aprs.o
 

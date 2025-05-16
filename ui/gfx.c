@@ -18,15 +18,18 @@
 #include "misc.h"
 #include "ui/gfx.h"
 
-uint16_t gColorForeground;
-uint16_t gColorBackground;
-
-uint16_t COLOR_BACKGROUND;
-uint16_t COLOR_FOREGROUND;
 uint16_t COLOR_RED;
 uint16_t COLOR_GREEN;
 uint16_t COLOR_BLUE;
 uint16_t COLOR_GREY;
+uint16_t COLOR_BLACK;
+uint16_t COLOR_WHITE;
+
+uint16_t COLOR_BACKGROUND;
+uint16_t COLOR_FOREGROUND;
+
+uint16_t gColorForeground;
+uint16_t gColorBackground;
 
 void DISPLAY_FillColor(uint16_t Color)
 {
@@ -50,29 +53,32 @@ void DISPLAY_Fill(uint8_t X0, uint8_t X1, uint8_t Y0, uint8_t Y1, uint16_t Color
 	}
 }
 
-void DISPLAY_DrawRectangle0(uint8_t X, uint8_t Y, uint8_t W, uint8_t H, uint16_t Color)
-{
-	DISPLAY_Fill(X, X + W - 1, Y, Y + H - 1, Color);
-}
-
-void DISPLAY_DrawRectangle1(uint8_t X, uint8_t Y, uint8_t H, uint8_t W, uint16_t Color)
+void DISPLAY_DrawRectangle(uint8_t X, uint8_t Y, uint8_t W, uint8_t H, uint16_t Color)
 {
 	DISPLAY_Fill(X, X + W - 1, Y, Y + H - 1, Color);
 }
 
 void UI_SetColors(uint8_t DarkMode)
 {
-	if (DarkMode) {
-		COLOR_BACKGROUND = COLOR_RGB( 0,  0,  0);
-		COLOR_FOREGROUND = COLOR_RGB(31, 63, 31);
-	} else {
-		COLOR_BACKGROUND = COLOR_RGB(31, 63, 31);
-		COLOR_FOREGROUND = COLOR_RGB( 0,  0,  0);
-	}
-	COLOR_RED   = COLOR_RGB(31,  0,  0);
-	COLOR_GREEN = COLOR_RGB( 0, 63,  0);
-	COLOR_BLUE  = COLOR_RGB( 0,  0, 31);
+	COLOR_BLACK = COLOR_RGB( 0,  0,  0);
+	COLOR_WHITE = COLOR_RGB(31, 63, 31);
 	COLOR_GREY  = COLOR_RGB(16, 32, 16);
+	
+	if (DarkMode) {
+		COLOR_RED   = COLOR_RGB(31,  0,  0);
+		COLOR_GREEN = COLOR_RGB( 0, 63,  0);
+		COLOR_BLUE  = COLOR_RGB(16, 24, 31);
+
+		COLOR_BACKGROUND = COLOR_BLACK;
+		COLOR_FOREGROUND = COLOR_WHITE;
+	} else {
+		COLOR_RED   = COLOR_RGB(31,  0,  0);
+		COLOR_GREEN = COLOR_RGB( 0, 63,  0);
+		COLOR_BLUE  = COLOR_RGB( 0,  0, 31);
+		
+		COLOR_BACKGROUND = COLOR_WHITE;
+		COLOR_FOREGROUND = COLOR_BLACK;
+	}
 
 	gColorBackground = COLOR_BACKGROUND;
 	gColorForeground = COLOR_FOREGROUND;

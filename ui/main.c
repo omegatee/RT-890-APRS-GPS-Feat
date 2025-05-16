@@ -32,10 +32,10 @@
 void DrawStatusBar(void)
 {
 	DISPLAY_Fill(0, 159, 0, 96, COLOR_BACKGROUND);
-	// DISPLAY_DrawRectangle0(0, 41, 160, 1, gSettings.BorderColor);
+	DISPLAY_DrawRectangle(0, 41, 160, 1, gSettings.BorderColor);
 
 	#ifdef ENABLE_STATUS_BAR_LINE
-		DISPLAY_DrawRectangle0(0, 83, 160, 1, gSettings.BorderColor);
+		DISPLAY_DrawRectangle(0, 83, 160, 1, gSettings.BorderColor);
 	#endif
 
 	if (gSettings.DtmfState == DTMF_STATE_STUNNED) {
@@ -44,8 +44,8 @@ void DrawStatusBar(void)
 		UI_DrawStatusIcon(4, ICON_LOCK, gSettings.Lock, COLOR_FOREGROUND);
 	}
 
-	UI_DrawStatusIcon(56, ICON_DUAL_WATCH, gSettings.DualStandby, COLOR_FOREGROUND);
-	UI_DrawStatusIcon(80, ICON_VOX, gSettings.Vox, COLOR_FOREGROUND);
+	///UI_DrawStatusIcon(56, ICON_DUAL_WATCH, gSettings.DualWatch, COLOR_FOREGROUND);
+	UI_DrawStatusIcon(80, ICON_VOX, gSettings.VoxLevel, COLOR_FOREGROUND);
 	UI_DrawRoger();
 	UI_DrawRepeaterMode();
 	UI_DrawStatusIcon(139, ICON_BATTERY, true, COLOR_FOREGROUND);
@@ -62,11 +62,11 @@ void UI_DrawMain(bool bSkipStatus)
 	}
 
 	if (gSettings.DualDisplay == 0 && (gRadioMode != RADIO_MODE_RX || gSettings.CurrentDial == gCurrentDial)) {
-		UI_DrawVfo(gSettings.CurrentDial);
-		UI_DrawVoltage(!gSettings.CurrentDial);
+		UI_DrawDial(gSettings.CurrentDial);
+		UI_DrawRegisters(!gSettings.CurrentDial);
 	} else {
-		UI_DrawVfo(!gCurrentDial);
-		UI_DrawVfo(gCurrentDial);
+		UI_DrawDial(!gCurrentDial);
+		UI_DrawDial(gCurrentDial);
 	}
 
 	if (gInputBoxWriteIndex != 0) {
@@ -91,7 +91,7 @@ void UI_DrawMain(bool bSkipStatus)
 void UI_DrawRepeaterMode(void)
 {
 	if (gSettings.RepeaterMode) {
-		DISPLAY_DrawRectangle0(119, 86, 30, 8, gColorBackground);
+		DISPLAY_DrawRectangle(119, 86, 30, 8, gColorBackground);
 		UI_DrawStatusIcon(119, gSettings.RepeaterMode == 1 ? ICON_TR : ICON_RR, true, COLOR_FOREGROUND);
 	}
 }
@@ -107,15 +107,15 @@ void UI_DrawBattery(bool bDisplayVoltage)
 		}
 	}
 	// Battery voltage icon
-	if (i < 6) {
+	if (i < 5) {
 		Color = COLOR_RED;
 	} else if (i < 7) {
 		Color = COLOR_RGB(31, 41, 0);
 	} else {
 		Color = COLOR_GREEN;
 	}
-	DISPLAY_DrawRectangle0(142, 86, 15 - i, 8, gColorBackground);
-	DISPLAY_DrawRectangle0(157 - i, 86, i, 8, Color);
+	DISPLAY_DrawRectangle(142, 86, 15 - i, 8, gColorBackground);
+	DISPLAY_DrawRectangle(157 - i, 86, i, 8, Color);
 
 	// Battery voltage text
 	if (bDisplayVoltage){
@@ -130,15 +130,17 @@ void UI_DrawBattery(bool bDisplayVoltage)
 	
 	
 /// rented space to display GPS clock
-if(gAPRSInterval){
-	gColorForeground = COLOR_RED;
-}
-else{
-	if(gGPS_Fix)
+if(gGPS_Fix)
+	if(gAPRSInterval)
 		gColorForeground = COLOR_GREEN;
 	else
-	 	gColorForeground = COLOR_GREY;
-}
+		gColorForeground = COLOR_BLUE;
+else
+	if(gAPRSInterval)
+		gColorForeground = COLOR_RED;
+	else
+		gColorForeground = COLOR_GREY;
+
 UI_DrawSmallString(78,86,gTime,6);
 gColorForeground = COLOR_FOREGROUND;
 

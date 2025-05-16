@@ -19,6 +19,7 @@
 #endif
 #include "app/radio.h"
 #include "driver/bk4819.h"
+#include "driver/uart.h"//
 #include "helper/helper.h"
 #include "misc.h"
 #include "radio/scheduler.h"
@@ -43,7 +44,7 @@ uint16_t gVoxRssiUpdateTimer;
 uint16_t VOX_Counter;
 bool VOX_IsTransmitting;
 
-static bool CheckStatus(void)
+static bool CheckVoxStatus(void)
 {
 	uint16_t Value;
 
@@ -78,17 +79,19 @@ void VOX_Update(void)
 
 void Task_VoxUpdate(void)
 {
-	if (gSettings.Vox && gPttLock == 0 && !gSaveMode && gScreenMode == SCREEN_MAIN && VOX_Timer == 0) {
+	if (gSettings.VoxLevel && gPttLock == 0 && !gSaveMode && gScreenMode == SCREEN_MAIN && VOX_Timer == 0) {
 		if (SCHEDULER_CheckTask(TASK_VOX)
 #ifdef ENABLE_FM_RADIO
 			&& gFM_Mode == FM_MODE_OFF
 #endif
 			&& !gDTMF_InputMode) {
+
 			bool bFlag;
 
 			SCHEDULER_ClearTask(TASK_VOX);
 
-			bFlag = CheckStatus();
+			bFlag = CheckVoxStatus();
+
 			if (!bFlag || gRadioMode != RADIO_MODE_QUIET) {
 				if (!bFlag && gRadioMode == RADIO_MODE_TX) {
 					uint16_t Delay;
@@ -110,7 +113,12 @@ void Task_VoxUpdate(void)
 				if (VOX_Counter++ > 4) {
 					VOX_IsTransmitting = true;
 					SCREEN_TurnOn();
-					RADIO_StartTX(true);
+#ifdef ENABLE_AM_FIX
+					if(gExtendedSettings.AmFixEnabled)
+						RADIO_StartTX(gVfoState[gSettings.CurrentDial].gModulationType == MOD_AM? false:true);/// for AM TX MOD
+					else
+#endif
+						RADIO_StartTX(true);
 				}
 			}
 		}

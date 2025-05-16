@@ -69,7 +69,7 @@ void Task_CheckPTT(void)
 								}
 							} else {
 								if (gSettings.WorkModeA) {
-									RADIO_DrawWorkMode();
+									RADIO_DrawChannelMode();
 								} else {
 									RADIO_DrawFrequencyMode();
 								}
@@ -96,7 +96,7 @@ void Task_CheckPTT(void)
 			}
 #endif
 			if (gPttPressed) {
-				BEEP_Play(440, 4, 80);
+				BEEP_Play(440, 4, 80,0);
 				return;
 			} else if (gRadioMode == RADIO_MODE_TX) {
 				VOX_Update();
@@ -105,7 +105,12 @@ void Task_CheckPTT(void)
 					RADIO_EndTX();
 				}
 			} else if (gPttLock == 0) {
-				RADIO_StartTX(true);
+#ifdef ENABLE_AM_FIX
+				if(gExtendedSettings.AmFixEnabled)
+					RADIO_StartTX(gVfoState[gSettings.CurrentDial].gModulationType == MOD_AM? false:true);/// for AM TX MOD
+				else
+#endif
+					RADIO_StartTX(true);
 			}
 		}
 	} else {
