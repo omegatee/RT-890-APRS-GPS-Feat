@@ -202,6 +202,27 @@ typedef union  {					// RSSI
 	uint16_t val;
 }REGx67;
 
+typedef union  {					// CTCSS
+	struct {
+		uint16_t	Tone			:13;
+		uint16_t	_res13			: 2;
+		uint16_t	Scan			: 1;
+	};
+	uint16_t val;
+}REGx68;
+
+typedef union {					// CDCSS
+	struct {
+		uint16_t	code_hi			:12;
+		uint16_t	_res12			: 2;
+		uint16_t	bits			: 1;
+		uint16_t	Scan			: 1;
+	};
+	uint16_t val;
+}REGx69;
+
+
+
 typedef union  {					// AGC Control
 	struct {
 		uint16_t	RX_IF_BW		: 3;

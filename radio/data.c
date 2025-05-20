@@ -80,11 +80,32 @@ static void DrawReceivedFSKID(void)
 		UI_DrawDialog();
 		gColorForeground = COLOR_RED;
 		if (gCurrentDial == 1) {
-			UI_DrawString(10, 54, "Area B ID:", 10);
+			UI_DrawString(10, 54, "Dial B ID:", 10);
 		} else {
-			UI_DrawString(10, 54, "Area A ID:", 10);
+			UI_DrawString(10, 54, "Dial A ID:", 10);
 		}
 		UI_DrawString(10, 38, FSK, 16);
+	}
+}
+
+static void DrawReceivedFSKPOS(void)
+{
+	if (gScreenMode == SCREEN_MAIN && !gReceptionMode) {
+		UI_DrawDialog();
+		gColorForeground = COLOR_RED;
+		if (gCurrentDial == 1) {
+			UI_DrawString(10, 54, "Dial B POS:", 10);
+		} else {
+			UI_DrawString(10, 54, "Dial A POS:", 10);
+		}
+
+		UI_DrawString(10, 38, gShortString, 8);// Longitude
+		UI_DrawString(10, 38, &FSK[10], 1);
+
+		
+		UI_DrawString(10, 58, gShortString, 7);// Latitude
+		UI_DrawString(10, 58, &FSK[5], 1);
+
 	}
 }
 
@@ -113,10 +134,15 @@ bool DATA_ReceiverCheck(void)
 			FSK[(i * 2) + 0] = (Data >> 8) & 0xFFU;
 			FSK[(i * 2) + 1] = (Data >> 0) & 0xFFU;
 		}
-		// BK4819_SetAF(BK4819_AF_MUTE);
+		
 		if (FSK[0] == 0xEE) {
+			// BK4819_SetAF(BK4819_AF_MUTE); ??
 			DrawFSK();
-		} else {
+		} 
+		else if (FSK[0] == 0xFF) {
+			DrawReceivedFSKPOS();
+		} 
+		else {
 			DrawReceivedFSKID();
 		}
 		gFskDataReceived = true;

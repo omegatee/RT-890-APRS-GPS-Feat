@@ -213,7 +213,7 @@ int32_t aFeet;
 	
 	FrameBUFF[pFrameBUFF++]='[';// icon from table to show on map
 	
-	// try to add altitude
+	// add altitude
 	FrameBUFF[pFrameBUFF++]='/';
 	FrameBUFF[pFrameBUFF++]='A';
 	FrameBUFF[pFrameBUFF++]='=';
