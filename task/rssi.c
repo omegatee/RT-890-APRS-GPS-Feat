@@ -143,6 +143,7 @@ void Task_CheckRSSI(void)
 	
 	if (gRadioMode != RADIO_MODE_TX){
 		CheckRSSI(); // conficts with ENABLE_SCANLIST_DISPLAY
+		CheckRxCTCSS();
 		
 		if (gRadioMode != RADIO_MODE_QUIET && !gSaveMode && SCHEDULER_CheckTask(TASK_CHECK_RSSI)) {
 			uint8_t Status;

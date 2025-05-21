@@ -676,17 +676,17 @@ void ConvertRssiToSmeter(uint16_t Rssi)
 
 void UI_DrawRxCTCSS(uint8_t Dial, uint16_t Tone)
 {
-	uint8_t Y = 23 - (Dial * 41);
+	uint8_t Y = 73 - (Dial * 41);
 
-	gColorForeground = COLOR_FOREGROUND;
+	gColorForeground = COLOR_BLUE;
 
-	if (Tone=0){
-		UI_DrawSmallString(90, Y, "    ", 4);
+	if (Tone==0){
+		UI_DrawSmallString(90, Y, "    ", 5);
 	} else {
 		Int2Ascii(Tone/10, 3);
-		gShortString[3] = ".";
+		gShortString[3] = '.';
 		gShortString[4] = '0' + (Tone % 10);
-		UI_DrawSmallString(90, Y, gShortString, 4);
+		UI_DrawSmallString(90, Y, gShortString, 5);
 	}
 }
 

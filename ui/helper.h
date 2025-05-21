@@ -50,6 +50,7 @@ void FormatRssiDbm(int16_t RssidB);
 void ConvertRssiToDbm(uint16_t Rssi);
 void ConvertRssiToSmeter(uint16_t Rssi);
 void UI_DrawRxDBM(uint8_t Vfo, bool Clear);
+void UI_DrawRxCTCSS(uint8_t Vfo, uint16_t Code);
 void UI_DrawRxSmeter (uint8_t Vfo, bool Clear);
 void UI_DrawTxPower(uint8_t pLevel, uint8_t Vfo);
 void UI_DrawChannel(uint16_t Channel, uint8_t Dial);
