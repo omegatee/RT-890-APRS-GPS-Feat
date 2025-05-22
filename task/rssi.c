@@ -36,24 +36,8 @@ enum {
 	STATUS_TAIL_TONE,
 };
 
-/////////////////////////////////////////////////////////////////
-static void CheckRxCTCSS(void)
-{
-REGx68 reg68;
-uint16_t tone;
 
-  reg68.val=BK4819_ReadRegister(0x68);
-  if(reg68.Scan==0) {
-    tone=(reg68.Tone*100000)/206488;
-//    IFDBG UART_printf(1,"CTCSS:  %d %d\r\n",tone/10,tone%10);
-    UI_DrawRxCTCSS(gCurrentDial, tone);
-  }
-  else {
-    UI_DrawRxCTCSS(gCurrentDial, 0);
-  }
 
-}
-///////////////////////////////////////////////////////////////////////
 static uint8_t GetToneStatus(uint8_t CodeType, bool bMuteEnabled)
 {
 	uint16_t Value;
@@ -107,6 +91,26 @@ static uint8_t GetToneStatus(uint8_t CodeType, bool bMuteEnabled)
 	}
 
 	return STATUS_NO_TONE;
+}
+
+static void CheckRxCTCSS(void)
+{
+REGx68 reg68;
+uint16_t tone;
+
+	if (!gDataDisplay && !gDTMF_InputMode && !gFrequencyDetectMode && !gReceptionMode
+			&& !gFskDataReceived && gScreenMode == SCREEN_MAIN ) {
+
+		reg68.val=BK4819_ReadRegister(0x68);
+		if(reg68.Scan==0) {
+			tone=(reg68.Tone*100000)/206488;
+		//    IFDBG UART_printf(1,"CTCSS:  %d %d\r\n",tone/10,tone%10);
+			UI_DrawRxCTCSS(gCurrentDial, tone);
+		}
+		else {
+			UI_DrawRxCTCSS(gCurrentDial, 0);
+		}
+	}
 }
 
 static void CheckRSSI(void)
