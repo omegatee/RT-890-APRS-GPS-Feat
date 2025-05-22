@@ -17,7 +17,7 @@
 #ifndef TASK_RSSI_H
 #define TASK_RSSI_H
 
-void Task_CheckRSSI(void);
+void Task_CheckSignal(void);
 
 #endif
 

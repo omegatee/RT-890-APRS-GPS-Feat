@@ -303,7 +303,7 @@ static void DETECTOR_Loop(void)
 			}
 			Key = KEY_GetButton();
 			Task_CheckIncoming();
-			Task_CheckRSSI();
+			Task_CheckSignal();
 			if (bCtdcScan && gSignalFound && gRadioMode != RADIO_MODE_QUIET && gDetectorTimer == 0) {
 				CtdcScan();
 				break;

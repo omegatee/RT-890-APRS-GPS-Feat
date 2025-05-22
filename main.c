@@ -90,7 +90,7 @@ void Main(void)
 				Task_Scanner();
 				Task_CheckPTT();
 				Task_CheckIncoming();
-				Task_CheckRSSI();
+				Task_CheckSignal();
 				Task_CheckDisplayTimeout();
 				Task_Encrypt();
 				Task_CheckLockScreen();
