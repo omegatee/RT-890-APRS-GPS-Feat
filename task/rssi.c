@@ -142,7 +142,7 @@ uint16_t Power;
 	}
 }
 
-void Task_CheckSignal(void)
+void Task_CheckRSSI(void)
 {
 	
 	if (gRadioMode != RADIO_MODE_TX){
