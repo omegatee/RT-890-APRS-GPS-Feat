@@ -29,11 +29,11 @@ There is no "free radio" but GMRS, and this devices do not comply whith GMRS spe
     - Startup Label (editable with CHIRP) used as Device Serial Number
     - GPS Time shown on display
 	- Four TX power levels, 6W, 2.5W, 500mW and zero.
-	- Three bandwith values, 12.5k, 25k and 200k (200k only on TX)
+	- Three bandwith values, 12.5k, 25k and 125k (125k only on TX yet)
 	- Improved AM Fix algorithm, faster, smaller and not altering RSSI indication
 	- Added "1" for frequencies higher than 999 MHz
 	- Removed "0" for frequencies lower than 100 MHz
-	- Added live decode of CTCSS incoming
+	- Added live decode of incoming CTCSS
 	- Added decoding of incoming FSK GPS Position frames
 
 - Removed / unbugged:
