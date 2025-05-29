@@ -11,11 +11,11 @@ Use at your own risk and remember to [back up your SPI memory](https://github.co
 
 Transmission on this devices is very bad filtered (HW issue). Harmonics go to air almost freely.
 
-    --      [IS YOUR RESPONSABILITY TO TAKE THIS ON ACCOUNT TO COMPLY WITH LOCAL REGULATIONS IN YOUR COUNTRY]
+    --[IS YOUR RESPONSABILITY TO TAKE THIS ON ACCOUNT TO COMPLY WITH LOCAL REGULATIONS IN YOUR COUNTRY]
 
 There is no "free radio" but GMRS, and this devices do not comply whith GMRS specifications.
 
-    --      [DO NOT TRANSMIT IF YOU ARE NOT LICENSED TO]
+    --[DO NOT TRANSMIT IF YOU ARE NOT LICENSED TO]
 
 ## omegatee Features / Modifications
 - All OEFW features plus:
@@ -33,6 +33,8 @@ There is no "free radio" but GMRS, and this devices do not comply whith GMRS spe
 	- Improved AM Fix algorithm, faster, smaller and not altering RSSI indication
 	- Added "1" for frequencies higher than 999 MHz
 	- Removed "0" for frequencies lower than 100 MHz
+	- Added live decode of CTCSS incoming
+	- Added decoding of incoming FSK GPS Position frames
 
 - Removed / unbugged:
     - Removed "[DISABLE]" options in menu

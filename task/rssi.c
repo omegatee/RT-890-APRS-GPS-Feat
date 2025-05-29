@@ -103,13 +103,14 @@ uint16_t tone;
 
 		reg68.val=BK4819_ReadRegister(0x68);
 		if(reg68.Scan==0) {
-			tone=(reg68.Tone*100000)/206488;
-		//    IFDBG UART_printf(1,"CTCSS:  %d %d\r\n",tone/10,tone%10);
-			UI_DrawRxCTCSS(gCurrentDial, tone);
+			//tone=(reg68.Tone*100000)/206488; conversion as per DS
+			tone=(reg68.Tone*100000)/206390; // trimmed
 		}
-		else {
-			UI_DrawRxCTCSS(gCurrentDial, 0);
+		else{
+			tone=0;
 		}
+		//   IFDBG UART_printf(1,"CTCSS:  %d %d\r\n",tone/10,tone%10);
+		UI_DrawRxCTCSS(gCurrentDial, tone);
 	}
 }
 
