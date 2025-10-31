@@ -35,12 +35,11 @@ There is no "free radio" but GMRS, and this devices do not comply whith GMRS spe
 	- Removed "0" for frequencies lower than 100 MHz
 	- Added live decode of incoming CTCSS
 	- Added decoding of incoming FSK GPS Position frames
+	- RSSI indicator operates on RX even if no incoming signal detected
 
 - Removed / unbugged:
     - Removed "[DISABLE]" options in menu
     - Fixed "If CurrentDial ("CurrentVfo" in the repos) is "B" and the incoming signal enters on "A", the AM fix does not apply"
-    - Corrected FM modulation depth for Wide/Narrow modes
-    - Corrected TX Power levels High and Low (set to 5 and 1 W)
     - Removed unuseful functions such as Flashlight, Local Alarm...
     - Removed icons hiding modulation mode indicators
     - Modulation mode is allways shown as "FM" on TX

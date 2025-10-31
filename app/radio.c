@@ -137,7 +137,9 @@ static bool TuneTX(bool bUseMic)
 
 	gCode = gVfoInfo[gCurrentDial].Code;
 	BK4819_SetFrequency(gVfoInfo[gCurrentDial].Frequency);
+#if NOAIRBAND
 	if (gSettings.BandInfo[gCurrentFrequencyBand] == BAND_136MHz && gVfoInfo[gCurrentDial].Frequency >= 13600000) {	///WT:
+#endif
 		///BK4819_EnableFilter(false);
 			BK4819_SelectRFPath(gVfoInfo[gCurrentDial].Frequency);
 		if (gMainVfo->bMuteEnabled) {
@@ -162,11 +164,14 @@ static bool TuneTX(bool bUseMic)
 		BK4819_SetupPowerAmplifier(gMainVfo->gTXPower, gVfoInfo[gCurrentDial].Frequency);
 
 		return true;
-	} else {																														///WT
+#if NOAIRBAND
+	} 
+	else {																														///WT
 		TuneCurrentDial();
 
 		return false;
 	}
+#endif
 }
 
 static void SpecialRxTxLoop(void)
