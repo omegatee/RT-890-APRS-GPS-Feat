@@ -196,43 +196,51 @@ void APRS_add_Pos(void)
 {
 uint8_t cnt;
 int32_t aFeet;
+bool bNeg;
 	
 	FrameBUFF[pFrameBUFF++]='!';
 	
-	gLatY[7]=0;
+	// gLatY/gLonX only ever hold values validated by the GPS driver
+	// (at least "ddmm.hh" / "dddmm.hh"). Truncate to APRS precision.
 	for(cnt=0;cnt<7;cnt++)
 		FrameBUFF[pFrameBUFF++]=gLatY[cnt];
 	FrameBUFF[pFrameBUFF++]=gLatS[0];
 	
 	FrameBUFF[pFrameBUFF++]='/';// icon table
 	
-	gLonX[8]=0;
 	for(cnt=0;cnt<8;cnt++)
 		FrameBUFF[pFrameBUFF++]=gLonX[cnt];
 	FrameBUFF[pFrameBUFF++]=gLonS[0];
 	
 	FrameBUFF[pFrameBUFF++]='[';// icon from table to show on map
 	
-	// add altitude
-	FrameBUFF[pFrameBUFF++]='/';
-	FrameBUFF[pFrameBUFF++]='A';
-	FrameBUFF[pFrameBUFF++]='=';
-
-	gAlti[3]=0;//remove decimals
-	aFeet=Ascii2Int(gAlti);
-	aFeet*=1000;aFeet/=328; // convert m to feet
-	Int2Ascii(aFeet,6);
-	for(cnt=0;cnt<6;cnt++)
-		FrameBUFF[pFrameBUFF++]=gShortString[cnt];
-
-/*
-	FrameBUFF[pFrameBUFF++]='0';// altitude in feet
-	FrameBUFF[pFrameBUFF++]='0';
-	FrameBUFF[pFrameBUFF++]='2';
-	FrameBUFF[pFrameBUFF++]='0';
-	FrameBUFF[pFrameBUFF++]='0';
-	FrameBUFF[pFrameBUFF++]='0';*/
-	
+	// add altitude (APRS101: /A=aaaaaa in feet, "/A=-aaaaa" when negative).
+	// Left out when the receiver has not given a usable altitude.
+	if(gAltitudeValid){
+		// metres -> feet: 1 m = 3.28084 ft, rounded to nearest foot
+		aFeet=gAltitudeM*3281;
+		aFeet=(aFeet>=0 ? aFeet+500 : aFeet-500)/1000;
+		bNeg=(aFeet<0);
+		if(bNeg) aFeet=-aFeet;
+		
+		FrameBUFF[pFrameBUFF++]='/';
+		FrameBUFF[pFrameBUFF++]='A';
+		FrameBUFF[pFrameBUFF++]='=';
+		
+		if(bNeg){
+			if(aFeet>99999) aFeet=99999;
+			FrameBUFF[pFrameBUFF++]='-';
+			Int2Ascii(aFeet,5);
+			for(cnt=0;cnt<5;cnt++)
+				FrameBUFF[pFrameBUFF++]=gShortString[cnt];
+		}
+		else{
+			if(aFeet>999999) aFeet=999999;
+			Int2Ascii(aFeet,6);
+			for(cnt=0;cnt<6;cnt++)
+				FrameBUFF[pFrameBUFF++]=gShortString[cnt];
+		}
+	}
 }
 
 
@@ -253,7 +261,18 @@ void APRS_send_FCS(void)
 }
 
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
-void APRS_send_Packet(uint8_t Type)
+// Restore the dial that was overwritten by the APRS channel.
+static void APRS_RestoreDial(void)
+{
+	DIAL_Reload(gSettings.CurrentDial);
+	UI_DrawDial(gSettings.CurrentDial);
+}
+
+// Returns true when the request has been dealt with (sent, or failed for a
+// reason that retrying will not fix), so the caller should start the normal
+// beacon interval. Returns false when it was deferred: in that case the retry
+// time has already been put in gAPRSCounter and must not be overwritten.
+bool APRS_send_Packet(uint8_t Type)
 {
 char msg[64];
 uint8_t vv;
@@ -261,31 +280,26 @@ uint8_t d;
 uint8_t u;
 
 	if(Type==1 && gGPS_Fix==0){
-		gAPRSCounter=ONE_MIN/4;
-		return;
+		gAPRSCounter=ONE_MIN/4;		// no fix yet: look again in 15 s
+		return false;
 	}
 	
 	// set APRS frequency first
 	//gVfoState[gSettings.CurrentDial]=gAPRSDefaultChannels[0];	// load fixed channel template
-	if(CHANNELS_LoadChannel(898, gSettings.CurrentDial)){		// Load channel number - 1
+	if(MEM_LoadToDial(898, gSettings.CurrentDial)){		// Load channel number - 1
 		// invalid channel
 		UI_DrawDialogText(DIALOG_NO_CH_AVAILABLE,0);
-
-		// restore initial dial mode
-		if (gSettings.WorkModeA) {
-			CHANNELS_LoadChannel(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
-		} else {
-			CHANNELS_LoadChannel(gSettings.CurrentDial ? 1000 : 999, gSettings.CurrentDial);
-		}
-		UI_DrawDial(gSettings.CurrentDial);
-		return;
+		APRS_RestoreDial();
+		return true;					// retrying cannot help, use the normal interval
 	}
 
 	// check if APRS channel is free
 	RADIO_Tune(gSettings.CurrentDial);
 	if ((gRadioMode != RADIO_MODE_QUIET) || (gScreenMode == SCREEN_MENU)){
-		gAPRSCounter=ONE_MIN/12; // re-try in 5 s
-		return;
+		APRS_RestoreDial();
+		if(Type==1)
+			gAPRSCounter=ONE_MIN/12; // re-try in 5 s
+		return false;
 	}
 
 	BK4819_SetAfGain(0xB32A);
@@ -341,13 +355,7 @@ uint8_t u;
 	
 	BK4819_EnableTone1(false);
 	
-	// restore initial dial mode
-	if (gSettings.WorkModeA) {
-		CHANNELS_LoadChannel(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
-	} else {
-		CHANNELS_LoadChannel(gSettings.CurrentDial ? 1000 : 999, gSettings.CurrentDial);
-	}
-	UI_DrawDial(gSettings.CurrentDial);
+	APRS_RestoreDial();
 //BEEP_Play(880,2,100,1); // troubles here
-
+	return true;
 }

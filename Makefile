@@ -1,6 +1,7 @@
-FW_VERSION := "20250529"
+FW_VERSION := "20261028"
 
-TARGET = $(FW_VERSION)_WT_890
+# TARGET = $(FW_VERSION)_WT_890
+TARGET = $(shell echo %DATE%)_WT_890
 
 MOTO_STARTUP_TONE				?= 1
 ENABLE_AM_FIX					?= 0
@@ -32,121 +33,121 @@ ENABLE_OPTIMIZED				?= 1
 
 OBJS =
 # Startup files
-OBJS += startup/start.o
-OBJS += startup/init.o
+OBJS += startup\start.o
+OBJS += startup\init.o
 
-OBJS += external/printf/printf.o
+OBJS += external\printf\printf.o
 
 
 # BSP
-OBJS += bsp/crm.o
-OBJS += bsp/gpio.o
-OBJS += bsp/misc.o
-OBJS += bsp/tmr.o
+OBJS += bsp\crm.o
+OBJS += bsp\gpio.o
+OBJS += bsp\misc.o
+OBJS += bsp\tmr.o
 
 # Drivers
 ifeq ($(ENABLE_VOICE), 1)
-OBJS += driver/audio.o
+OBJS += driver\audio.o
 endif
-OBJS += driver/battery.o
-OBJS += driver/beep.o
+OBJS += driver\battery.o
+OBJS += driver\beep.o
 ifeq ($(ENABLE_FM_RADIO), 1)
-	OBJS += driver/bk1080.o
+	OBJS += driver\bk1080.o
 endif
-OBJS += driver/bk4819.o
-OBJS += driver/crm.o
-OBJS += driver/delay.o
-OBJS += driver/key.o
-OBJS += driver/led.o
-OBJS += driver/pwm.o
-OBJS += driver/serial-flash.o
-OBJS += driver/speaker.o
-OBJS += driver/st7735s.o
-OBJS += driver/uart.o
-OBJS += driver/gps.o
+OBJS += driver\bk4819.o
+OBJS += driver\crm.o
+OBJS += driver\delay.o
+OBJS += driver\key.o
+OBJS += driver\led.o
+OBJS += driver\pwm.o
+OBJS += driver\serial-flash.o
+OBJS += driver\speaker.o
+OBJS += driver\st7735s.o
+OBJS += driver\uart.o
+OBJS += driver\gps.o
 
 # "App" logic
-OBJS += app/css.o
+OBJS += app\css.o
 ifeq ($(ENABLE_FM_RADIO), 1)
-	OBJS += app/fm.o
+	OBJS += app\fm.o
 endif
-OBJS += app/lock.o
-OBJS += app/menu.o
-OBJS += app/radio.o
+OBJS += app\lock.o
+OBJS += app\menu.o
+OBJS += app\radio.o
 ifeq ($(ENABLE_REGISTER_EDIT), 1)
-	OBJS += app/regedit.o
+	OBJS += app\regedit.o
 endif
 ifeq ($(ENABLE_SPECTRUM), 1)
-	OBJS += app/spectrum.o
+	OBJS += app\spectrum.o
 endif
-OBJS += app/t9.o
-OBJS += app/prog.o
-OBJS += app/shell.o
-OBJS += app/aprs.o
+OBJS += app\t9.o
+OBJS += app\prog.o
+OBJS += app\shell.o
+OBJS += app\aprs.o
 
 # Helper code
-OBJS += helper/dtmf.o
-OBJS += helper/helper.o
-OBJS += helper/inputbox.o
+OBJS += helper\dtmf.o
+OBJS += helper\helper.o
+OBJS += helper\inputbox.o
 
 # Misc data
 OBJS += misc.o
 
 # Radio management
-OBJS += radio/channels.o
-OBJS += radio/data.o
-OBJS += radio/detector.o
-OBJS += radio/frequencies.o
-OBJS += radio/hardware.o
-OBJS += radio/scheduler.o
-OBJS += radio/settings.o
+OBJS += radio\channels.o
+OBJS += radio\data.o
+OBJS += radio\detector.o
+OBJS += radio\frequencies.o
+OBJS += radio\hardware.o
+OBJS += radio\scheduler.o
+OBJS += radio\settings.o
 
 # Tasks
-OBJS += task/alarm.o
+OBJS += task\alarm.o
 ifeq ($(ENABLE_AM_FIX), 1)
-        OBJS += task/am-fix.o
+        OBJS += task\am-fix.o
 endif
-OBJS += task/battery.o
-OBJS += task/cursor.o
-OBJS += task/encrypt.o
+OBJS += task\battery.o
+OBJS += task\cursor.o
+OBJS += task\encrypt.o
 ifeq ($(ENABLE_FM_RADIO), 1)
-	OBJS += task/fmscanner.o
+	OBJS += task\fmscanner.o
 endif
-OBJS += task/keyaction.o
-OBJS += task/keys.o
-OBJS += task/idle.o
-OBJS += task/incoming.o
-OBJS += task/lock.o
+OBJS += task\keyaction.o
+OBJS += task\keys.o
+OBJS += task\idle.o
+OBJS += task\incoming.o
+OBJS += task\lock.o
 ifeq ($(ENABLE_NOAA), 1)
-OBJS += task/noaa.o
+OBJS += task\noaa.o
 endif
-OBJS += task/ptt.o
-OBJS += task/rssi.o
-OBJS += task/scanner.o
-OBJS += task/screen.o
-OBJS += task/sidekeys.o
-OBJS += task/timeout.o
+OBJS += task\ptt.o
+OBJS += task\rssi.o
+OBJS += task\scanner.o
+OBJS += task\screen.o
+OBJS += task\sidekeys.o
+OBJS += task\timeout.o
 ifeq ($(ENABLE_VOICE), 1)
-OBJS += task/voice.o
+OBJS += task\voice.o
 endif
-OBJS += task/vox.o
-OBJS += task/aprs.o
+OBJS += task\vox.o
+OBJS += task\aprs.o
 
 # User Interface
-OBJS += ui/boot.o
-OBJS += ui/dialog.o
-OBJS += ui/font.o
-OBJS += ui/gfx.o
-OBJS += ui/helper.o
-OBJS += ui/logo.o
-OBJS += ui/main.o
-OBJS += ui/menu.o
+OBJS += ui\boot.o
+OBJS += ui\dialog.o
+OBJS += ui\font.o
+OBJS += ui\gfx.o
+OBJS += ui\helper.o
+OBJS += ui\logo.o
+OBJS += ui\main.o
+OBJS += ui\menu.o
 ifeq ($(ENABLE_NOAA), 1)
-OBJS += ui/noaa.o
+OBJS += ui\noaa.o
 endif
-OBJS += ui/version.o
-OBJS += ui/vfo.o
-OBJS += ui/welcome.o
+OBJS += ui\version.o
+OBJS += ui\vfo.o
+OBJS += ui\welcome.o
 
 # Main
 
@@ -158,8 +159,13 @@ else
 TOP := $(shell pwd)
 endif
 
-SDK := $(TOP)/external/SDK
-LINKER_SCRIPT := $(SDK)/libraries/cmsis/cm4/device_support/startup/gcc/linker/AT32F421x8_FLASH.ld
+TOP := D:\PRJ\RT-890-APRS-GPS-Feat
+
+
+$(info -------------------WIN is $(shell pwd))
+
+SDK := $(TOP)\external\SDK
+LINKER_SCRIPT := $(SDK)\libraries\cmsis\cm4\device_support\startup\gcc\linker\AT32F421x8_FLASH.ld
 
 AS = arm-none-eabi-as
 CC = arm-none-eabi-gcc
@@ -203,9 +209,9 @@ endif
 
 INC =
 INC += -I $(TOP)
-INC += -I $(SDK)/libraries/cmsis/cm4/device_support
-INC += -I $(SDK)/libraries/cmsis/cm4/core_support/
-INC += -I $(SDK)/libraries/drivers/inc/
+INC += -I $(SDK)\libraries\cmsis\cm4\device_support
+INC += -I $(SDK)\libraries\cmsis\cm4\core_support
+INC += -I $(SDK)\libraries\drivers\inc
 
 LIBS =
 
@@ -258,7 +264,6 @@ ifeq ($(ENABLE_STATUS_BAR_LINE), 1)
 endif
 
 
-
 all: $(TARGET)
 	$(OBJCOPY) -O binary $< $<.bin
 	$(SIZE) $<
@@ -266,7 +271,7 @@ all: $(TARGET)
 ctags:
 	ctags -R -f .tags .
 
-ui/version.o: .FORCE
+ui\version.o: .FORCE
 
 $(TARGET): $(OBJS)
 	$(LD) $(LDFLAGS) $^ -o $@ $(LIBS)
@@ -282,4 +287,4 @@ $(TARGET): $(OBJS)
 -include $(DEPS)
 
 clean:
-	rm -f $(TARGET).bin $(TARGET) $(OBJS) $(DEPS)
+	del /F $(TARGET).bin $(TARGET) $(OBJS) $(DEPS)

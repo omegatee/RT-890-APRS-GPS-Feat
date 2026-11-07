@@ -17,12 +17,12 @@ void Task_APRSBeacon(void){
 			return;
 		}
 				
-		APRS_send_Packet(1);
+		// false = deferred (no GPS fix / channel busy): APRS_send_Packet has
+		// already set a short retry time, so the interval must not be applied.
+		if(!APRS_send_Packet(1))
+			return;
 		
 		switch(gAPRSInterval){
-			case 0:
-				gAPRSCounter=0;
-				break;
 			case 1:
 				gAPRSCounter=ONE_MIN;
 				break;
@@ -36,6 +36,9 @@ void Task_APRSBeacon(void){
 				gAPRSCounter=ONE_MIN*20;
 				break;
 			case 5:
+				gAPRSCounter=ONE_MIN*60;
+				break;
+			default:	// corrupt setting: never fire on every loop pass
 				gAPRSCounter=ONE_MIN*60;
 				break;
 		}

@@ -110,14 +110,16 @@ uint16_t tone;
 			tone=0;
 		}
 		//   IFDBG UART_printf(1,"CTCSS:  %d %d\r\n",tone/10,tone%10);
-		UI_DrawRxCTCSS(gCurrentDial, tone);
+		UI_DrawDialRxCtcss(gCurrentDial, tone);
 	}
 }
 
 static void CheckRSSI(void)
 {
-int16_t rssiDB;
+
 uint16_t Power;
+uint16_t rssiS;
+int16_t rssiDB;
 	
 	if (gVoxRssiUpdateTimer == 0 && !gDataDisplay && !gDTMF_InputMode && !gFrequencyDetectMode && !gReceptionMode
 			&& !gFskDataReceived && gScreenMode == SCREEN_MAIN ) {
@@ -130,13 +132,18 @@ uint16_t Power;
 
 		Power = BK4819_GetRSSI(); // rssi is in range [8..326]
 		
+		//   show S-Meter bar on screen ---------------------------------
 		//Power = (uint16_t)(rssiDB+160);// TODO: check
-		Power*=28;Power/=90;				// scale to full bar width
-		UI_DrawBar(Power, gCurrentDial);
+		rssiS=Power*30;
+		rssiS/=90;								// scale to full bar width
+		UI_DrawDialSignalBar(rssiS, gCurrentDial);
 
-		rssiDB = BK4819_GetRSSI_DBM(); // rssiDB is in range [-166..8]
+		//   show dBm value on screen -----------------------------------
+		//rssiDB = BK4819_GetRSSI_DBM(); // rssiDB is in range [-166..8]
+		rssiDB=Power/=2;
+		rssiDB-=160;								// conversion as per DS
 		FormatRssiDbm(rssiDB);
-		UI_DrawRxDBM(gCurrentDial, false);
+		UI_DrawDialRxDbm(gCurrentDial, false);
 
 //		ConvertRssiToSmeter(RSSI);
 //		UI_DrawRxSmeter(!gCurrentDial, false);
@@ -145,7 +152,6 @@ uint16_t Power;
 
 void Task_CheckRSSI(void)
 {
-	
 	if (gRadioMode != RADIO_MODE_TX){
 		CheckRSSI(); // conficts with ENABLE_SCANLIST_DISPLAY
 		CheckRxCTCSS();
@@ -158,7 +164,8 @@ void Task_CheckRSSI(void)
 			if (gRadioMode != RADIO_MODE_INCOMING) {
 				if (Status == STATUS_TAIL_TONE) {
 					gTailToneCounter++;
-				} else {
+				} 
+				else {
 					gTailToneCounter = 0;
 				}
 				if (Status == STATUS_NO_TONE) {
@@ -166,11 +173,12 @@ void Task_CheckRSSI(void)
 				}
 				if (gTailToneCounter <= 10 && gNoToneCounter <= 1000) {
 					gNoToneCounter = 0;
-					///CheckRSSI();
-					UI_DrawRegisters(!gCurrentDial);
-				} else if (!gReceptionMode) {
+					UI_DrawDialRegisters(!gCurrentDial);
+				}
+				else if (!gReceptionMode) {
 					RADIO_EndRX();
-				} else {
+				}
+				else {
 					RADIO_EndAudio();
 				}
 			}

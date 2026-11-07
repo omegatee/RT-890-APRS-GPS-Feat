@@ -17,6 +17,7 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 enum {
@@ -186,7 +187,26 @@ typedef struct __attribute__((packed)) {
 extern Calibration_t gCalibration;
 extern char myCALL[16];
 extern gSettings_t gSettings;
-extern char WelcomeString[32];
+
+// The mode is kept per dial: true = MEM mode (stored channels), false = VFO mode (free frequency).
+// Stored in the settings as WorkModeA (upper dial, 0) and WorkModeB (lower dial, 1).
+static inline bool DIAL_IsMemMode(uint8_t Dial)
+{
+	return Dial ? gSettings.WorkModeB : gSettings.WorkModeA;
+}
+
+static inline void DIAL_SetMemMode(uint8_t Dial, bool bMemMode)
+{
+	if (Dial) {
+		gSettings.WorkModeB = bMemMode;
+	} else {
+		gSettings.WorkModeA = bMemMode;
+	}
+}
+
+// Mode of the dial that is currently selected.
+#define DIAL_CurrentIsMemMode()	DIAL_IsMemMode(gSettings.CurrentDial)
+extern char SerialNumber[32];
 extern uint32_t gFrequencyStep;
 extern gExtendedSettings_t gExtendedSettings;
 

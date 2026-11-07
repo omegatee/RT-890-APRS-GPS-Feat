@@ -104,11 +104,7 @@ static void UpdateBand(bool bToggleBand)
 
 static void CtdcScan(void)
 {
-	if (gSettings.WorkModeA) {
-		CHANNELS_LoadChannel(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
-	} else {
-		CHANNELS_LoadChannel(gSettings.CurrentDial ? 1000 : 999, gSettings.CurrentDial);
-	}
+	DIAL_Reload(gSettings.CurrentDial);
 	RADIO_Tune(gSettings.CurrentDial);
 	UI_DrawCtdcScan();
 	UI_DrawScanFrequency(gVfoState[gSettings.CurrentDial].RX.Frequency);
@@ -120,13 +116,8 @@ static void StopDetect(void)
 	gFrequencyDetectMode = false;
 	SCREEN_TurnOn();
 
-	if (gSettings.WorkModeA) {
-		CHANNELS_LoadChannel(gSettings.VfoChNo[!gSettings.CurrentDial], !gSettings.CurrentDial);
-		CHANNELS_LoadChannel(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
-	} else {
-		CHANNELS_LoadChannel(gSettings.CurrentDial ? 999 : 1000, !gSettings.CurrentDial);
-		CHANNELS_LoadChannel(gSettings.CurrentDial ? 1000 : 999, gSettings.CurrentDial);
-	}
+	DIAL_Reload(!gSettings.CurrentDial);
+	DIAL_Reload(gSettings.CurrentDial);
 
 	RADIO_Tune(gSettings.CurrentDial);
 	UI_DrawMain(true);
@@ -170,8 +161,8 @@ static void MuteCtcssScan(void)
 		uint32_t Code;
 
 		if (Timeout == 0) {
-			VFO_ClearMute();
-			VFO_ClearCss();
+			DIAL_ClearMute();
+			DIAL_ClearCss();
 			UI_DrawNone();
 			break;
 		}
@@ -196,21 +187,21 @@ static void MuteCtcssScan(void)
 						Code &= 0x7FFFFF;
 						gVfoState[gSettings.CurrentDial].Golay = Code;
 						if (GetDcsCode(Code)) {
-							VFO_ClearMute();
+							DIAL_ClearMute();
 							break;
 						}
 					}
 					gVfoState[gSettings.CurrentDial].bMuteEnabled = 1;
 					UI_DrawMuteInfo(gVfoState[gSettings.CurrentDial].bIs24Bit, gVfoState[gSettings.CurrentDial].Golay);
 				} else {
-					VFO_ClearMute();
-					VFO_ClearCss();
+					DIAL_ClearMute();
+					DIAL_ClearCss();
 					UI_DrawNone();
 				}
 				break;
 			}
 		}
-		VFO_ClearMute();
+		DIAL_ClearMute();
 		Code = BK4819_ReadRegister(0x68);
 		if ((Code & 0x8000U) == 0) {
 			Code = (((Code & 0x1FFFU) * 200U) / 413U) + 1U;
@@ -314,9 +305,9 @@ static void DETECTOR_Loop(void)
 					if (KEY_CurrentKey == KEY_MENU) {
 						KEY_CurrentKey = KEY_NONE;
 						RADIO_EndRX();
-						gSettings.WorkModeA = 0;
+						DIAL_SetMemMode(gSettings.CurrentDial, false);
 						SETTINGS_SaveGlobals();
-						RADIO_SaveCurrentDial();
+						DIAL_SaveAndTune();
 						KEY_SideKeyLongPressed = false;
 						KEY_KeyCounter = 0;
 						StopDetect();
@@ -371,8 +362,8 @@ void RADIO_FrequencyDetect(void)
 	UI_DrawRadar();
 	gUseUhfFilter = !gSettings.bUseVHF;
 	UI_DrawBand();
-	VFO_ClearCss();
-	VFO_ClearMute();
+	DIAL_ClearCss();
+	DIAL_ClearMute();
 	BK4819_SelectRFPath(true);
 	DETECTOR_Loop();
 	gScreenMode = SCREEN_MAIN;

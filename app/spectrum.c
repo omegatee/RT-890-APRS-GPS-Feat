@@ -359,15 +359,15 @@ uint16_t GetAdjustedLevel(uint16_t Level, uint16_t Low, uint16_t High, uint16_t 
 	return Value; 
 }
 
-void JumpToVFO(void) {
-	if (gSettings.WorkModeA) {
-		gSettings.WorkModeA = FALSE;
-		CHANNELS_LoadVfoMode();
+void SwitchCurrentDialToVfo(void) {
+	if (DIAL_CurrentIsMemMode()) {
+		DIAL_SetMemMode(gSettings.CurrentDial, false);
+		DIAL_LoadVfo(gSettings.CurrentDial);
 	}
 
 	SETTINGS_SaveGlobals();
 	gVfoState[gSettings.CurrentDial].bIsNarrow = bNarrow;
-	CHANNELS_UpdateVFOFreq(CurrentFreq);
+	DIAL_SetVfoFrequency(CurrentFreq);
 
 	bExit = TRUE;
 }
@@ -481,13 +481,8 @@ void StopSpectrum(void) {
 	SCREEN_TurnOn();
 	ST7735S_Init();
 
-	if (gSettings.WorkModeA) {
-		CHANNELS_LoadChannel(gSettings.VfoChNo[!gSettings.CurrentDial], !gSettings.CurrentDial);
-		CHANNELS_LoadChannel(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
-	} else {
-		CHANNELS_LoadChannel(gSettings.CurrentDial ? 999 : 1000, !gSettings.CurrentDial);
-		CHANNELS_LoadChannel(gSettings.CurrentDial ? 1000 : 999, gSettings.CurrentDial);
-	}
+	DIAL_Reload(!gSettings.CurrentDial);
+	DIAL_Reload(gSettings.CurrentDial);
 
 	RADIO_Tune(gSettings.CurrentDial);
 	UI_DrawMain(false);
@@ -515,7 +510,7 @@ void CheckKeys(void) {
 				bExit = TRUE;
 				return;
 			case KEY_MENU:
-				JumpToVFO();
+				SwitchCurrentDialToVfo();
 				return;
 			case KEY_UP:
 				if (!bHold) {

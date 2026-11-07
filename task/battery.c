@@ -48,7 +48,7 @@ void Task_CheckBattery(void)
 			&& gFM_Mode == FM_MODE_OFF
 #endif
 			&& !gDTMF_InputMode) {
-		UI_DrawRegisters(!gSettings.CurrentDial);
+		UI_DrawDialRegisters(!gSettings.CurrentDial);
 	}
 	UI_DrawBattery(!(gSettings.RepeaterMode)); /// Battery voltage text shares location with RepeaterMode icon
 

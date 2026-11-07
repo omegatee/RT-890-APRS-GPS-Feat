@@ -42,12 +42,12 @@ void Task_Scanner(void) {
 		if (gRadioMode == RADIO_MODE_RX) {	// Scanner timeout
 			RADIO_EndRX();
 		}
-		if (gSettings.WorkModeA) {
-			if(!CHANNELS_NextChannelMr(gManualScanDirection ? KEY_DOWN : KEY_UP, !gExtendedSettings.ScanAll)) {
+		if (DIAL_CurrentIsMemMode()) {
+			if(!DIAL_StepMem(gManualScanDirection ? KEY_DOWN : KEY_UP, !gExtendedSettings.ScanAll)) {
 				Next_ScanList();
 			}
 		} else {
-			CHANNELS_NextChannelVfo(gManualScanDirection ? KEY_DOWN : KEY_UP);
+			DIAL_StepVfo(gManualScanDirection ? KEY_DOWN : KEY_UP);
 			RADIO_Tune(gSettings.CurrentDial);
 		}
 		// we have to slow down the scan speed in FM broadcast mode

@@ -30,7 +30,7 @@ void UI_DrawSettingArrow(uint8_t Selection);
 void UI_DrawDtmfInterval(uint8_t Interval);
 void UI_DrawDtmfDelay(uint8_t Delay);
 void UI_DrawActions(uint8_t Index);
-void UI_DrawChannelName(uint16_t Channel);
+void UI_DrawMenuMemName(uint16_t MemNo);
 void UI_DrawMute(uint8_t Index, uint16_t Golay, bool bEnabled);
 void UI_DrawEncrypt(uint8_t Index);
 void UI_DrawScrambler(uint8_t Index);

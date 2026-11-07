@@ -93,4 +93,4 @@ void APRS_send_FCS(void);
 void APRS_send_Frame(void);
 
 
-void APRS_send_Packet(uint8_t Type);
+bool APRS_send_Packet(uint8_t Type);

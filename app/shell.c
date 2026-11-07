@@ -16,7 +16,7 @@ bool gShellMode;
 void SCPI_ProcessGeneric(char * cmd){
 	
 	if(strncmp(cmd,"IDN?",4)==0){
-		UART_printf(1,"RADTEL,RT-890,%s,%s\r\n",WelcomeString,FW_VERSION);/// now, "Serial Number"
+		UART_printf(1,"RADTEL,RT-890,%s,%s\r\n",SerialNumber,FW_VERSION);/// now, "Serial Number"
 		return;
 	}
 	

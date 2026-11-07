@@ -23,6 +23,7 @@
 #include "driver/delay.h"
 #include "driver/key.h"
 #include "driver/uart.h"
+#include "driver/gps.h"
 #include "helper/helper.h"
 #include "radio/data.h"
 #include "radio/hardware.h"
@@ -57,8 +58,7 @@ extern const uint8_t StackVector[];
 void Main(void) __attribute__((noreturn));
 
 
-void Main(void)
-{
+void Main(void) {
 
 	CRM_GetCoreClock();
 	SCB->VTOR = (uint32_t)StackVector;
@@ -72,7 +72,7 @@ void Main(void)
 	}
 	
 	/// ------------------------------------------------------------------- MAIN LOOP
-	UART_printf(1,"\r\n\n\n\nRADTEL RT-890\r\nOEFW by omegatee V_%s\r\n2025/02/11\r\n",FW_VERSION);
+	UART_printf(1,"\r\n\n\n\nRADTEL RT-890\r\nOEFW by omegatee V_%s\r\n2026/10/26\r\n",FW_VERSION);
 
 	while (1) {
 		do {
@@ -104,6 +104,7 @@ void Main(void)
 				Task_CheckNOAA();
 #endif
 				Task_LocalAlarm();
+				GPS_Task();
 				Task_APRSBeacon();
 
 //	IFDBG UART_printf(1,"ModeA=%d\t",gSettings.WorkModeA);
@@ -116,6 +117,8 @@ void Main(void)
 			
 			}
 		} while (gSettings.DtmfState != DTMF_STATE_KILLED);
+
+		// killed by DTMF, so check for data
 		if (BK4819_ReadRegister(0x0C) & 0x0001U) { /// 0x0C[0] = Interrupt Indicator
 //IFDBG UART_printf(1,"DATA!\n");
 			DATA_ReceiverCheck();

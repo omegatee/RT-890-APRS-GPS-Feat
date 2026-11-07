@@ -1,0 +1,56 @@
+# old_function	new_function
+# ---- MEM: stored channels (storage level)
+CHANNELS_LoadChannel	MEM_LoadToDial
+CHANNELS_SaveChannel	MEM_Save
+CHANNELS_GetChannelUp	MEM_LoadNextUp
+CHANNELS_GetChannelDown	MEM_LoadNextDown
+CHANNELS_CheckFreeChannels	MEM_CountStored
+# ---- DIAL: upper / lower presentation, its mode (VFO or MEM), loading and saving
+CHANNELS_GetDialChannel	DIAL_GetStoredNumber
+CHANNELS_ReloadDial	DIAL_Reload
+CHANNELS_LoadVfoModeDial	DIAL_LoadVfo
+CHANNELS_LoadWorkModeDial	DIAL_LoadMem
+CHANNELS_LoadDialMode	DIAL_Load
+CHANNELS_NextChannelMr	DIAL_StepMem
+CHANNELS_NextChannelVfo	DIAL_StepVfo
+CHANNELS_UpdateChannel	DIAL_GoToTypedMem
+CHANNELS_UpdateVFO	DIAL_SetTypedVfoFrequency
+CHANNELS_UpdateVFOFreq	DIAL_SetVfoFrequency
+CHANNELS_SaveVfo	DIAL_SaveCurrent
+SETTINGS_GetWorkMode	DIAL_IsMemMode
+SETTINGS_SetWorkMode	DIAL_SetMemMode
+SETTINGS_CurrentWorkMode	DIAL_CurrentIsMemMode
+RADIO_Retune	DIAL_ReloadAndTune
+RADIO_SaveCurrentDial	DIAL_SaveAndTune
+VFO_ClearCss	DIAL_ClearCss
+VFO_ClearMute	DIAL_ClearMute
+RADIO_DrawChannelMode	DIAL_DrawMemMode
+RADIO_DrawFrequencyMode	DIAL_DrawVfoMode
+JumpToVFO	SwitchCurrentDialToVfo
+CHANNEL_AppendDigit	AppendDigitToMem
+VFO_AppendDigit	AppendDigitToVfo
+CHANNEL_KeyHandler	MEM_KeyHandler
+DrawEditChannel	DrawEditMem
+AUDIO_PlayChannelNumber	AUDIO_PlayMemNumber
+APRS_restore_Dial	APRS_RestoreDial
+# ---- UI: everything that draws one dial's block
+UI_DrawChannel	UI_DrawDialModeLabel
+UI_DrawName	UI_DrawDialMemName
+UI_DrawChannelNumber	UI_DrawMenuMemNumber
+UI_DrawChannelName	UI_DrawMenuMemName
+UI_DrawVfoFrame	UI_DrawDialBarFrame
+UI_DrawFrequency	UI_DrawDialFrequency
+UI_DrawFrequencyEx	UI_DrawDialFrequencyText
+UI_DrawDigits	UI_DrawDialTypedDigits
+UI_DrawRegisters	UI_DrawDialRegisters
+UI_DrawModType	UI_DrawDialModulation
+UI_DrawCss	UI_DrawDialCss
+UI_DrawTxPower	UI_DrawDialTxPower
+UI_DrawRxCTCSS	UI_DrawDialRxCtcss
+UI_DrawRxDBM	UI_DrawDialRxDbm
+UI_DrawRX	UI_DrawDialAntennaIcon
+UI_DrawBar	UI_DrawDialSignalBar
+UI_DrawMainBitmap	UI_DrawDialMainMarker
+UI_DrawScanLists	UI_DrawDialScanLists
+DrawBandwidth	DrawDialBandwidth
+DrawRadio	DrawDialRadioIcon

@@ -64,29 +64,29 @@ static void FM_AppendDigit(char Digit)
 }
 #endif
 
-static void CHANNEL_AppendDigit(char Digit)
+static void AppendDigitToMem(char Digit)
 {
 	if (gInputBoxWriteIndex == 0) {
 		INPUTBOX_Pad(0, '-');
 	}
 	gInputBox[gInputBoxWriteIndex++] = Digit;
 	gInputBoxWriteIndex %= 3U;
-	UI_DrawDigits(gInputBox, gSettings.CurrentDial);
+	UI_DrawDialTypedDigits(gInputBox, gSettings.CurrentDial);
 	if (gInputBoxWriteIndex == 0) {
-		CHANNELS_UpdateChannel();
+		DIAL_GoToTypedMem();
 	}
 }
 
-static void VFO_AppendDigit(char Digit)
+static void AppendDigitToVfo(char Digit)
 {
 	if (gInputBoxWriteIndex == 0) {
 		INPUTBOX_Pad(0, 10);
 	}
 	gInputBox[gInputBoxWriteIndex++] = Digit;
 	gInputBoxWriteIndex %= 8U;
-	UI_DrawFrequencyEx(gInputBox, gSettings.CurrentDial, gFrequencyReverse);
+	UI_DrawDialFrequencyText(gInputBox, gSettings.CurrentDial, gFrequencyReverse);
 	if (gInputBoxWriteIndex == 0) {
-		CHANNELS_UpdateVFO();
+		DIAL_SetTypedVfoFrequency();
 	}
 }
 
@@ -111,10 +111,10 @@ static void MAIN_KeyHandler(KEY_t Key)
 				FM_AppendDigit(Key);
 			} else
 #endif
-			if (gSettings.WorkModeA && !gFrequencyReverse) {
-				CHANNEL_AppendDigit(Key);
+			if (DIAL_CurrentIsMemMode() && !gFrequencyReverse) {
+				AppendDigitToMem(Key);
 			} else {
-				VFO_AppendDigit(Key);
+				AppendDigitToVfo(Key);
 			}
 #ifdef ENABLE_VOICE
 			AUDIO_PlayDigit(Key);
@@ -129,8 +129,8 @@ static void MAIN_KeyHandler(KEY_t Key)
 IFDBG UART_printf(1,"k:MENU\r\n");
 			if (gScannerMode) {
 			// stop scanner and restore last RX channel or frequency
-			if (gSettings.WorkModeA) {
-				CHANNELS_LoadChannel(gScanLastRxFreqOrChannel, gSettings.CurrentDial);
+			if (DIAL_CurrentIsMemMode()) {
+				MEM_LoadToDial(gScanLastRxFreqOrChannel, gSettings.CurrentDial);
 				gSettings.VfoChNo[gSettings.CurrentDial] = gScanLastRxFreqOrChannel;
 			} else {
 				gVfoInfo[gSettings.CurrentDial].Frequency = gScanLastRxFreqOrChannel;
@@ -158,10 +158,10 @@ IFDBG UART_printf(1,"k:MENU\r\n");
 				UI_DrawFMFrequency(gSettings.FmFrequency);
 			} else
 #endif
-			if (gSettings.WorkModeA && !gFrequencyReverse) {
-				CHANNELS_UpdateChannel();
+			if (DIAL_CurrentIsMemMode() && !gFrequencyReverse) {
+				DIAL_GoToTypedMem();
 			} else {
-				CHANNELS_UpdateVFO();
+				DIAL_SetTypedVfoFrequency();
 			}
 		}
 		BEEP_Play(740, 3, 80,0);
@@ -182,16 +182,16 @@ IFDBG UART_printf(1,"k:MENU\r\n");
 #else
 						RADIO_CancelMode();
 #endif
-						if (gSettings.WorkModeA) {
-							CHANNELS_NextChannelMr(Key, false);
+						if (DIAL_CurrentIsMemMode()) {
+							DIAL_StepMem(Key, false);
 							SETTINGS_SaveGlobals();
 #ifdef ENABLE_AUDIO
-							AUDIO_PlayChannelNumber();
+							AUDIO_PlayMemNumber();
 #endif
 						} else {
-							CHANNELS_NextChannelVfo(Key);
-							CHANNELS_SaveChannel(gSettings.CurrentDial ? 1000 : 999, &gVfoState[gSettings.CurrentDial]);
-							CHANNELS_LoadChannel(gSettings.CurrentDial ? 1000 : 999, gSettings.CurrentDial);
+							DIAL_StepVfo(Key);
+							MEM_Save(gSettings.CurrentDial ? 1000 : 999, &gVfoState[gSettings.CurrentDial]);
+							MEM_LoadToDial(gSettings.CurrentDial ? 1000 : 999, gSettings.CurrentDial);
 							RADIO_Tune(gSettings.CurrentDial);
 						}
 					} else {
@@ -226,8 +226,8 @@ IFDBG UART_printf(1,"k:EXIT\r\n");
 
 		if (gScannerMode) {
 			// stop scanner and restore initial channel or frequency
-			if (gSettings.WorkModeA) {
-				CHANNELS_LoadChannel(gScanStartFreqOrChannel, gSettings.CurrentDial);
+			if (DIAL_CurrentIsMemMode()) {
+				MEM_LoadToDial(gScanStartFreqOrChannel, gSettings.CurrentDial);
 				gSettings.VfoChNo[gSettings.CurrentDial] = gScanStartFreqOrChannel;
 			} else {
 				gVfoInfo[gSettings.CurrentDial].Frequency = gScanStartFreqOrChannel;
@@ -244,10 +244,10 @@ IFDBG UART_printf(1,"k:EXIT\r\n");
 				RADIO_DrawFmMode();
 			} else
 #endif
-			if (gSettings.WorkModeA) {
-				RADIO_DrawChannelMode();
+			if (DIAL_CurrentIsMemMode()) {
+				DIAL_DrawMemMode();
 			} else {
-				RADIO_DrawFrequencyMode();
+				DIAL_DrawVfoMode();
 			}
 			BEEP_Play(440, 4, 80,0);
 			break;
@@ -265,9 +265,9 @@ IFDBG UART_printf(1,"k:EXIT\r\n");
 			if (gSettings.DualDisplay == 0) {
 				DISPLAY_Fill(1, 158, 1 + (gCurrentDial * 41), 40 + (gCurrentDial * 41), COLOR_BACKGROUND);
 				DISPLAY_Fill(1, 158, 1 + ((!gCurrentDial) * 41), 40 + ((!gCurrentDial) * 41), COLOR_BACKGROUND);
-				UI_DrawRegisters(gSettings.CurrentDial);
+				UI_DrawDialRegisters(gSettings.CurrentDial);
 			}
-			UI_DrawMainBitmap(false, gSettings.CurrentDial);
+			UI_DrawDialMainMarker(false, gSettings.CurrentDial);
 			gSettings.CurrentDial ^= 1;
 #ifdef ENABLE_VOICE
 			gAudioOffsetIndex = gAudioOffsetLast;
@@ -276,7 +276,7 @@ IFDBG UART_printf(1,"k:EXIT\r\n");
 			SETTINGS_SaveGlobals();
 			gFrequencyReverse = false;
 			UI_DrawDial(gCurrentDial);
-			UI_DrawMainBitmap(true, gSettings.CurrentDial);
+			UI_DrawDialMainMarker(true, gSettings.CurrentDial);
 			if (Vfo != 0) {
 				BEEP_Play(740, 3, 80,0);
 			} else {
@@ -304,20 +304,13 @@ IFDBG UART_printf(1,"k:EXIT\r\n");
 #ifdef ENABLE_VOICE
 			gAudioOffsetIndex = gAudioOffsetLast;
 #endif
-			gSettings.WorkModeA ^= 1;							///WT:
+			// Toggle the work mode of the selected dial only (channel <-> VFO).
+			// The other dial keeps the mode it has.
+			DIAL_SetMemMode(gSettings.CurrentDial, !DIAL_CurrentIsMemMode());
 			SETTINGS_SaveGlobals();
-			if (gSettings.WorkModeA) {
-				CHANNELS_LoadWorkMode();
-			} else {
-				CHANNELS_LoadVfoMode();
-			}
+			DIAL_Load(gSettings.CurrentDial);
 			RADIO_Tune(gSettings.CurrentDial);
-			if (gSettings.DualDisplay == 0) {
-				UI_DrawDial(gSettings.CurrentDial);
-			} else {
-				UI_DrawDial(0);
-				UI_DrawDial(1);
-			}
+			UI_DrawDial(gSettings.CurrentDial);
 			if (Vfo != 0) {
 				BEEP_Play(740, 3, 80,0);
 			} else {
@@ -388,21 +381,21 @@ static void HandlerLong(KEY_t Key)
 					if (gFM_Mode == FM_MODE_OFF) {
 #endif
 						RADIO_CancelMode();
-						if (gSettings.WorkModeA) {
+						if (DIAL_CurrentIsMemMode()) {
 							do {
-								CHANNELS_NextChannelMr(Key, false);
+								DIAL_StepMem(Key, false);
 							} while (KEY_GetButton() != KEY_NONE);
 							SETTINGS_SaveGlobals();
 #ifdef ENABLE_AUDIO
-							AUDIO_PlayChannelNumber();
+							AUDIO_PlayMemNumber();
 #endif
 						} else {
 							do {
 								RADIO_Tune(gSettings.CurrentDial);
-								CHANNELS_NextChannelVfo(Key);
+								DIAL_StepVfo(Key);
 							} while (KEY_GetButton() != KEY_NONE);
-							CHANNELS_SaveChannel(gSettings.CurrentDial ? 1000 : 999, &gVfoState[gSettings.CurrentDial]);
-							CHANNELS_LoadChannel(gSettings.CurrentDial ? 1000 : 999, gSettings.CurrentDial);
+							MEM_Save(gSettings.CurrentDial ? 1000 : 999, &gVfoState[gSettings.CurrentDial]);
+							MEM_LoadToDial(gSettings.CurrentDial ? 1000 : 999, gSettings.CurrentDial);
 						}
 						RADIO_Tune(gSettings.CurrentDial);
 #ifdef ENABLE_FM_RADIO

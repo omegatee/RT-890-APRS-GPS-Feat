@@ -188,7 +188,7 @@ void UI_DrawActions(uint8_t Index)
 	UI_DrawSettingOptionEx(Actions[(Index + 1) % ACTIONS_COUNT], 12, 1);
 }
 
-void UI_DrawChannelName(uint16_t Channel)
+void UI_DrawMenuMemName(uint16_t MemNo)
 {
 	char String[12];
 	ChannelInfo_t Info;
@@ -206,11 +206,11 @@ void UI_DrawChannelName(uint16_t Channel)
 	String[10] = 0;
 	String[11] = 0;
 
-	Int2Ascii(Channel + 1, 3);
+	Int2Ascii(MemNo + 1, 3);
 	String[3] = gShortString[0];
 	String[4] = gShortString[1];
 	String[5] = gShortString[2];
-	SFLASH_Read(&Info, 0x3C2000 + (Channel * sizeof(Info)), sizeof(Info));
+	SFLASH_Read(&Info, 0x3C2000 + (MemNo * sizeof(Info)), sizeof(Info));
 	if (Info.Available) {
 		String[8] = 'N';
 	} else {
@@ -218,11 +218,11 @@ void UI_DrawChannelName(uint16_t Channel)
 	}
 	UI_DrawString(24, 48, String, 9);
 
-	Int2Ascii(1 + (Channel + 1U) % 999U, 3);
+	Int2Ascii(1 + (MemNo + 1U) % 999U, 3);
 	String[3] = gShortString[0];
 	String[4] = gShortString[1];
 	String[5] = gShortString[2];
-	SFLASH_Read(&Info, 0x3C2000 + ((Channel + 1U) % 999U) * sizeof(Info), sizeof(Info));
+	SFLASH_Read(&Info, 0x3C2000 + ((MemNo + 1U) % 999U) * sizeof(Info), sizeof(Info));
 	if (Info.Available) {
 		String[8] = 'N';
 	} else {

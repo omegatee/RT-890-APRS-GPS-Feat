@@ -43,14 +43,14 @@ void RADIO_StartAudio(void);
 void RADIO_EndAudio(void);
 
 void RADIO_Sleep(void);
-void RADIO_Retune(void);
+void DIAL_ReloadAndTune(void);
 #ifdef ENABLE_NOAA
 void RADIO_NoaaRetune(void);
 void RADIO_NoaaTune(void);
 #endif
-void VFO_ClearCss(void);
-void VFO_ClearMute(void);
-void RADIO_SaveCurrentDial(void);
+void DIAL_ClearCss(void);
+void DIAL_ClearMute(void);
+void DIAL_SaveAndTune(void);
 
 void RADIO_StartTX(bool bFlag);
 void RADIO_EndTX(void);
@@ -59,8 +59,8 @@ void RADIO_CancelMode(void);
 void RADIO_DisableSaveMode(void);
 
 void RADIO_DrawFmMode(void);
-void RADIO_DrawChannelMode(void);
-void RADIO_DrawFrequencyMode(void);
+void DIAL_DrawMemMode(void);
+void DIAL_DrawVfoMode(void);
 
 #endif
 

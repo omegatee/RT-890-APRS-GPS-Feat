@@ -73,9 +73,9 @@ static void PlayStartupTone(void)
 void UI_DrawBoot(void)
 {
 	SCREEN_TurnOn();
-	if (gSettings.DisplayLogo) {
-		UI_DrawLogo();
-	}
+//	if (gSettings.DisplayLogo) {
+//		UI_DrawLogo();
+//	}
 	PlayStartupTone();
 	if (gSettings.DisplayLabel || gSettings.DisplayVoltage) {
 		DISPLAY_Fill(0, 159, 0, 96, COLOR_BACKGROUND);

@@ -374,13 +374,13 @@ static const ChannelInfo_t gNoaaDefaultChannels[11] = {
 
 uint16_t gFreeChannelsCount;
 
-bool CHANNELS_NextChannelMr(uint8_t Key, bool OnlyFromScanlist) {
+bool DIAL_StepMem(uint8_t Key, bool OnlyFromScanlist) {
 	uint16_t startChannel = gSettings.VfoChNo[gSettings.CurrentDial];
 	do {
 		if (Key == KEY_UP) {
-			gSettings.VfoChNo[gSettings.CurrentDial] = CHANNELS_GetChannelUp(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
+			gSettings.VfoChNo[gSettings.CurrentDial] = MEM_LoadNextUp(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
 		} else {
-			gSettings.VfoChNo[gSettings.CurrentDial] = CHANNELS_GetChannelDown(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
+			gSettings.VfoChNo[gSettings.CurrentDial] = MEM_LoadNextDown(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
 		}
 		if (gSettings.VfoChNo[gSettings.CurrentDial] == startChannel)
 			return false;	// empty list
@@ -396,7 +396,7 @@ bool CHANNELS_NextChannelMr(uint8_t Key, bool OnlyFromScanlist) {
 	return true;
 }
 
-void CHANNELS_NextChannelVfo(uint8_t Key)
+void DIAL_StepVfo(uint8_t Key)
 {
 	ChannelInfo_t *pInfo = &gVfoState[gSettings.CurrentDial];
 
@@ -514,7 +514,7 @@ void CHANNELS_NextFM(uint8_t Key)
 #endif
 }
 
-void CHANNELS_UpdateChannel(void)
+void DIAL_GoToTypedMem(void)
 {
 	uint16_t Channel = 0;
 	uint8_t i;
@@ -526,7 +526,7 @@ void CHANNELS_UpdateChannel(void)
 	INPUTBOX_Pad(0, 10);
 	if (Channel != 0) {
 		Channel--;
-		if (!CHANNELS_LoadChannel(Channel, gSettings.CurrentDial)) {
+		if (!MEM_LoadToDial(Channel, gSettings.CurrentDial)) {
 			if (gSettings.VfoChNo[gSettings.CurrentDial] != Channel) {
 				gSettings.VfoChNo[gSettings.CurrentDial] = Channel;
 				SETTINGS_SaveGlobals();
@@ -536,12 +536,12 @@ void CHANNELS_UpdateChannel(void)
 			return;
 		}
 	}
-	CHANNELS_LoadChannel(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
+	MEM_LoadToDial(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
 	RADIO_Tune(gSettings.CurrentDial);
 	UI_DrawDial(gSettings.CurrentDial);
 }
 
-void CHANNELS_UpdateVFO(void)
+void DIAL_SetTypedVfoFrequency(void)
 {
 	uint32_t Frequency = 0;
 	uint8_t i;
@@ -554,10 +554,10 @@ void CHANNELS_UpdateVFO(void)
 	gInputBoxWriteIndex = 0;
 	INPUTBOX_Pad(0, 10);
 
-	CHANNELS_UpdateVFOFreq(Frequency);
+	DIAL_SetVfoFrequency(Frequency);
 }
 
-void CHANNELS_UpdateVFOFreq(uint32_t Frequency)
+void DIAL_SetVfoFrequency(uint32_t Frequency)
 {
 	if (
 			(!gSettings.bFLock && (Frequency >= 1000000  && Frequency <= 130000000)) ||
@@ -570,20 +570,20 @@ void CHANNELS_UpdateVFOFreq(uint32_t Frequency)
 			gVfoState[gSettings.CurrentDial].RX.Frequency = Frequency;
 		}
 		gVfoState[gSettings.CurrentDial].TX.Frequency = Frequency;
-		CHANNELS_SaveChannel(gSettings.CurrentDial ? 1000 : 999, &gVfoState[gSettings.CurrentDial]);
-		CHANNELS_LoadChannel(gSettings.CurrentDial ? 1000 : 999, gSettings.CurrentDial);
+		MEM_Save(gSettings.CurrentDial ? 1000 : 999, &gVfoState[gSettings.CurrentDial]);
+		MEM_LoadToDial(gSettings.CurrentDial ? 1000 : 999, gSettings.CurrentDial);
 		RADIO_Tune(gSettings.CurrentDial);
 	}
 	UI_DrawDial(gSettings.CurrentDial);
 }
 
-bool CHANNELS_LoadChannel(uint16_t ChNo, uint8_t Vfo)
+bool MEM_LoadToDial(uint16_t MemNo, uint8_t Dial)
 {
 	uint32_t Frequency;
 
-	SFLASH_Read(&gVfoState[Vfo], 0x3C2000 + (ChNo * sizeof(ChannelInfo_t)), sizeof(ChannelInfo_t));
+	SFLASH_Read(&gVfoState[Dial], 0x3C2000 + (MemNo * sizeof(ChannelInfo_t)), sizeof(ChannelInfo_t));
 	if (gSettings.bFLock) {
-		Frequency = gVfoState[Vfo].RX.Frequency;
+		Frequency = gVfoState[Dial].RX.Frequency;
 		if (Frequency > 44000000) {
 			return true;
 		}
@@ -596,7 +596,7 @@ bool CHANNELS_LoadChannel(uint16_t ChNo, uint8_t Vfo)
 		if (Frequency < 10800000) {
 			return true;
 		}
-		Frequency = gVfoState[Vfo].TX.Frequency;
+		Frequency = gVfoState[Dial].TX.Frequency;
 		if (Frequency > 44000000) {
 			return true;
 		}
@@ -611,110 +611,121 @@ bool CHANNELS_LoadChannel(uint16_t ChNo, uint8_t Vfo)
 		}
 	}
 
-	return gVfoState[Vfo].Available;
+	return gVfoState[Dial].Available;
 }
 
-void CHANNELS_CheckFreeChannels(void)
+void MEM_CountStored(void)
 {
 	uint16_t i;
 
 	gFreeChannelsCount = 0;
 	for (i = 0; i < 999; i++) {
-		if (!CHANNELS_LoadChannel(i, 0)) {
+		if (!MEM_LoadToDial(i, 0)) {
 			gFreeChannelsCount++;
 		}
 	}
 	if (gFreeChannelsCount == 0) {
-		gSettings.WorkModeA = 0;
+		// no channel to select: both dials have to be in VFO mode
+		DIAL_SetMemMode(0, false);
+		DIAL_SetMemMode(1, false);
 		SETTINGS_SaveGlobals();
-		CHANNELS_LoadVfoMode();
+		DIAL_LoadVfo(0);
+		DIAL_LoadVfo(1);
 	}
 }
 
-void CHANNELS_LoadVfoMode(void)
+// Channel number a dial currently points to: its stored channel in channel mode,
+// or its VFO slot (999 / 1000) in VFO mode.
+uint16_t DIAL_GetStoredNumber(uint8_t Dial)
+{
+	if (DIAL_IsMemMode(Dial)) {
+		return gSettings.VfoChNo[Dial];
+	}
+	return Dial ? 1000 : 999;
+}
+
+// Loads the dial according to its own work mode.
+void DIAL_Reload(uint8_t Dial)
+{
+	MEM_LoadToDial(DIAL_GetStoredNumber(Dial), Dial);
+}
+
+// Loads the VFO slot of one dial, restoring the default VFO if the stored one is invalid.
+void DIAL_LoadVfo(uint8_t Dial)
 {
 	ChannelInfo_t VfoState[2];
 
 	memcpy(&VfoState[0], &VfoTemplate, sizeof(VfoState));
 
-	while (CHANNELS_LoadChannel(999, 0)) {
-		SFLASH_Update(&VfoState[0], 0x3C9CE0, sizeof(VfoState[0]));
+	while (MEM_LoadToDial(Dial ? 1000 : 999, Dial)) {
+		SFLASH_Update(&VfoState[Dial], Dial ? 0x3C9D00 : 0x3C9CE0, sizeof(VfoState[Dial]));
 	}
-
-	while (CHANNELS_LoadChannel(1000, 1)) {									///WT: let's check if only A changes
-		SFLASH_Update(&VfoState[1], 0x3C9D00, sizeof(VfoState[1]));
-	}
-
-	if (gSettings.CurrentDial) {
-		CHANNELS_LoadChannel(1000, 1);									///WT: let's check if only A changes
-	} else {
-		CHANNELS_LoadChannel(999, 0);
-	}
-#ifdef ENABLE_VOICE
-	if (gScreenMode == SCREEN_MAIN && gSettings.DtmfState != DTMF_STATE_KILLED) {
-		AUDIO_PlaySampleOptional(0);
-	}
-#endif
 }
 
-void CHANNELS_LoadWorkMode(void)
+// Loads the stored channel of one dial, moving to the next valid one if it was removed.
+void DIAL_LoadMem(uint8_t Dial)
 {
 #ifdef ENABLE_SCANLIST_DISPLAY
 #if defined(ENABLE_RX_BAR) || defined(ENABLE_TX_BAR)
+	DISPLAY_Fill(20, 127, 43 - (Dial * 41), 49 - (Dial * 41), COLOR_BACKGROUND);
+#endif
+#endif
+	if (MEM_LoadToDial(gSettings.VfoChNo[Dial], Dial)) {
+		gSettings.VfoChNo[Dial] = MEM_LoadNextUp(gSettings.VfoChNo[Dial], Dial);
+		SETTINGS_SaveGlobals();
+	}
+}
 
-	DISPLAY_Fill(20, 127, 43 - (gSettings.CurrentDial * 41), 49 - (gSettings.CurrentDial * 41), COLOR_BACKGROUND);
-	if (gSettings.DualDisplay) {
-		DISPLAY_Fill(20, 127, 43 - ((1 - gSettings.CurrentDial) * 41), 49 - ((1 - gSettings.CurrentDial) * 41), COLOR_BACKGROUND);
+// Loads one dial according to its own work mode (channel or VFO).
+void DIAL_Load(uint8_t Dial)
+{
+	if (DIAL_IsMemMode(Dial)) {
+		DIAL_LoadMem(Dial);
+	} else {
+		DIAL_LoadVfo(Dial);
 	}
-#endif
-#endif
-	if (CHANNELS_LoadChannel(gSettings.VfoChNo[0], 0)) {
-		gSettings.VfoChNo[0] = CHANNELS_GetChannelUp(gSettings.VfoChNo[0], 0);
-		SETTINGS_SaveGlobals();
-	}
-	if (CHANNELS_LoadChannel(gSettings.VfoChNo[1], 1)) {									///WT:
-		gSettings.VfoChNo[1] = CHANNELS_GetChannelUp(gSettings.VfoChNo[1], 1);
-		SETTINGS_SaveGlobals();
-	}
-	CHANNELS_LoadChannel(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
 #ifdef ENABLE_VOICE
-	if (gScreenMode == SCREEN_MAIN && gSettings.DtmfState != DTMF_STATE_KILLED) {
-		AUDIO_PlayChannelNumber();
+	if (Dial == gSettings.CurrentDial && gScreenMode == SCREEN_MAIN && gSettings.DtmfState != DTMF_STATE_KILLED) {
+		if (DIAL_IsMemMode(Dial)) {
+			AUDIO_PlayMemNumber();
+		} else {
+			AUDIO_PlaySampleOptional(0);
+		}
 	}
 #endif
 }
 
-uint16_t CHANNELS_GetChannelUp(uint16_t Channel, uint8_t Vfo)
+uint16_t MEM_LoadNextUp(uint16_t MemNo, uint8_t Dial)
 {
-	Channel++;
+	MemNo++;
 	while (1) {
-		Channel %= 999;
-		if (!CHANNELS_LoadChannel(Channel, Vfo)) {
+		MemNo %= 999;
+		if (!MEM_LoadToDial(MemNo, Dial)) {
 			break;
 		}
-		Channel++;
+		MemNo++;
 	}
 
-	return Channel;
+	return MemNo;
 }
 
-uint16_t CHANNELS_GetChannelDown(uint16_t Channel, uint8_t Vfo)
+uint16_t MEM_LoadNextDown(uint16_t MemNo, uint8_t Dial)
 {
-	Channel += 998;
+	MemNo += 998;
 	while (1) {
-		Channel %= 999;
-		if (!CHANNELS_LoadChannel(Channel, Vfo)) {
+		MemNo %= 999;
+		if (!MEM_LoadToDial(MemNo, Dial)) {
 			break;
 		}
-		Channel += 998;
+		MemNo += 998;
 	}
 
-	return Channel;
+	return MemNo;
 }
 
-void CHANNELS_SaveChannel(uint16_t Channel, const ChannelInfo_t *pChannel)
+void MEM_Save(uint16_t MemNo, const ChannelInfo_t *pState)
 {
-	SFLASH_Update(pChannel, 0x3C2000 + (Channel * sizeof(*pChannel)), sizeof(*pChannel));
+	SFLASH_Update(pState, 0x3C2000 + (MemNo * sizeof(*pState)), sizeof(*pState));
 }
 
 #ifdef ENABLE_NOAA
@@ -724,13 +735,9 @@ void CHANNELS_SetNoaaChannel(uint8_t Channel)
 }
 #endif
 
-void CHANNELS_SaveVfo(void)
+void DIAL_SaveCurrent(void)
 {
-	if (gSettings.WorkModeA) {
-		CHANNELS_SaveChannel(gSettings.VfoChNo[gSettings.CurrentDial], &gVfoState[gSettings.CurrentDial]);
-	} else {
-		CHANNELS_SaveChannel(gSettings.CurrentDial ? 1000 : 999, &gVfoState[gSettings.CurrentDial]);
-	}
+	MEM_Save(DIAL_GetStoredNumber(gSettings.CurrentDial), &gVfoState[gSettings.CurrentDial]);
 
 	RADIO_Tune(gSettings.CurrentDial);
 }

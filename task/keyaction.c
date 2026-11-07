@@ -96,7 +96,7 @@ void KeypressAction(uint8_t Action) {
 	}
 
 	if (gScannerMode) {
-		if (Action == ACTION_SCAN && gSettings.WorkModeA) {
+		if (Action == ACTION_SCAN && DIAL_CurrentIsMemMode()) {
 			Next_ScanList();
 		} else {
 			SETTINGS_SaveState();
@@ -159,11 +159,11 @@ void KeypressAction(uint8_t Action) {
 
 			// This action acts like previous for when used from sidekeys and like "1 call" when used from keyboard
 			case ACTION_PRESET_CHANNEL:
-				if (gSettings.WorkModeA) {
+				if (DIAL_CurrentIsMemMode()) {
 					gInputBoxWriteIndex = 0;
 					uint8_t Slot = (gSlot < 4 ? gSlot : 0);
-					if (CHANNELS_LoadChannel(gSettings.PresetChannels[Slot], gSettings.CurrentDial)) {
-						CHANNELS_LoadChannel(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
+					if (MEM_LoadToDial(gSettings.PresetChannels[Slot], gSettings.CurrentDial)) {
+						MEM_LoadToDial(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
 					} else {
 						gSettings.VfoChNo[gSettings.CurrentDial] = gSettings.PresetChannels[Slot];
 						RADIO_Tune(gSettings.CurrentDial);
@@ -222,7 +222,7 @@ void KeypressAction(uint8_t Action) {
 				break;
 
 			case ACTION_SCAN:
-				gScanStartFreqOrChannel = gSettings.WorkModeA ? gSettings.VfoChNo[gSettings.CurrentDial] : gVfoInfo[gSettings.CurrentDial].Frequency;
+				gScanStartFreqOrChannel = DIAL_CurrentIsMemMode() ? gSettings.VfoChNo[gSettings.CurrentDial] : gVfoInfo[gSettings.CurrentDial].Frequency;
 				gScanLastRxFreqOrChannel = gScanStartFreqOrChannel;
 				RADIO_CancelMode();
 				gManualScanDirection = gSettings.ScanDirection;
@@ -277,8 +277,8 @@ void KeypressAction(uint8_t Action) {
 			case ACTION_TX_POWER:
 				RADIO_CancelMode();
 				gVfoState[gSettings.CurrentDial].gTXPower = (gVfoState[gSettings.CurrentDial].gTXPower + 1) % 4;
-				UI_DrawTxPower(gVfoState[gSettings.CurrentDial].gTXPower, gSettings.CurrentDial);
-				CHANNELS_SaveVfo();
+				UI_DrawDialTxPower(gVfoState[gSettings.CurrentDial].gTXPower, gSettings.CurrentDial);
+				DIAL_SaveCurrent();
 				break;
 
 			case ACTION_SQ_LEVEL:
@@ -322,9 +322,9 @@ void KeypressAction(uint8_t Action) {
 				break;
 
 			case ACTION_TOGGLE_SCANLIST:
-				if (gSettings.WorkModeA && !gExtendedSettings.ScanAll) {
+				if (DIAL_CurrentIsMemMode() && !gExtendedSettings.ScanAll) {
 					gVfoState[gSettings.CurrentDial].IsInscanList ^= (1 << gExtendedSettings.CurrentScanList);
-					CHANNELS_SaveVfo();
+					DIAL_SaveCurrent();
 					UI_DrawDialogText(DIALOG_TOGGLE_SCANLIST, ((gVfoState[gSettings.CurrentDial].IsInscanList >> gExtendedSettings.CurrentScanList) & 1));
 				}
 				break;
@@ -395,7 +395,7 @@ void KeypressAction(uint8_t Action) {
 /*
 			case ACTION_AGC_MODE:
 				BK4819_ToggleAGCMode();
-				UI_DrawRegisters(!gCurrentDial);
+				UI_DrawDialRegisters(!gCurrentDial);
 				break;*/
 	
 #ifdef ENABLE_SPECTRUM
@@ -414,13 +414,13 @@ void KeypressAction(uint8_t Action) {
 			case ACTION_MODULATION:
 				gVfoState[gSettings.CurrentDial].gModulationType = (gVfoState[gSettings.CurrentDial].gModulationType + 1) % 4; // 4 is gSettingMaxValues
 				UI_DrawDial(gSettings.CurrentDial);
-				CHANNELS_SaveVfo();
+				DIAL_SaveCurrent();
 				break;
 
 			case ACTION_BANDWIDTH:
 				//gVfoState[gSettings.CurrentDial].gBandWidth ^= 1;
 				//UI_DrawDial(gSettings.CurrentDial);
-				//CHANNELS_SaveVfo();
+				//DIAL_SaveCurrent();
 				gMenuIndex = MENU_BAND_WIDTH;
 				DISPLAY_Fill(0, 159, 1, 81, COLOR_BACKGROUND);
 				MENU_DrawSetting();

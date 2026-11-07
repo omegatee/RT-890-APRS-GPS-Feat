@@ -256,14 +256,14 @@ void UI_DrawSmallCharacter(uint8_t X, uint8_t Y, char Digit)
 	}
 }
 
-void UI_DrawDigits(const char *pDigits, uint8_t Vfo)
+void UI_DrawDialTypedDigits(const char *pDigits, uint8_t Dial)
 {
 	uint8_t X;
 	uint8_t Y;
 	uint8_t i;
 
 	X = 136;
-	Y = 73 + (Vfo * 215);
+	Y = 73 + (Dial * 215);
 	gColorForeground = COLOR_FOREGROUND;
 	for (i = 0; i < 3; i++) {
 		if (pDigits[i] == '-') {
@@ -319,7 +319,7 @@ void UI_DrawRoger(void)
 							   gSettings.RogerBeep == 2 ? "2 " : "ID", 2);
 }
 
-void UI_DrawRegisters(uint8_t Vfo)
+void UI_DrawDialRegisters(uint8_t Dial)
 {
 REGx10 reg10;
 REGx43 reg43;
@@ -330,7 +330,7 @@ REGx7E reg7E;
 		|| (gScreenMode == SCREEN_REGEDIT)
 #endif
 	) {
-		const uint8_t Y = 72 - (Vfo * 41);
+		const uint8_t Y = 72 - (Dial * 41);
 	
 		gColorForeground = COLOR_BLUE;
 
@@ -387,7 +387,7 @@ REGx7E reg7E;
 	}
 }
 
-void UI_DrawVfoFrame(uint8_t Y)
+void UI_DrawDialBarFrame(uint8_t Y)
 {
 	Y = 43 - (Y * 41);
 #ifdef ENABLE_SCANLIST_DISPLAY
@@ -410,15 +410,15 @@ void UI_DrawVfoFrame(uint8_t Y)
 	DISPLAY_DrawRectangle( 80, Y,   1, 5, COLOR_FOREGROUND);
 }
 
-void UI_DrawName(uint8_t Vfo, const char *pName)
+void UI_DrawDialMemName(uint8_t Dial, const char *pName)
 {
 	gColorForeground = COLOR_FOREGROUND;
-	UI_DrawString(34, 83 - (Vfo * 41), pName, 10);
+	UI_DrawString(34, 83 - (Dial * 41), pName, 10);
 }
 
-void UI_DrawModType(uint8_t Mode, uint8_t gModulationType, uint8_t dial)
+void UI_DrawDialModulation(uint8_t Mode, uint8_t gModulationType, uint8_t Dial)
 {
-	const uint8_t Y = 43 - (dial * 41);
+	const uint8_t Y = 43 - (Dial * 41);
 
 	switch (Mode) {
 	case 0: // idle mode
@@ -437,10 +437,10 @@ void UI_DrawModType(uint8_t Mode, uint8_t gModulationType, uint8_t dial)
 	}
 }
 
-void UI_DrawFrequency(uint32_t Frequency, uint8_t Vfo, uint16_t Color)
+void UI_DrawDialFrequency(uint32_t Frequency, uint8_t Dial, uint16_t Color)
 {
 	uint8_t X = 20;
-	uint8_t Y = 52 - (Vfo * 41);
+	uint8_t Y = 52 - (Dial * 41);
 	uint32_t Divider = 10000000U;
 	uint8_t i;
 
@@ -485,9 +485,9 @@ void UI_DrawBigDigit(uint8_t X, uint8_t Y, uint8_t Digit)
 	}
 }
 
-void UI_DrawCss(uint8_t CodeType, uint16_t Code, uint8_t Encrypt, bool bMute, uint8_t Vfo)
+void UI_DrawDialCss(uint8_t CodeType, uint16_t Code, uint8_t Encrypt, bool bMute, uint8_t Dial)
 {
-	const uint8_t Y = 58 - (Vfo * 41);
+	const uint8_t Y = 58 - (Dial * 41);
 
 	gColorForeground = COLOR_FOREGROUND;
 
@@ -518,9 +518,9 @@ void UI_DrawCss(uint8_t CodeType, uint16_t Code, uint8_t Encrypt, bool bMute, ui
 	}
 }
 
-void UI_DrawTxPower(uint8_t pLevel, uint8_t Vfo)
+void UI_DrawDialTxPower(uint8_t pLevel, uint8_t Dial)
 {
-	uint8_t Y = 43 - (Vfo * 41);
+	uint8_t Y = 43 - (Dial * 41);
 
 	switch (pLevel) {
 		case 0:
@@ -674,7 +674,7 @@ void ConvertRssiToSmeter(uint16_t Rssi)
 		}
 }
 
-void UI_DrawRxCTCSS(uint8_t Dial, uint16_t Tone)
+void UI_DrawDialRxCtcss(uint8_t Dial, uint16_t Tone)
 {
 	uint8_t Y = 58 - (Dial * 41);
 
@@ -691,7 +691,7 @@ void UI_DrawRxCTCSS(uint8_t Dial, uint16_t Tone)
 	}
 }
 
-void UI_DrawRxDBM(uint8_t Dial, bool Clear)
+void UI_DrawDialRxDbm(uint8_t Dial, bool Clear)
 {
 	uint8_t Y = 43 - (Dial * 41);
 
@@ -718,21 +718,21 @@ void UI_DrawRxSmeter (uint8_t Vfo, bool Clear)
 		UI_DrawSmallString(112, Y-16, "     ", 5);
 }
 
-void UI_DrawChannel(uint16_t Channel, uint8_t Dial)
+void UI_DrawDialModeLabel(uint16_t StoredNumber, uint8_t Dial)
 {
 	uint8_t Y = 73 - (Dial * 41);
 
 	gColorForeground = COLOR_FOREGROUND;
-	if (Channel > 998) {
+	if (StoredNumber > 998) {
 		UI_DrawSmallString(124, Y, "VFO  ", 5);
 	} else {
 		UI_DrawSmallString(124, Y, "CH", 2);
-		Int2Ascii(Channel + 1, 3);
+		Int2Ascii(StoredNumber + 1, 3);
 		UI_DrawSmallString(136, Y, gShortString, 3);
 	}
 }
 
-static void DrawRadio(uint8_t Vfo)
+static void DrawDialRadioIcon(uint8_t Dial)
 {
 	uint8_t i;
 
@@ -740,7 +740,7 @@ static void DrawRadio(uint8_t Vfo)
 		uint32_t Pixel = IconRadio[i];
 		uint8_t j;
 
-		ST7735S_SetPosition(4 + i, 56 - (Vfo * 41));
+		ST7735S_SetPosition(4 + i, 56 - (Dial * 41));
 		for (j = 0; j < 24; j++) {
 			if (Pixel & 0x800000U) {
 				ST7735S_SendU16(gColorForeground);
@@ -752,7 +752,7 @@ static void DrawRadio(uint8_t Vfo)
 	}
 }
 
-void UI_DrawRX(uint8_t Vfo)
+void UI_DrawDialAntennaIcon(uint8_t Dial)
 {
 	uint8_t i;
 	uint8_t j;
@@ -770,7 +770,7 @@ void UI_DrawRX(uint8_t Vfo)
 			gColorForeground = gColorBackground;
 			Pixel = 0x0FFF;
 		}
-		ST7735S_SetPosition(14 + i, 70 - (Vfo * 41));
+		ST7735S_SetPosition(14 + i, 70 - (Dial * 41));
 		for (j = 0; j < 12; j++) {
 			if (Pixel & 0x800U) {
 				ST7735S_SendU16(gColorForeground);
@@ -780,7 +780,7 @@ void UI_DrawRX(uint8_t Vfo)
 			Pixel <<= 1;
 		}
 	}
-	DrawRadio(Vfo);
+	DrawDialRadioIcon(Dial);
 }
 
 void UI_DrawDTMF(void)
@@ -852,9 +852,9 @@ void UI_DrawDialog(void)
 	UI_DrawFrame(4, 156, 19, 61, 2, gSettings.BorderColor);
 }
 
-void UI_DrawBar(uint8_t Level, uint8_t Vfo)
+void UI_DrawDialSignalBar(uint8_t Level, uint8_t Dial)
 {
-	uint8_t Y = 44 - (Vfo * 41);
+	uint8_t Y = 44 - (Dial * 41);
 	uint8_t i;
 
 	// Level is [0..100], but bar is [0..80]
@@ -862,16 +862,18 @@ void UI_DrawBar(uint8_t Level, uint8_t Vfo)
 
 	// Too high level
 	if(Level>80){
-		gColorForeground = COLOR_BLUE;
+		gColorForeground = COLOR_RED;
 		Level=80;
 	}
 	else{
-		if (Level < 20) {
-			gColorForeground = COLOR_RED;
-		} else if (Level < 40) {
-			gColorForeground = COLOR_RGB(31, 41, 0);/// orange?
-		} else {
-			gColorForeground = COLOR_GREEN;
+		if (Level < 30) {
+			gColorForeground = COLOR_RGB(0, 63, 31); //LIGHT BLUE
+		} 
+		else if (Level < 50) {
+			gColorForeground = COLOR_RGB(0, 31, 31); // BLUE
+		} 
+		else {
+			gColorForeground = COLOR_RGB(0,  0, 31); // DARK BLUE
 		}
 	}
 	for (i = 0; i < Level; i++) {
@@ -894,7 +896,7 @@ void UI_DrawSomething(void)
 	if (gSettings.DualDisplay == 0 && gSettings.CurrentDial != gCurrentDial) {
 		DISPLAY_Fill(1, 158, 1 + Y, 40 + Y, COLOR_BACKGROUND);
 		DISPLAY_Fill(1, 158, 1 + ((!gCurrentDial) * 41), 40 + ((!gCurrentDial) * 41), COLOR_BACKGROUND);
-		UI_DrawRegisters(!gSettings.CurrentDial);
+		UI_DrawDialRegisters(!gSettings.CurrentDial);
 		UI_DrawDial(gSettings.CurrentDial);
 	} else {
 
@@ -905,46 +907,49 @@ void UI_DrawSomething(void)
 #endif
 		UI_DrawDial(gCurrentDial);
 		if (gSettings.CurrentDial == gCurrentDial && gInputBoxWriteIndex) {
-			if (gSettings.WorkModeA) {
-				UI_DrawDigits(gInputBox, gSettings.CurrentDial);
+			if (DIAL_CurrentIsMemMode()) {
+				UI_DrawDialTypedDigits(gInputBox, gSettings.CurrentDial);
 			} else {
-				UI_DrawFrequencyEx(gInputBox, gSettings.CurrentDial, gFrequencyReverse);
+				UI_DrawDialFrequencyText(gInputBox, gSettings.CurrentDial, gFrequencyReverse);
 			}
 		}
-		//UI_DrawRX(gCurrentDial);///?
+		//UI_DrawDialAntennaIcon(gCurrentDial);///?
 #ifndef ENABLE_SCANLIST_DISPLAY
-		//UI_DrawBar(0, gCurrentDial);
+		//UI_DrawDialSignalBar(0, gCurrentDial);
 //		ConvertRssiToDbm(0);
-//		UI_DrawRxDBM(gCurrentDial, true);
+//		UI_DrawDialRxDbm(gCurrentDial, true);
 #endif
 //		UI_DrawRxSmeter(!gCurrentDial, true);
 	}
-	UI_DrawMainBitmap(true, gSettings.CurrentDial);
+	UI_DrawDialMainMarker(true, gSettings.CurrentDial);
 }
 
-void UI_DrawMainBitmap(bool bOverride, uint8_t Vfo)
+void UI_DrawDialMainMarker(bool bOverride, uint8_t Dial)
 {
 	uint8_t i, j;
 
 	if (gSettings.bFLock) {
 		gColorForeground = COLOR_RED;
-	} else {
+	} 
+	else {
 		gColorForeground = COLOR_BLUE;
 	}
 
 	for (i = 0; i < 25; i++) {
 		uint16_t Pixel = BitmapMAIN[i];
 
-		ST7735S_SetPosition(i + 4, 70 - (Vfo * 41));
+		ST7735S_SetPosition(i + 4, 70 - (Dial * 41));
 		for (j = 0; j < 10; j++) {
 			if (bOverride) {
 				if (Pixel & 0x0200U) {
 					ST7735S_SendU16(gColorForeground);
-				} else {
+				} 
+				else {
 					ST7735S_SendU16(gColorBackground);
 				}
 				Pixel <<= 1;
-			} else {
+			} 
+			else {
 				ST7735S_SendU16(gColorBackground);
 			}
 		}
@@ -959,15 +964,16 @@ void UI_DrawSky(void)
 	UI_DrawBitmap(90, 16, 7, 70, BitmapSKY);
 }
 
-void UI_DrawFrequencyEx(const char *String, uint8_t Vfo, bool bReverse)
+void UI_DrawDialFrequencyText(const char *String, uint8_t Dial, bool bReverse)
 {
 	uint8_t X = 20;
-	const uint8_t Y = 52 - (Vfo * 41);
+	const uint8_t Y = 52 - (Dial * 41);
 	uint8_t i;
 
 	if (!bReverse) {
 		gColorForeground = COLOR_FOREGROUND;
-	} else {
+	} 
+	else {
 		gColorForeground = COLOR_RED;
 	}
 
@@ -976,7 +982,8 @@ void UI_DrawFrequencyEx(const char *String, uint8_t Vfo, bool bReverse)
 		UI_DrawBigDigit(X, Y, String[i]);
 		if (i == 2) {
 			X += 16;
-		} else {
+		} 
+		else {
 			X += 12;
 		}
 	}
@@ -1014,7 +1021,8 @@ void UI_DrawMenuPosition(const char *pString)
 	for (i = 0; i < 2; i++) {
 		if (pString[i] == '-') {
 			gString[i] = '-';
-		} else {
+		} 
+		else {
 			gString[i] = '0' + pString[i];
 		}
 	}
@@ -1054,7 +1062,7 @@ void UI_DrawGolay(void)
 	}
 }
 
-void UI_DrawChannelNumber(const char *pString)
+void UI_DrawMenuMemNumber(const char *pString)
 {
 	uint8_t i;
 
@@ -1156,7 +1164,7 @@ void UI_DrawScan(void)
 	if (!gScannerMode) {
 		UI_DrawSmallString(18, 86, " ", 1);
 	} else {
-		if (gSettings.WorkModeA) {
+		if (DIAL_CurrentIsMemMode()) {
 			UI_DrawSmallString(18, 86, gExtendedSettings.ScanAll ? "A" :
 									   gExtendedSettings.CurrentScanList == 0 ? "1" :
 									   gExtendedSettings.CurrentScanList == 1 ? "2" :
@@ -1170,12 +1178,12 @@ void UI_DrawScan(void)
 }
 
 #ifdef ENABLE_SCANLIST_DISPLAY
-void UI_DrawScanLists(uint8_t Vfo)
+void UI_DrawDialScanLists(uint8_t Dial)
 {
 	gColorForeground = COLOR_GREY;
 	for (uint8_t i = 0; i < 8; i++) {
-		gShortString[0] = (((gVfoState[Vfo].IsInscanList >> i) & 1 ) ? (49 + i) : '-');
-		UI_DrawSmallString(26 + (i * 12), Vfo ? 2 : 43, gShortString, 1);
+		gShortString[0] = (((gVfoState[Dial].IsInscanList >> i) & 1 ) ? (49 + i) : '-');
+		UI_DrawSmallString(26 + (i * 12), Dial ? 2 : 43, gShortString, 1);
 	}
 }
 #endif

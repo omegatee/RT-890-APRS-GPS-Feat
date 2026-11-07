@@ -262,13 +262,11 @@ void RADIO_Init(void)
 		UI_DrawBoot();
 	}
 
-	CHANNELS_CheckFreeChannels();
+	MEM_CountStored();
 
-	if (gSettings.WorkModeA) {
-		CHANNELS_LoadWorkMode();
-	} else {
-		CHANNELS_LoadVfoMode();
-	}
+	// each dial starts in its own saved mode
+	DIAL_Load(!gSettings.CurrentDial);
+	DIAL_Load(gSettings.CurrentDial);
 
 	gCurrentDial = gSettings.CurrentDial;
 
@@ -311,7 +309,7 @@ void RADIO_Tune(uint8_t Vfo)
 void RADIO_StartRX(void)
 {
 	if (gScannerMode) {
-		gScanLastRxFreqOrChannel = gSettings.WorkModeA ? gSettings.VfoChNo[gSettings.CurrentDial]
+		gScanLastRxFreqOrChannel = DIAL_CurrentIsMemMode() ? gSettings.VfoChNo[gSettings.CurrentDial]
 													  : gVfoInfo[gSettings.CurrentDial].Frequency;
 	}
 #ifdef ENABLE_FM_RADIO
@@ -334,11 +332,11 @@ void RADIO_StartRX(void)
 				DISPLAY_Fill(1, 158, 1 + Y, 40 + Y, COLOR_BACKGROUND);
 				DISPLAY_Fill(1, 158, 1 + ((!gCurrentDial) * 41), 40 + ((!gCurrentDial) * 41), COLOR_BACKGROUND);
 
-				UI_DrawRegisters(!gCurrentDial);
+				UI_DrawDialRegisters(!gCurrentDial);
 			}
 			UI_DrawDial(gCurrentDial);
-			UI_DrawMainBitmap(true, gSettings.CurrentDial);///
-///			UI_DrawRX(gCurrentDial); draws walky rx icon
+			UI_DrawDialMainMarker(true, gSettings.CurrentDial);///
+///			UI_DrawDialAntennaIcon(gCurrentDial); draws walky rx icon
 		}
 		if (gMainVfo->BCL == BUSY_LOCK_CSS && !gMonitorMode) {
 			PTT_SetLock(PTT_LOCK_BUSY);
@@ -466,13 +464,9 @@ static void PlayRogerBeep(uint8_t Mode)
 	BEEP_Disable();
 }
 
-void RADIO_Retune(void)
+void DIAL_ReloadAndTune(void)
 {
-	if (gSettings.WorkModeA) {
-		CHANNELS_LoadChannel(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
-	} else {
-		CHANNELS_LoadChannel(gSettings.CurrentDial ? 1000 : 999, gSettings.CurrentDial);
-	}
+	DIAL_Reload(gSettings.CurrentDial);
 	RADIO_Tune(gSettings.CurrentDial);
 }
 
@@ -484,7 +478,7 @@ void RADIO_NoaaRetune(void)
 	if (gRadioMode == RADIO_MODE_RX) {
 		RADIO_EndAudio();
 	}
-	RADIO_Retune();
+	DIAL_ReloadAndTune();
 	RADIO_Tune(gSettings.CurrentDial);
 	gScreenMode = SCREEN_MAIN;
 	UI_DrawMain(true);
@@ -503,7 +497,7 @@ void RADIO_NoaaTune(void)
 }
 #endif
 
-void VFO_ClearCss(void)
+void DIAL_ClearCss(void)
 {
 	gVfoState[gSettings.CurrentDial].RX.CodeType = CODE_TYPE_OFF;
 	gVfoState[gSettings.CurrentDial].TX.CodeType = CODE_TYPE_OFF;
@@ -512,20 +506,16 @@ void VFO_ClearCss(void)
 	gVfoState[gSettings.CurrentDial].Encrypt = 0;
 }
 
-void VFO_ClearMute(void)
+void DIAL_ClearMute(void)
 {
 	gVfoState[gSettings.CurrentDial].bIs24Bit = 0;
 	gVfoState[gSettings.CurrentDial].bMuteEnabled = 0;
 	gVfoState[gSettings.CurrentDial].Golay = 0;
 }
 
-void RADIO_SaveCurrentDial(void)
+void DIAL_SaveAndTune(void)
 {
-	if (gSettings.WorkModeA) {
-		CHANNELS_SaveChannel(gSettings.VfoChNo[gSettings.CurrentDial], &gVfoState[gSettings.CurrentDial]);
-	} else {
-		CHANNELS_SaveChannel(gSettings.CurrentDial ? 1000 : 999, &gVfoState[gSettings.CurrentDial]);
-	}
+	MEM_Save(DIAL_GetStoredNumber(gSettings.CurrentDial), &gVfoState[gSettings.CurrentDial]);
 	RADIO_Tune(gSettings.CurrentDial);
 }
 
@@ -549,7 +539,7 @@ void RADIO_StartTX(bool bUseMic)
 			UI_DrawMain(true);
 		}
 		Task_UpdateScreen();
-		UI_DrawMainBitmap(true, gSettings.CurrentDial);///
+		UI_DrawDialMainMarker(true, gSettings.CurrentDial);///
 		UI_DrawDial(gSettings.CurrentDial);
 /// Moved to end of transmission
 ///		if (gSettings.RogerBeep == 3) {
@@ -639,22 +629,22 @@ void RADIO_DrawFmMode(void)
 	UI_DrawFMFrequency(gSettings.FmFrequency);
 }
 
-void RADIO_DrawChannelMode(void)
+void DIAL_DrawMemMode(void)
 {
 	gInputBoxWriteIndex = 0;
 	INPUTBOX_Pad(0, '-');
 	UI_DrawDial(gSettings.CurrentDial);
 }
 
-void RADIO_DrawFrequencyMode(void)
+void DIAL_DrawVfoMode(void)
 {
 	RADIO_CancelMode();
 	INPUTBOX_Pad(0, 10);
 	gInputBoxWriteIndex = 0;
 	if (gFrequencyReverse) {
-		UI_DrawFrequency(gVfoState[gSettings.CurrentDial].TX.Frequency, gSettings.CurrentDial, COLOR_RED);
+		UI_DrawDialFrequency(gVfoState[gSettings.CurrentDial].TX.Frequency, gSettings.CurrentDial, COLOR_RED);
 	} else {
-		UI_DrawFrequency(gVfoState[gSettings.CurrentDial].RX.Frequency, gSettings.CurrentDial, COLOR_FOREGROUND);
+		UI_DrawDialFrequency(gVfoState[gSettings.CurrentDial].RX.Frequency, gSettings.CurrentDial, COLOR_FOREGROUND);
 	}
 }
 

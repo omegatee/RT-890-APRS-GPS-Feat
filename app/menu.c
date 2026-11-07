@@ -291,7 +291,7 @@ static void CSS_KeyHandler(KEY_t Key)
 	}
 }
 
-static void DrawEditChannel(void)
+static void DrawEditMem(void)
 {
 	uint16_t Channel;
 	uint8_t i;
@@ -305,11 +305,11 @@ static void DrawEditChannel(void)
 	UI_DrawString(132, 48, "   ", 3);
 	if (Channel && Channel < 1000) {
 		gSettingCurrentValue = Channel - 1;
-		UI_DrawChannelName(gSettingCurrentValue);
+		UI_DrawMenuMemName(gSettingCurrentValue);
 	}
 }
 
-static void CHANNEL_KeyHandler(KEY_t Key)
+static void MEM_KeyHandler(KEY_t Key)
 {
 	if (Key != KEY_STAR && Key != KEY_HASH) {
 		if (gInputBoxWriteIndex == 0) {
@@ -317,9 +317,9 @@ static void CHANNEL_KeyHandler(KEY_t Key)
 		}
 		gInputBox[gInputBoxWriteIndex++] = (char)Key;
 		gInputBoxWriteIndex %= 3;
-		UI_DrawChannelNumber(gInputBox);
+		UI_DrawMenuMemNumber(gInputBox);
 		if (gInputBoxWriteIndex == 0) {
-			DrawEditChannel();
+			DrawEditMem();
 		}
 	}
 }
@@ -362,6 +362,7 @@ void MENU_SetMaxCssValues(void)
 void MENU_AcceptSetting(void)
 {
 	uint16_t Channel;
+	uint8_t Dial;
 	uint8_t i;
 
 	switch (gMenuIndex) {
@@ -524,24 +525,24 @@ void MENU_AcceptSetting(void)
 		gVfoState[gSettings.CurrentDial].TX.Code = gSettingCode;
 		gVfoState[gSettings.CurrentDial].RX.CodeType = gSettingCodeType;
 		gVfoState[gSettings.CurrentDial].RX.Code = gSettingCode;
-		CHANNELS_SaveVfo();
+		DIAL_SaveCurrent();
 		break;
 
 	case MENU_RX_CTCSS_DCS:
 		gVfoState[gSettings.CurrentDial].RX.CodeType = gSettingCodeType;
 		gVfoState[gSettings.CurrentDial].RX.Code = gSettingCode;
-		CHANNELS_SaveVfo();
+		DIAL_SaveCurrent();
 		break;
 
 	case MENU_TX_CTCSS_DCS:
 		gVfoState[gSettings.CurrentDial].TX.CodeType = gSettingCodeType;
 		gVfoState[gSettings.CurrentDial].TX.Code = gSettingCode;
-		CHANNELS_SaveVfo();
+		DIAL_SaveCurrent();
 		break;
 
 	case MENU_TX_POWER:
 		gVfoState[gSettings.CurrentDial].gTXPower = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
-		CHANNELS_SaveVfo();
+		DIAL_SaveCurrent();
 		break;
 
 	case MENU_MIC_GAIN:
@@ -574,7 +575,7 @@ void MENU_AcceptSetting(void)
 
 	case MENU_MODULATION:
 		gVfoState[gSettings.CurrentDial].gModulationType = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
-		CHANNELS_SaveVfo();
+		DIAL_SaveCurrent();
 		break;
 
 	case MENU_BAND_WIDTH:
@@ -582,7 +583,7 @@ void MENU_AcceptSetting(void)
 		gVfoState[gSettings.CurrentDial].gBandWidth = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
 		//gMainVfo->gBandWidth = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
 //IFDBG UART_printf(1,"SEL Wid: %d\r\n",gMainVfo->gBandWidth);
-		CHANNELS_SaveVfo();
+		DIAL_SaveCurrent();
 		break;
 
 	case MENU_LIST_TO_SCAN:
@@ -604,24 +605,24 @@ void MENU_AcceptSetting(void)
 		gVfoState[gSettings.CurrentDial].IsInscanList =
 				(gVfoState[gSettings.CurrentDial].IsInscanList & ~(1 << (gMenuIndex - MENU_SCANLIST_1)))	// cleaning the bit corresponding to the scanlist
 				| (gSettingIndex << (gMenuIndex - MENU_SCANLIST_1));									// set the bit to 1 if gSettingIndex = "On"
-		CHANNELS_SaveVfo();
+		DIAL_SaveCurrent();
 		break;
 
 
 	case MENU_BUSY_LOCK:
 		gVfoState[gSettings.CurrentDial].BCL = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
-		CHANNELS_SaveVfo();
+		DIAL_SaveCurrent();
 		break;
 
 	case MENU_SCRAMBLER:
 		BEEP_Disable();
 		gVfoState[gSettings.CurrentDial].Scramble = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
-		CHANNELS_SaveVfo();
+		DIAL_SaveCurrent();
 		break;
 
 	case MENU_DCS_ENCRYPT:
 		gVfoState[gSettings.CurrentDial].Encrypt = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
-		CHANNELS_SaveVfo();
+		DIAL_SaveCurrent();
 		break;
 
 	case MENU_MUTE_CODE:
@@ -650,47 +651,37 @@ void MENU_AcceptSetting(void)
 			gVfoState[gSettings.CurrentDial].bIs24Bit = 1;
 		}
 		gVfoState[gSettings.CurrentDial].Golay = gSettingGolay;
-		CHANNELS_SaveVfo();
+		DIAL_SaveCurrent();
 		break;
 
 	case MENU_CH_NAME:
 		for (i = 0; i < 10; i++) {
 			gVfoState[gSettings.CurrentDial].Name[i] = gBigString[i];
 		}
-		CHANNELS_SaveVfo();
+		DIAL_SaveCurrent();
 		break;
 
 	case MENU_SAVE_CH:
-		CHANNELS_SaveChannel((gSettingCurrentValue + gSettingIndex) % gSettingMaxValues, &gVfoState[gSettings.CurrentDial]);
-		CHANNELS_CheckFreeChannels();
+		MEM_Save((gSettingCurrentValue + gSettingIndex) % gSettingMaxValues, &gVfoState[gSettings.CurrentDial]);
+		MEM_CountStored();
 		// TODO: This "if" block doesn't exist in the original, but there's a bug where VFO A is cleared by the previous line
-		if (gSettings.WorkModeA) {
-			CHANNELS_LoadChannel(gSettings.VfoChNo[0], 0);
-		} else {
-			CHANNELS_LoadChannel(999, 0);
-		}
-		RADIO_Retune();
+		DIAL_Reload(0);
+		DIAL_ReloadAndTune();
 		break;
 
 	case MENU_DELETE_CH:
 		Channel = (gSettingCurrentValue + gSettingIndex) % gSettingMaxValues;
-		CHANNELS_SaveChannel(Channel, &EmptyChannel);
-		CHANNELS_CheckFreeChannels();
-		if (gSettings.WorkModeA) {
-			if (gSettings.VfoChNo[0] == Channel) {
-				gSettings.VfoChNo[0] = CHANNELS_GetChannelUp(Channel, 0);
+		MEM_Save(Channel, &EmptyChannel);
+		MEM_CountStored();
+		// move every dial that is in channel mode off the deleted channel
+		for (Dial = 0; Dial < 2; Dial++) {
+			if (DIAL_IsMemMode(Dial) && gSettings.VfoChNo[Dial] == Channel) {
+				gSettings.VfoChNo[Dial] = MEM_LoadNextUp(Channel, Dial);
+				SETTINGS_SaveGlobals();
 			}
-			if (gSettings.VfoChNo[1] == Channel) {
-				gSettings.VfoChNo[1] = CHANNELS_GetChannelUp(Channel, 1);
-			}
-			SETTINGS_SaveGlobals();
 		}
-		if (gSettings.WorkModeA) {
-			CHANNELS_LoadChannel(gSettings.VfoChNo[!gSettings.CurrentDial], !gSettings.CurrentDial);
-		} else {
-			CHANNELS_LoadChannel(gSettings.CurrentDial ? 999 : 1000, !gSettings.CurrentDial);
-		}
-		RADIO_Retune();
+		DIAL_Reload(!gSettings.CurrentDial);
+		DIAL_ReloadAndTune();
 		break;
 
 	case MENU_K1_LONG:
@@ -1104,7 +1095,7 @@ void MENU_DrawSetting(void)
 		gSettingMaxValues = 999;
 		gSettingCurrentValue = gSettings.VfoChNo[gSettings.CurrentDial];
 		DISPLAY_Fill(0, 159, 1, 55, COLOR_BACKGROUND);
-		UI_DrawChannelName(gSettingCurrentValue);
+		UI_DrawMenuMemName(gSettingCurrentValue);
 		break;
 
 	case MENU_K1_LONG:
@@ -1315,7 +1306,7 @@ void MENU_SettingKeyHandler(uint8_t Key)
 
 		case MENU_SAVE_CH:
 		case MENU_DELETE_CH:
-			CHANNEL_KeyHandler(Key);
+			MEM_KeyHandler(Key);
 			break;
 		}
 		BEEP_Play(740, 2, 100,0);
@@ -1456,7 +1447,7 @@ void MENU_ScrollSetting(uint8_t Key)
 
 	case MENU_SAVE_CH:
 	case MENU_DELETE_CH:
-		UI_DrawChannelName(gSettingCurrentValue);
+		UI_DrawMenuMemName(gSettingCurrentValue);
 		break;
 
 	case MENU_K1_LONG:

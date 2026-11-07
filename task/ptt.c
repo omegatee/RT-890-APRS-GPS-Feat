@@ -68,10 +68,10 @@ void Task_CheckPTT(void)
 									gPttPressed = true;
 								}
 							} else {
-								if (gSettings.WorkModeA) {
-									RADIO_DrawChannelMode();
+								if (DIAL_CurrentIsMemMode()) {
+									DIAL_DrawMemMode();
 								} else {
-									RADIO_DrawFrequencyMode();
+									DIAL_DrawVfoMode();
 								}
 								gPttPressed = true;
 							}

@@ -28,7 +28,7 @@ extern uint8_t gAudioOffsetIndex;
 void AUDIO_PlaySample(uint16_t Period, uint32_t Offset);
 void AUDIO_PlayMenuSample(uint8_t ID);
 void AUDIO_PlaySampleOptional(uint8_t Index);
-void AUDIO_PlayChannelNumber(void);
+void AUDIO_PlayMemNumber(void);
 void AUDIO_PlayDigit(uint8_t Digit);
 
 #endif

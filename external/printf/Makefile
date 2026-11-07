@@ -10,18 +10,18 @@
 # ------------------------------------------------------------------------------
 # Paths
 # ------------------------------------------------------------------------------
-PATH_TOOLS_CC        = /usr/bin/
-PATH_TOOLS_CC_LIB    = /usr/lib/
+PATH_TOOLS_CC        = \usr\bin
+PATH_TOOLS_CC_LIB    = \usr\lib
 PATH_TOOLS_UTIL      = 
 
 PATH_BIN       = bin
 PATH_TMP       = tmp
-PATH_NUL       = /dev/null
-PATH_OBJ       = $(PATH_TMP)/obj
-PATH_LST       = $(PATH_TMP)/lst
-PATH_ERR       = $(PATH_TMP)/err
-PATH_PRE       = $(PATH_TMP)/pre
-PATH_COV       = $(PATH_TMP)/cov
+PATH_NUL       = \dev\null
+PATH_OBJ       = $(PATH_TMP)\obj
+PATH_LST       = $(PATH_TMP)\lst
+PATH_ERR       = $(PATH_TMP)\err
+PATH_PRE       = $(PATH_TMP)\pre
+PATH_COV       = $(PATH_TMP)\cov
 
 
 # ------------------------------------------------------------------------------
@@ -39,7 +39,7 @@ APP = test_suite
 #              bar/file3
 # -----------------------------------------------------------------------------
 
-FILES_PRJ  = test/test_suite
+FILES_PRJ  = test\test_suite
 
 
 # ------------------------------------------------------------------------------
@@ -58,7 +58,7 @@ C_DEFINES  =
 # ------------------------------------------------------------------------------
 # The target name and location
 # ------------------------------------------------------------------------------
-TRG = $(PATH_BIN)/$(APP)
+TRG = $(PATH_BIN)\$(APP)
 
 
 # ------------------------------------------------------------------------------
@@ -94,10 +94,10 @@ OBJCOPY   = $(PATH_TOOLS_CC)objcopy
 READELF   = $(PATH_TOOLS_CC)readelf
 SIZE      = $(PATH_TOOLS_CC)size
 
-ECHO      = $(PATH_TOOLS_UTIL)echo
-MAKE      = $(PATH_TOOLS_UTIL)make
-MKDIR     = $(PATH_TOOLS_UTIL)mkdir
-RM        = $(PATH_TOOLS_UTIL)rm
+ECHO      = echo
+MAKE      = make
+MKDIR     = mkdir
+RM        = del
 SED       = $(PATH_TOOLS_UTIL)sed
 
 
@@ -182,13 +182,13 @@ rebuild: clean $(TRG) $(TRG)_nm.txt
 .PHONY: clean_prj
 clean_prj:
 	@-$(ECHO) +++ cleaning project
-	@-$(RM) -rf $(PATH_BIN) 2> $(PATH_NUL)
-	@-$(MKDIR) -p $(PATH_BIN)
-	@-$(MKDIR) -p $(PATH_OBJ)
-	@-$(MKDIR) -p $(PATH_ERR)
-	@-$(MKDIR) -p $(PATH_LST)
-	@-$(MKDIR) -p $(PATH_PRE)
-	@-$(MKDIR) -p $(PATH_COV)
+	@-$(RM) /F /Q $(PATH_BIN)
+	@-$(MKDIR) $(PATH_BIN)
+	@-$(MKDIR) $(PATH_OBJ)
+	@-$(MKDIR) $(PATH_ERR)
+	@-$(MKDIR) $(PATH_LST)
+	@-$(MKDIR) $(PATH_PRE)
+	@-$(MKDIR) $(PATH_COV)
 
 
 # ------------------------------------------------------------------------------
@@ -197,13 +197,13 @@ clean_prj:
 .PHONY: clean
 clean:
 	@-$(ECHO) +++ cleaning all
-	@-$(RM) -rf $(PATH_BIN) 2> $(PATH_NUL)
-	@-$(RM) -rf $(PATH_TMP) 2> $(PATH_NUL)
-	@-$(MKDIR) -p $(PATH_BIN)
-	@-$(MKDIR) -p $(PATH_OBJ)
-	@-$(MKDIR) -p $(PATH_ERR)
-	@-$(MKDIR) -p $(PATH_LST)
-	@-$(MKDIR) -p $(PATH_COV)
+	@-$(RM) /F /Q $(PATH_BIN)
+	@-$(RM) /F /Q $(PATH_TMP)
+	@-$(MKDIR) $(PATH_BIN)
+	@-$(MKDIR) $(PATH_OBJ)
+	@-$(MKDIR) $(PATH_ERR)
+	@-$(MKDIR) $(PATH_LST)
+	@-$(MKDIR) $(PATH_COV)
 
 
 # ------------------------------------------------------------------------------
@@ -227,9 +227,9 @@ version:
 # ------------------------------------------------------------------------------
 $(TRG) : $(FILES_O)
 	@-$(ECHO) +++ linkink application to generate: $(TRG)
-	@-$(CL) $(LFLAGS) -L. -lc $(PATH_OBJ)/*.o -Wl,-Map,$(TRG).map -o $(TRG)
+	@-$(CL) $(LFLAGS) -L. -lc $(PATH_OBJ)\*.o -Wl,-Map,$(TRG).map -o $(TRG)
   # profiling
-	@-$(CL) $(LFLAGS) -L. -lc $(PATH_COV)/*.o --coverage -o $(PATH_COV)/$(APP)
+	@-$(CL) $(LFLAGS) -L. -lc $(PATH_COV)\*.o --coverage -o $(PATH_COV)\$(APP)
 
 
 # ------------------------------------------------------------------------------

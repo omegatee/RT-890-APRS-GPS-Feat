@@ -72,7 +72,7 @@ void VOX_Update(void)
 			Vox = 5000;
 		}
 #ifdef ENABLE_TX_BAR		
-		UI_DrawBar(Vox / 50, gSettings.CurrentDial);
+		UI_DrawDialSignalBar(Vox / 50, gSettings.CurrentDial);
 #endif
 	}
 }

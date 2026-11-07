@@ -32,7 +32,7 @@
 Calibration_t gCalibration;
 char myCALL[16];
 gSettings_t gSettings;
-char WelcomeString[32];
+char SerialNumber[32];
 //	char WelcomeString[]={"your SN"};
 uint32_t gFrequencyStep = 25;
 gExtendedSettings_t gExtendedSettings;
@@ -100,11 +100,11 @@ void SETTINGS_LoadSettings(void)
 {
 uint8_t cnt;
 	
-	SFLASH_Read(WelcomeString, 0x3C1000, sizeof(WelcomeString));	/// "Startup Label" in CHIRP (now, used as Serial Number)
+	SFLASH_Read(SerialNumber, 0x3C1000, sizeof(SerialNumber));	/// "Startup Label" in CHIRP (now, used as Serial Number)
 	cnt=0;/// let's remove the annoying padding spaces here
-	while(WelcomeString[cnt]!=0x20 && WelcomeString[cnt])	
+	while(SerialNumber[cnt]!=0x20 && SerialNumber[cnt])	
 		cnt++;
-	WelcomeString[cnt]=0;
+	SerialNumber[cnt]=0;
 	
 //SFLASH_Update(WelcomeString, 0x3C1000, sizeof(WelcomeString));
 	
@@ -170,10 +170,10 @@ void SETTINGS_SaveState(void)
 	gScannerMode = false;
 	gpio_bits_reset(GPIOA, BOARD_GPIOA_LED_GREEN);
 	SCANNER_Countdown = 0;
-	if (gSettings.WorkModeA) {
+	if (DIAL_CurrentIsMemMode()) {
 		SETTINGS_SaveGlobals();
 	} else {
-		CHANNELS_SaveChannel(gSettings.CurrentDial ? 1000 : 999, &gVfoState[gSettings.CurrentDial]);
+		MEM_Save(gSettings.CurrentDial ? 1000 : 999, &gVfoState[gSettings.CurrentDial]);
 	}
 	UI_DrawScan();
 }

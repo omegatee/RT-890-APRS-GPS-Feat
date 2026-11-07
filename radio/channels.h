@@ -20,6 +20,18 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+/*
+ * Vocabulary used by the function names DIAL_*, MEM_* and *Vfo*:
+ *
+ *   DIAL  one of the two radio blocks on the screen: 0 = upper, 1 = lower.
+ *   VFO   free frequency selection: the frequency is typed in or stepped.
+ *   MEM   a stored channel (memory). Stored as 0..998, shown as CH001..CH999.
+ *
+ * Every dial is independently in VFO mode or in MEM mode (DIAL_IsMemMode).
+ * The VFO of the upper dial is kept in storage slot 999, that of the lower dial in slot 1000;
+ * DIAL_GetStoredNumber() returns the slot the dial currently points to.
+ */
+
 typedef struct __attribute__((packed)) {
 	uint32_t Frequency;
 	uint16_t Code:12;
@@ -52,30 +64,35 @@ typedef struct __attribute__((packed)) {
 	char Name[10];
 } ChannelInfo_t;
 
-extern uint16_t gFreeChannelsCount;
+extern uint16_t gFreeChannelsCount;	// number of stored channels (MEM) that are programmed
 
-bool CHANNELS_NextChannelMr(uint8_t Key, bool OnlyFromScanlist);
-void CHANNELS_NextChannelVfo(uint8_t Key);
+// ---- MEM: stored channels
+bool MEM_LoadToDial(uint16_t MemNo, uint8_t Dial);	// true = empty / invalid
+uint16_t MEM_LoadNextUp(uint16_t MemNo, uint8_t Dial);	// next programmed MEM, loaded into the dial
+uint16_t MEM_LoadNextDown(uint16_t MemNo, uint8_t Dial);
+void MEM_Save(uint16_t MemNo, const ChannelInfo_t *pState);
+void MEM_CountStored(void);				// forces both dials to VFO mode when there is none
+
+// ---- DIAL: loading, saving and stepping the upper / lower dial
+uint16_t DIAL_GetStoredNumber(uint8_t Dial);		// MEM number, or the VFO slot 999 / 1000
+void DIAL_Load(uint8_t Dial);				// load the dial in its own mode (VFO or MEM)
+void DIAL_LoadVfo(uint8_t Dial);
+void DIAL_LoadMem(uint8_t Dial);
+void DIAL_Reload(uint8_t Dial);				// plain re-read of what the dial points to
+void DIAL_SaveCurrent(void);
+
+bool DIAL_StepMem(uint8_t Key, bool OnlyFromScanlist);
+void DIAL_StepVfo(uint8_t Key);
+void DIAL_GoToTypedMem(void);				// MEM number typed on the keypad
+void DIAL_SetTypedVfoFrequency(void);			// frequency typed on the keypad
+void DIAL_SetVfoFrequency(uint32_t Frequency);
+
+// ---- FM broadcast and NOAA (not part of the dial concept)
+void CHANNELS_NextFM(uint8_t Key);
 #ifdef ENABLE_NOAA
 void CHANNELS_NextNOAA(uint8_t Key);
-#endif
-void CHANNELS_NextFM(uint8_t Key);
-
-void CHANNELS_UpdateChannel(void);
-void CHANNELS_UpdateVFO(void);
-void CHANNELS_UpdateVFOFreq(uint32_t Frequency);
-
-bool CHANNELS_LoadChannel(uint16_t ChNo, uint8_t Vfo);
-void CHANNELS_CheckFreeChannels(void);
-void CHANNELS_LoadVfoMode(void);
-void CHANNELS_LoadWorkMode(void);
-uint16_t CHANNELS_GetChannelUp(uint16_t Channel, uint8_t Vfo);
-uint16_t CHANNELS_GetChannelDown(uint16_t Channel, uint8_t Vfo);
-void CHANNELS_SaveChannel(uint16_t Channel, const ChannelInfo_t *pChannel);
-#ifdef ENABLE_NOAA
 void CHANNELS_SetNoaaChannel(uint8_t Channel);
 #endif
-void CHANNELS_SaveVfo(void);
 
 #endif
 

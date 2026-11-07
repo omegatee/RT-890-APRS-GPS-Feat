@@ -63,21 +63,21 @@ void UI_DrawMain(bool bSkipStatus)
 
 	if (gSettings.DualDisplay == 0 && (gRadioMode != RADIO_MODE_RX || gSettings.CurrentDial == gCurrentDial)) {
 		UI_DrawDial(gSettings.CurrentDial);
-		UI_DrawRegisters(!gSettings.CurrentDial);
+		UI_DrawDialRegisters(!gSettings.CurrentDial);
 	} else {
-		UI_DrawDial(!gCurrentDial);
 		UI_DrawDial(gCurrentDial);
+		UI_DrawDial(!gCurrentDial);
 	}
 
 	if (gInputBoxWriteIndex != 0) {
-		if (gSettings.WorkModeA) {
-			UI_DrawDigits(gInputBox, gSettings.CurrentDial);
+		if (DIAL_CurrentIsMemMode()) {
+			UI_DrawDialTypedDigits(gInputBox, gSettings.CurrentDial);
 		} else {
-			UI_DrawFrequencyEx(gInputBox, gSettings.CurrentDial, gFrequencyReverse);
+			UI_DrawDialFrequencyText(gInputBox, gSettings.CurrentDial, gFrequencyReverse);
 		}
 	}
 	if (gRadioMode != RADIO_MODE_RX && gRadioMode != RADIO_MODE_TX) {
-		UI_DrawMainBitmap(true, gSettings.CurrentDial);
+		UI_DrawDialMainMarker(true, gSettings.CurrentDial);
 	}
 	if (gRadioMode == RADIO_MODE_RX && gDTMF_WriteIndex != 0) {
 		gDataDisplay = false;

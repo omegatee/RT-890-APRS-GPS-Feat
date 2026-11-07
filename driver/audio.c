@@ -62,7 +62,7 @@ static uint32_t GetDigitAddress(uint8_t Digit)
 
 static void PlayNumber(uint16_t Channel)
 {
-	if (gSettings.VoicePrompt && gSettings.WorkModeA) {
+	if (gSettings.VoicePrompt && DIAL_CurrentIsMemMode()) {
 		Channel++;
 		if (Channel <= 20) {
 			SFLASH_Offsets[0] = GetDigitAddress(Channel);
@@ -177,7 +177,7 @@ void AUDIO_PlaySampleOptional(uint8_t ID)
 	}
 }
 
-void AUDIO_PlayChannelNumber(void)
+void AUDIO_PlayMemNumber(void)
 {
 	PlayNumber(gSettings.VfoChNo[gSettings.CurrentDial]);
 	gAudioTimer = 350;

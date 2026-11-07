@@ -112,19 +112,9 @@ void HandlerUSART2(void)
 
 	if (USART2->ctrl1_bit.rdbfien && USART2->sts & USART_RDBF_FLAG) {
 
-		Buffer2[Buffer2Length++] = USART2->dt;
-		Buffer2Length %= UART_BSIZE;
-
-		// Check for GPS commands ------------------------------------
-		if(Buffer2Length==1 && Buffer2[0] != 0x24){ /// '$'
-			Buffer2Length = 0;
-		}
-		else {
-			if(Buffer2[Buffer2Length-1]==0x0D){	/// CR (eoc is 0x0D,0x0D,0x0A)
-				GPSProcess((char *)Buffer2);
-				Buffer2Length = 0;
-			}
-		}
+		// Only collect the byte here; the sentence is parsed by GPS_Task()
+		// from the main loop.
+		GPS_PushByte((uint8_t)USART2->dt);
 	}
 }
 

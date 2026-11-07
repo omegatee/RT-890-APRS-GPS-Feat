@@ -171,7 +171,7 @@ void T9_Editor(uint8_t Key, uint8_t Limit)
 				for (i = 0; i < 10; i++) {
 					gVfoState[gSettings.CurrentDial].Name[i] = gBigString[i];
 				}
-				RADIO_SaveCurrentDial();
+				DIAL_SaveAndTune();
 			}
 			// Fallthrough
 		case KEY_EXIT:

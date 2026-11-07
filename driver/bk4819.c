@@ -170,9 +170,9 @@ REGx67 reg67;
 	
 	reg67.val = BK4819_ReadRegister(0x67);
 	
-	if(gVfoState[gCurrentDial].RX.Frequency >= 24000000){
-		reg67.RSSI-=15; /// for UHF
-	}
+	//if(gVfoState[gCurrentDial].RX.Frequency >= 24000000){
+	//	reg67.RSSI-=15; /// for UHF
+	//}
 
 	return reg67.RSSI;
 }
