@@ -56,28 +56,33 @@
 #include "ui/vfo.h"
 
 void SetDefaultKeyShortcuts(uint8_t IncludeSideKeys) {
+
+	// sidekey actions -----------------------------------------------------
 	if (IncludeSideKeys) {
 		gSettings.Actions[0] = ACTION_APRS_SEND_PACK;			//Side 1 long
 		gSettings.Actions[1] = ACTION_MONITOR;					//Side 1 short
 		gSettings.Actions[2] = ACTION_REMOTE_ALARM;				//Side 2 long
 		gSettings.Actions[3] = ACTION_REPEATER_MODE;			//Side 2 short
 	}
+
+	// long-press key actions ----------------------------------------------
 #ifdef ENABLE_FM_RADIO
-	gExtendedSettings.KeyShortcut[0]  = ACTION_FM_RADIO;		//0 key long (as labelled)
+	gExtendedSettings.KeyShortcut[KEY_0]	= ACTION_FM_RADIO;
 #endif
-	gExtendedSettings.KeyShortcut[1]  = ACTION_SCAN;			//1 key long (my selection)
-	gExtendedSettings.KeyShortcut[2]  = ACTION_VOX;			//2 key long
-	gExtendedSettings.KeyShortcut[3]  = ACTION_VOX;				//3 key long
-	gExtendedSettings.KeyShortcut[4]  = ACTION_FREQUENCY_DETECT;//4 key long
-	gExtendedSettings.KeyShortcut[5]  = ACTION_TX_POWER;		//5 key long (my selection)
-	gExtendedSettings.KeyShortcut[6]  = ACTION_TX_POWER;		//6 key long
-	gExtendedSettings.KeyShortcut[7]  = ACTION_VOX;				//7 key long (my selection)
-	gExtendedSettings.KeyShortcut[8]  = ACTION_FREQ_STEP;		//8 key long
-	gExtendedSettings.KeyShortcut[9]  = ACTION_PRESET_CHANNEL;	//9 key long
-	gExtendedSettings.KeyShortcut[10] = ACTION_TX_FREQ;			//* key long (as labelled)
-	gExtendedSettings.KeyShortcut[11] = ACTION_LOCK;			//# key long (as labelled)
-	gExtendedSettings.KeyShortcut[12] = ACTION_MODULATION;		//Menu key long
-	gExtendedSettings.KeyShortcut[13] = ACTION_VOX;			//Exit key long
+	gExtendedSettings.KeyShortcut[KEY_1]	= ACTION_SCAN;
+	gExtendedSettings.KeyShortcut[KEY_2]	= ACTION_VOX;
+	gExtendedSettings.KeyShortcut[KEY_3]	= ACTION_MODULATION;
+	gExtendedSettings.KeyShortcut[KEY_4] 	= ACTION_FREQUENCY_DETECT;
+	gExtendedSettings.KeyShortcut[KEY_5]	= ACTION_TX_POWER;
+	gExtendedSettings.KeyShortcut[KEY_6]	= ACTION_TX_POWER;
+	gExtendedSettings.KeyShortcut[KEY_7]	= ACTION_VOX;
+	gExtendedSettings.KeyShortcut[KEY_8]	= ACTION_FREQ_STEP;
+	gExtendedSettings.KeyShortcut[KEY_9] 	= ACTION_PRESET_CHANNEL;
+	gExtendedSettings.KeyShortcut[KEY_STAR]	= ACTION_TX_FREQ;
+	gExtendedSettings.KeyShortcut[KEY_HASH]	= ACTION_LOCK;
+
+	//gExtendedSettings.KeyShortcut[KEY_MENU] = ACTION_MODULATION;		// direct use
+	//gExtendedSettings.KeyShortcut[KEY_EXIT] = ACTION_VOX;				// direct use
 
 	SETTINGS_SaveGlobals();
 }

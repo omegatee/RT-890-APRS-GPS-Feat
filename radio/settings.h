@@ -167,7 +167,7 @@ typedef struct __attribute__((packed)) {
 	uint8_t ScanBlink: 1;
 	uint8_t CurrentScanList: 3;
 	// 0x01 - 0x0E
-	uint8_t KeyShortcut[14];
+	uint8_t KeyShortcut[16];
 	// 0x0F
 	uint8_t ScanAll: 1;
 	uint8_t MicGainLevel: 6;

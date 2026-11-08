@@ -52,6 +52,7 @@ void Task_CheckSideKeys(void)
 		KEY_Side2Counter = 0;
 		gSlot = 2;//Sidekey2 long
 	} else if (gpio_input_data_bit_read(GPIOF, BOARD_GPIOF_KEY_SIDE1) && gpio_input_data_bit_read(GPIOA, BOARD_GPIOA_KEY_SIDE2)) {
+//BEEP_Play(440, 4, 80,1);
 		if (KEY_Side1Counter > 100) {
 			gSlot = 1;//Sidekey1 short
 		} else if (KEY_Side2Counter > 100) {

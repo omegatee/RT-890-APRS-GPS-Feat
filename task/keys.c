@@ -126,6 +126,7 @@ static void MAIN_KeyHandler(KEY_t Key)
 		break;
 
 	case KEY_MENU:
+#if 0	
 IFDBG UART_printf(1,"k:MENU\r\n");
 			if (gScannerMode) {
 			// stop scanner and restore last RX channel or frequency
@@ -165,6 +166,36 @@ IFDBG UART_printf(1,"k:MENU\r\n");
 			}
 		}
 		BEEP_Play(740, 3, 80,0);
+#else
+#ifdef ENABLE_FM_RADIO
+		if (gFM_Mode < FM_MODE_PLAY) {
+#endif
+			gFrequencyReverse = false;
+			RADIO_CancelMode();
+			if (gFreeChannelsCount == 0) {
+				UI_DrawDialogText(DIALOG_NO_CH_AVAILABLE, true);
+				break;
+			}
+			gInputBoxWriteIndex = 0;
+#ifdef ENABLE_VOICE
+			gAudioOffsetIndex = gAudioOffsetLast;
+#endif
+			// Toggle the work mode of the selected dial only (channel <-> VFO).
+			// The other dial keeps the mode it has.
+			DIAL_SetMemMode(gSettings.CurrentDial, !DIAL_CurrentIsMemMode());
+			SETTINGS_SaveGlobals();
+			DIAL_Load(gSettings.CurrentDial);
+			RADIO_Tune(gSettings.CurrentDial);
+			UI_DrawDial(gSettings.CurrentDial);
+			if (Vfo != 0) {
+				BEEP_Play(740, 3, 80,0);
+			} else {
+				BEEP_Play(440, 4, 80,0);
+			}
+#ifdef ENABLE_FM_RADIO
+		}
+#endif
+#endif
 		break;
 
 	case KEY_UP:
@@ -431,19 +462,58 @@ static void HandlerLong(KEY_t Key)
 			case KEY_7:
 			case KEY_8:
 			case KEY_9:
+			case KEY_STAR:
+			case KEY_HASH:
 				KeypressAction(gExtendedSettings.KeyShortcut[Key]);
 				break;
 
-			case KEY_STAR:
-				KeypressAction(gExtendedSettings.KeyShortcut[10]);
-				break;
-
-			case KEY_HASH:
-				KeypressAction(gExtendedSettings.KeyShortcut[11]);
-				break;
-
 			case KEY_MENU:
+#if 0			
 				KeypressAction(gExtendedSettings.KeyShortcut[12]);
+#else
+				// direct use of MENU key for long-press action
+				if (gScannerMode) {
+					// stop scanner and restore last RX channel or frequency
+					if (DIAL_CurrentIsMemMode()) {
+						MEM_LoadToDial(gScanLastRxFreqOrChannel, gSettings.CurrentDial);
+						gSettings.VfoChNo[gSettings.CurrentDial] = gScanLastRxFreqOrChannel;
+					} 
+					else {
+						gVfoInfo[gSettings.CurrentDial].Frequency = gScanLastRxFreqOrChannel;
+						gVfoState[gSettings.CurrentDial].RX.Frequency = gScanLastRxFreqOrChannel;
+					}
+					RADIO_Tune(gSettings.CurrentDial);
+					UI_DrawDial(gSettings.CurrentDial);
+					SETTINGS_SaveState();
+					return;
+				}
+				if (gInputBoxWriteIndex == 0) {
+#ifdef ENABLE_FM_RADIO
+					if (gFM_Mode > FM_MODE_STANDBY) {
+						break;
+					}
+#endif
+					gFrequencyReverse = false;
+					MENU_Redraw(true);
+				}
+				else {
+					INPUTBOX_Pad(gInputBoxWriteIndex, 0);
+#ifdef ENABLE_FM_RADIO
+					if (gFM_Mode == FM_MODE_PLAY) {
+						FM_UpdateFrequency();
+						UI_DrawFMFrequency(gSettings.FmFrequency);
+					} 
+					else
+#endif
+						if (DIAL_CurrentIsMemMode() && !gFrequencyReverse) {
+							DIAL_GoToTypedMem();
+						} 
+						else {
+							DIAL_SetTypedVfoFrequency();
+						}
+				}
+				BEEP_Play(740, 3, 80,0);
+#endif
 				break;
 
 			case KEY_EXIT:
@@ -453,7 +523,8 @@ static void HandlerLong(KEY_t Key)
 			default:
 				break;
 			}
-		} else {
+		} 
+		else {
 			if (Key != KEY_UP && Key != KEY_DOWN) {
 				return;
 			}
