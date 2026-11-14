@@ -26,6 +26,7 @@ There is no "free radio" but GMRS, and this devices do not comply whith GMRS spe
 - MENU key now switches between VFO and MEM modes
     - Menu comes from MENU key long press
 - Improved GNSS precision
+- Corrected APRS Beacon timeouts
   
 ## First Commit
 - All OEFW features plus:
