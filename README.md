@@ -23,7 +23,7 @@ There is no "free radio" but GMRS, and this devices do not comply whith GMRS spe
 
 ## 2026 Commit
 - Independent Dial A and Dial B for VFO or MEM mode
-- MENU key now switches between Dial A and Dial B
+- MENU key now switches between VFO and MEM modes
     - Menu comes from MENU key long press
 - Improved GNSS precision
   
