@@ -11,13 +11,24 @@ Use at your own risk and remember to [back up your SPI memory](https://github.co
 
 Transmission on this devices is very bad filtered (HW issue). Harmonics go to air almost freely.
 
-    --[IS YOUR RESPONSABILITY TO TAKE THIS ON ACCOUNT TO COMPLY WITH LOCAL REGULATIONS IN YOUR COUNTRY]
+> [!WARNING]
+> IS YOUR RESPONSABILITY TO TAKE THIS ON ACCOUNT TO COMPLY WITH LOCAL REGULATIONS IN YOUR COUNTRY]
 
-There is no "free radio" but GMRS, and this devices do not comply whith GMRS specifications.
+There is no "free radio" but FRS, PMR446... but this devices do not comply with required specifications.
 
-    --[DO NOT TRANSMIT IF YOU ARE NOT LICENSED TO]
+> [!CAUTION]
+> DO NOT TRANSMIT IF YOU ARE NOT LICENSED TO
 
-## omegatee Features / Modifications
+# omegatee Features / Modifications
+
+## 2026 Commit
+- Independent Dial A and Dial B for VFO or MEM mode
+- MENU key now switches between VFO and MEM modes
+    - Menu comes from MENU key long press
+- Improved GNSS precision
+- Corrected APRS Beacon timeouts
+  
+## First Commit
 - All OEFW features plus:
     - Full rewrite of UART code to support the new command shell and the GPS Receiver
 	- Added functions to manage APRS and AFSK modulation.
