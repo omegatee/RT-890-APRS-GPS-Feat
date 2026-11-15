@@ -18,7 +18,7 @@
 #define DRIVER_UART_H
 
 #include <stdint.h>
-#include <stdbool.h>
+//#include <stdbool.h>
 
 #define UART_BSIZE 256
 

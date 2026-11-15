@@ -3,7 +3,7 @@
 #include "driver/uart.h"
 //#include "driver/speaker.h"///
 #include "driver/delay.h"
-#include "driver/gps.h"
+#include "driver/gnss.h"
 #include "driver/bk4819.h"
 #include "driver/battery.h"
 #include "driver/beep.h"

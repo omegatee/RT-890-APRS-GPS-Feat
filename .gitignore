@@ -1,6 +1,5 @@
 *.o
 *.d
-firmwareWT
 *.bin
-.tags
-.external/*
+*.
+Documents

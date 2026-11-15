@@ -1,5 +1,5 @@
-#ifndef DRIVER_GPS_H
-#define DRIVER_GPS_H
+#ifndef DRIVER_GNSS_H
+#define DRIVER_GNSS_H
 
 #include <stdbool.h>
 #include <stdint.h>

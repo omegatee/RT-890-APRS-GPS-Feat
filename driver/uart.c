@@ -17,10 +17,10 @@
 #include <at32f421.h>
 #include <stdbool.h>
 
-#include "driver/uart.h"
 #include "external/printf/printf.h"
 
-#include "driver/gps.h"
+#include "driver/uart.h"
+#include "driver/gnss.h"
 #include "app/prog.h"
 #include "app/shell.h"
 

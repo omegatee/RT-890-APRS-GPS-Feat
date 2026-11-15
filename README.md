@@ -12,12 +12,12 @@ Use at your own risk and remember to [back up your SPI memory](https://github.co
 Transmission on this devices is very bad filtered (HW issue). Harmonics go to air almost freely.
 
 > [!WARNING]
-> IS YOUR RESPONSABILITY TO TAKE THIS ON ACCOUNT TO COMPLY WITH LOCAL REGULATIONS IN YOUR COUNTRY]
+> IS YOUR RESPONSABILITY TO TAKE THIS ON ACCOUNT TO COMPLY WITH LOCAL REGULATIONS IN YOUR COUNTRY
 
 There is no "free radio" but FRS, PMR446... but this devices do not comply with required specifications.
 
 > [!CAUTION]
-> DO NOT TRANSMIT IF YOU ARE NOT LICENSED TO
+> DO NOT TRANSMIT IF YOU ARE NOT LICENSED TO [IN ANY CONTRY]
 
 # omegatee Features / Modifications
 
@@ -57,6 +57,11 @@ There is no "free radio" but FRS, PMR446... but this devices do not comply with 
     - Removed icons hiding modulation mode indicators
     - Modulation mode is allways shown as "FM" on TX
     - Keyaction for "Modulation" and others set to "roll-on" instead of calling menu
+
+## Flashing
+Recommended flashing tools:
+- https://github.com/OEFW-community/radtel-rt-890-flasher/releases/tag/first-release
+- https://github.com/omegatee/RT-4D_Flasher/releases/tag/v2.1.0-beta
 
 ## GPS Receiver HW Implementation
 <img width="565" height="478" alt="image" src="https://github.com/user-attachments/assets/ff4816d5-8ab2-4709-805b-d65616095407" />

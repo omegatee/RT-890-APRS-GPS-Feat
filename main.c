@@ -23,7 +23,7 @@
 #include "driver/delay.h"
 #include "driver/key.h"
 #include "driver/uart.h"
-#include "driver/gps.h"
+#include "driver/gnss.h"
 #include "helper/helper.h"
 #include "radio/data.h"
 #include "radio/hardware.h"

@@ -3,7 +3,7 @@
 #include "app/shell.h"
 #include "app/radio.h"
 #include "driver/uart.h"
-#include "driver/gps.h"
+#include "driver/gnss.h"
 #include "driver/bk4819.h"
 #include "radio/settings.h"
 #include "radio/hardware.h"

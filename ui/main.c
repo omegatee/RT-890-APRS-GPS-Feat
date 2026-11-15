@@ -17,7 +17,7 @@
 #include "app/radio.h"
 #include "driver/battery.h"
 #include "driver/uart.h"
-#include "driver/gps.h"
+#include "driver/gnss.h"
 #include "helper/dtmf.h"
 #include "helper/inputbox.h"
 #include "helper/helper.h"

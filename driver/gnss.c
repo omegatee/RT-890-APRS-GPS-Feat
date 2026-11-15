@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "driver/gps.h"
+#include "driver/gnss.h"
 
 #ifdef __arm__
 	#include <at32f421.h>

@@ -21,7 +21,7 @@
 #include "driver/bk4819.h"
 #include "driver/delay.h"
 #include "driver/uart.h"
-#include "driver/gps.h"
+#include "driver/gnss.h"
 #include "helper/dtmf.h"
 #include "helper/helper.h"
 #include "radio/data.h"

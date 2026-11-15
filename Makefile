@@ -15,7 +15,7 @@ ENABLE_SLOWER_RSSI_TIMER		?= 0
 ENABLE_SPECTRUM					?= 0
 # Spectrum presets - 1.4 kB
 ENABLE_SPECTRUM_PRESETS			?= 0
-# TODO: monitor_mode: see misbehaviour in task/keys.c
+# TO_DO: monitor_mode: see misbehaviour in task/keys.c
 ENABLE_KEEP_MONITOR_MODE_UP_DN	?= 1
 # For spoken commands - 1.2 kB
 ENABLE_VOICE					?= 0
@@ -64,7 +64,7 @@ OBJS += driver\serial-flash.o
 OBJS += driver\speaker.o
 OBJS += driver\st7735s.o
 OBJS += driver\uart.o
-OBJS += driver\gps.o
+OBJS += driver\gnss.o
 
 # "App" logic
 OBJS += app\css.o
@@ -158,11 +158,7 @@ TOP := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 else
 TOP := $(shell pwd)
 endif
-
-TOP := D:\PRJ\RT-890-APRS-GPS-Feat
-
-
-$(info -------------------WIN is $(shell pwd))
+$(info -------------------OS is $(OS))
 
 SDK := $(TOP)\external\SDK
 LINKER_SCRIPT := $(SDK)\libraries\cmsis\cm4\device_support\startup\gcc\linker\AT32F421x8_FLASH.ld
