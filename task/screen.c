@@ -43,5 +43,6 @@ void Task_UpdateScreen(void)
 #endif
 		}
 	}
+	UI_DrawClock();
 }
 

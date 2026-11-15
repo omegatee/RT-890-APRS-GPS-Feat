@@ -24,6 +24,7 @@ void DrawStatusBar(void);
 void UI_DrawMain(bool bSkipStatus);
 void UI_DrawRepeaterMode(void);
 void UI_DrawBattery(bool bDisplayVoltage);
+void UI_DrawClock(void);
 
 #endif
 

@@ -158,7 +158,6 @@ void Task_CheckRSSI(void)
 		
 		if (gRadioMode != RADIO_MODE_QUIET && !gSaveMode && SCHEDULER_CheckTask(TASK_CHECK_RSSI)) {
 			uint8_t Status;
-
 			SCHEDULER_ClearTask(TASK_CHECK_RSSI);
 			Status = GetToneStatus(gVfoInfo[gCurrentDial].CodeType, gMainVfo->bMuteEnabled);
 			if (gRadioMode != RADIO_MODE_INCOMING) {

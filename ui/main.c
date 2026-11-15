@@ -88,6 +88,24 @@ void UI_DrawMain(bool bSkipStatus)
 	}
 }
 
+void UI_DrawClock(void)
+{
+	if(gGNSS_Fix)
+		if(gAPRSInterval)
+			gColorForeground = COLOR_GREEN;
+		else
+			gColorForeground = COLOR_BLUE;
+	else
+		if(gAPRSInterval)
+			gColorForeground = COLOR_RED;
+		else
+			gColorForeground = COLOR_GREY;
+
+	UI_DrawSmallString(78,86,gTime,6);
+	gColorForeground = COLOR_FOREGROUND;
+
+}
+
 void UI_DrawRepeaterMode(void)
 {
 	if (gSettings.RepeaterMode) {
@@ -127,22 +145,6 @@ void UI_DrawBattery(bool bDisplayVoltage)
 		//gShortString[3] = 'V';
 		UI_DrawSmallString(119, 86, gShortString, 3);///
 	}
-	
-	
-/// rented space to display GPS clock
-if(gGPS_Fix)
-	if(gAPRSInterval)
-		gColorForeground = COLOR_GREEN;
-	else
-		gColorForeground = COLOR_BLUE;
-else
-	if(gAPRSInterval)
-		gColorForeground = COLOR_RED;
-	else
-		gColorForeground = COLOR_GREY;
-
-UI_DrawSmallString(78,86,gTime,6);
-gColorForeground = COLOR_FOREGROUND;
 
 }
 

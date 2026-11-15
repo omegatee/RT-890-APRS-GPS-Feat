@@ -16,20 +16,20 @@ extern char gLatS[ 2];		// "N" / "S"
 extern char gLonX[16];		// "dddmm.mmmm" - only ever holds a validated value
 extern char gLonS[ 2];		// "E" / "W"
 extern char gAlti[8];		// altitude as text (for the shell), may be truncated
-extern bool gGPS_Fix;
+extern bool gGNSS_Fix;
 
 extern int32_t gAltitudeM;	// altitude above mean sea level, rounded to metres
 extern bool    gAltitudeValid;	// false until a GGA sentence with a usable altitude
 
 // Called from the USART2 interrupt for every received byte. Only assembles
 // a line and flags it; it does no parsing.
-void GPS_PushByte(uint8_t Data);
+void GNSS_PushByte(uint8_t Data);
 
 // Called from the main loop. Parses a pending line, if there is one.
-void GPS_Task(void);
+void Task_GNSS(void);
 
 // Parses one complete, NUL terminated NMEA sentence starting at '$' (no CR/LF).
 // NOTE: the buffer is modified in place (it is split into fields).
-void GPSProcess(char *buffer);
+void GNSSProcess(char *buffer);
 
 #endif

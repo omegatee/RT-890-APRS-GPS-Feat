@@ -24,24 +24,20 @@
 
 uint16_t gAlarmFrequency = 800;
 uint8_t gAlarmCounter;
-bool gAlarmSiren;
+//bool gAlarmSiren;
 
-void Task_LocalAlarm(void)
-{
+void Task_LocalAlarm(void) {
 	if (gEnableLocalAlarm && !gSendTone && gAlarmCounter > 15) {
 		gAlarmCounter = 0;
+		gAlarmFrequency -= 60;
 
-		if (!gAlarmSiren) {
-			gAlarmFrequency += 80;
-		} else {
-			gAlarmFrequency -= 80;
-		}
-
-		if (gAlarmFrequency < 850 || gAlarmFrequency > 1450) {
-			gAlarmSiren = !gAlarmSiren;
+		if (gAlarmFrequency < 300) {
+			gAlarmFrequency = 1600;
 			gpio_bits_flip(GPIOA, BOARD_GPIOA_LED_RED);
 		}
 		BK4819_SetToneFrequency(false, gAlarmFrequency);
+
+		//Muy bonito, pero tiene que ser en AM
 	}
 }
 
@@ -49,8 +45,8 @@ void Task_LocalAlarm(void)
 void ALARM_Start(void)
 {
 	gEnableLocalAlarm = true;
-	gAlarmSiren = false;
-	gAlarmFrequency = 800;
+	//gAlarmSiren = false;
+	gAlarmFrequency = 1600;
 	gAlarmCounter = 0;
 	BK4819_SetAfGain(0xB325);
 	BK4819_EnableTone1(true);

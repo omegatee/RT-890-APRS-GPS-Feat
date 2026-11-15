@@ -10,7 +10,7 @@
 /*
  * NMEA 0183 receiver (RMC + GGA only).
  *
- *  - GPS_PushByte() runs in the USART2 interrupt: it only assembles one line
+ *  - GNSS_PushByte() runs in the USART2 interrupt: it only assembles one line
  *    and hands it over. Nothing is parsed there.
  *  - GPS_Task() runs in the main loop and parses the line, so the position
  *    globals are only ever written from the same context that reads them
@@ -19,8 +19,8 @@
  *    position/altitude globals are only updated from a fully valid sentence.
  */
 
-#define GPS_LINE_MAX	100		// NMEA max is 82 chars; margin for odd receivers
-#define GPS_MAX_FIELDS	16
+#define GNSS_LINE_MAX	100		// NMEA max is 82 chars; margin for odd receivers
+#define GNSS_MAX_FIELDS	16
 
 char gTime[16];
 char gLatY[16];
@@ -28,20 +28,20 @@ char gLatS[ 2];
 char gLonX[16];
 char gLonS[ 2];
 char gAlti[ 8];
-bool gGPS_Fix;
+bool gGNSS_Fix;
 
 int32_t gAltitudeM;
 bool    gAltitudeValid;
 
 // ISR -> main loop hand-over
-static char rxLine[GPS_LINE_MAX];			// being assembled by the ISR
+static char rxLine[GNSS_LINE_MAX];			// being assembled by the ISR
 static uint8_t rxLen;
-static char gpsLine[GPS_LINE_MAX];			// complete line waiting for the task
-static volatile bool gpsLineReady;
+static char gnssLine[GNSS_LINE_MAX];			// complete line waiting for the task
+static volatile bool gnssLineReady;
 
 static const char gEmpty[] = "";
 
-#define GPS_BARRIER()	__asm__ volatile ("" ::: "memory")
+#define GNSS_BARRIER()	__asm__ volatile ("" ::: "memory")
 
 static inline uint32_t IrqSave(void)
 {
@@ -65,7 +65,7 @@ static inline void IrqRestore(uint32_t Primask)
 
 /* ============================================================ interrupt side */
 
-void GPS_PushByte(uint8_t Data)
+void GNSS_PushByte(uint8_t Data)
 {
 	if (Data == '$') {				// start of sentence, always resync
 		rxLen = 0;
@@ -76,16 +76,16 @@ void GPS_PushByte(uint8_t Data)
 		return;
 	}
 	if (Data == '\r' || Data == '\n') {		// end of sentence
-		if (!gpsLineReady) {			// otherwise drop it: the task is behind
+		if (!gnssLineReady) {			// otherwise drop it: the task is behind
 			rxLine[rxLen] = 0;
-			memcpy(gpsLine, rxLine, rxLen + 1U);
-			GPS_BARRIER();
-			gpsLineReady = true;
+			memcpy(gnssLine, rxLine, rxLen + 1U);
+			GNSS_BARRIER();
+			gnssLineReady = true;
 		}
 		rxLen = 0;
 		return;
 	}
-	if (rxLen < GPS_LINE_MAX - 1U) {
+	if (rxLen < GNSS_LINE_MAX - 1U) {
 		rxLine[rxLen++] = (char)Data;
 	} else {
 		rxLen = 0;				// too long to be NMEA: discard
@@ -272,15 +272,15 @@ static void ParseRMC(const char **f, uint8_t n)
 	// 'A' = valid. Mode (NMEA 2.3+) is optional; when present it must not be
 	// N (no fix), E (estimated), M (manual) or S (simulator).
 	if (Status[0] != 'A' || Status[1] != 0 || (Mode[0] != 0 && (Mode[1] != 0 || strchr("ADPRF", Mode[0]) == NULL))) {
-		gGPS_Fix = false;
+		gGNSS_Fix = false;
 		return;
 	}
 	if (!PositionOk(Field(f, n, 3), Field(f, n, 4), Field(f, n, 5), Field(f, n, 6))) {
-		gGPS_Fix = false;
+		gGNSS_Fix = false;
 		return;
 	}
 	CommitPosition(Field(f, n, 1), Field(f, n, 3), Field(f, n, 4), Field(f, n, 5), Field(f, n, 6));
-	gGPS_Fix = true;
+	gGNSS_Fix = true;
 }
 
 static void ParseGGA(const char **f, uint8_t n)
@@ -292,12 +292,12 @@ static void ParseGGA(const char **f, uint8_t n)
 
 	// 1 = GPS, 2 = DGPS, 3 = PPS, 4 = RTK, 5 = float RTK. 0 = no fix.
 	if (Quality[0] < '1' || Quality[0] > '5' || Quality[1] != 0) {
-		gGPS_Fix = false;
+		gGNSS_Fix = false;
 		gAltitudeValid = false;
 		return;
 	}
 	if (!PositionOk(Field(f, n, 2), Field(f, n, 3), Field(f, n, 4), Field(f, n, 5))) {
-		gGPS_Fix = false;
+		gGNSS_Fix = false;
 		gAltitudeValid = false;
 		return;
 	}
@@ -310,15 +310,16 @@ static void ParseGGA(const char **f, uint8_t n)
 		gAltitudeM = (Tenths >= 0 ? Tenths + 5 : Tenths - 5) / 10;	// round to nearest metre
 		gAltitudeValid = true;
 		IrqRestore(Primask);
-	} else {
+	} 
+	else {
 		gAltitudeValid = false;
 	}
-	gGPS_Fix = true;
+	gGNSS_Fix = true;
 }
 
-void GPSProcess(char *buffer)
+void GNSSProcess(char *buffer)
 {
-	const char *f[GPS_MAX_FIELDS];
+	const char *f[GNSS_MAX_FIELDS];
 	uint8_t n;
 
 	if (buffer[0] != '$' || strlen(buffer) < 6) {
@@ -327,25 +328,27 @@ void GPSProcess(char *buffer)
 	if (!CheckChecksum(buffer)) {
 		return;
 	}
-	n = SplitFields(buffer + 1, f, GPS_MAX_FIELDS);	// f[0] = "GNRMC", "GPGGA", ...
+	n = SplitFields(buffer + 1, f, GNSS_MAX_FIELDS);	// f[0] = "GNRMC", "GPGGA", ...
 
 	if (strlen(f[0]) != 5) {
 		return;
 	}
 	if (strcmp(f[0] + 2, "RMC") == 0) {
 		ParseRMC(f, n);
-	} else if (strcmp(f[0] + 2, "GGA") == 0) {
+	} 
+	else if (strcmp(f[0] + 2, "GGA") == 0) {
 		ParseGGA(f, n);
 	}
 }
 
-void GPS_Task(void)
+void Task_GNSS(void)
 {
-	if (!gpsLineReady) {
+	if (!gnssLineReady) {
 		return;
 	}
-	GPS_BARRIER();
-	GPSProcess(gpsLine);
-	GPS_BARRIER();
-	gpsLineReady = false;
+	GNSS_BARRIER();
+	GNSSProcess(gnssLine);
+	GNSS_BARRIER();
+	gnssLineReady = false;	
+
 }

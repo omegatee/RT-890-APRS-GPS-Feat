@@ -104,7 +104,7 @@ void Main(void) {
 				Task_CheckNOAA();
 #endif
 				Task_LocalAlarm();
-				GPS_Task();
+				Task_GNSS();
 				Task_APRSBeacon();
 
 //	IFDBG UART_printf(1,"ModeA=%d\t",gSettings.WorkModeA);
@@ -117,6 +117,9 @@ void Main(void) {
 			
 			}
 		} while (gSettings.DtmfState != DTMF_STATE_KILLED);
+
+
+
 
 		// killed by DTMF, so check for data
 		if (BK4819_ReadRegister(0x0C) & 0x0001U) { /// 0x0C[0] = Interrupt Indicator

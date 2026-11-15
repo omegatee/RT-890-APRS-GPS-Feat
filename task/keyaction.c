@@ -188,7 +188,7 @@ void KeypressAction(uint8_t Action) {
 
 			case ACTION_REMOTE_ALARM:
 				ALARM_Start();
-				BK4819_SetAF(BK4819_AF_TXBEEP);
+				BK4819_SetAF(BK4819_AF_TXBEEP); //Muy bonito, pero tiene que ser en AM
 				RADIO_StartTX(false);
 				break;
 

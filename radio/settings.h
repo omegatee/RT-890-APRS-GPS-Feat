@@ -84,7 +84,7 @@ typedef struct __attribute__((packed)) {
 	uint8_t FmStandby:1;
 	// 0x0C
 	uint16_t VfoChNo[2];
-	uint8_t Actions[4];
+	uint8_t Actions[5];					// 0=Side1 long, 1=Side1 short, 2=Side2 long, 3=Side2 short, 4=BOTH sidekeys pressed
 	// 0x14
 	uint8_t bUseVHF:1;
 	uint8_t bEnableDisplay:1;

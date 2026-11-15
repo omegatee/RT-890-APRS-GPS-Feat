@@ -114,7 +114,7 @@ void HandlerUSART2(void)
 
 		// Only collect the byte here; the sentence is parsed by GPS_Task()
 		// from the main loop.
-		GPS_PushByte((uint8_t)USART2->dt);
+		GNSS_PushByte((uint8_t)USART2->dt);
 	}
 }
 

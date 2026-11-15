@@ -221,21 +221,24 @@ bool bNeg;
 		aFeet=gAltitudeM*3281;
 		aFeet=(aFeet>=0 ? aFeet+500 : aFeet-500)/1000;
 		bNeg=(aFeet<0);
-		if(bNeg) aFeet=-aFeet;
+		if(bNeg) 
+			aFeet=-aFeet;
 		
 		FrameBUFF[pFrameBUFF++]='/';
 		FrameBUFF[pFrameBUFF++]='A';
 		FrameBUFF[pFrameBUFF++]='=';
 		
 		if(bNeg){
-			if(aFeet>99999) aFeet=99999;
+			if(aFeet>99999) 
+				aFeet=99999;
 			FrameBUFF[pFrameBUFF++]='-';
 			Int2Ascii(aFeet,5);
 			for(cnt=0;cnt<5;cnt++)
 				FrameBUFF[pFrameBUFF++]=gShortString[cnt];
 		}
 		else{
-			if(aFeet>999999) aFeet=999999;
+			if(aFeet>999999) 
+				aFeet=999999;
 			Int2Ascii(aFeet,6);
 			for(cnt=0;cnt<6;cnt++)
 				FrameBUFF[pFrameBUFF++]=gShortString[cnt];
@@ -279,7 +282,7 @@ uint8_t vv;
 uint8_t d;
 uint8_t u;
 
-	if(Type==1 && gGPS_Fix==0){
+	if(Type==1 && gGNSS_Fix==0){
 		gAPRSCounter=ONE_MIN/4;		// no fix yet: look again in 15 s
 		return false;
 	}

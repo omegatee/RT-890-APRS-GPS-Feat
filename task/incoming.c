@@ -26,6 +26,8 @@
 #include "task/incoming.h"
 #include "task/ptt.h"
 
+#include "driver/uart.h"
+
 void Task_CheckIncoming(void)
 {
 	if (
@@ -33,23 +35,23 @@ void Task_CheckIncoming(void)
 		(gFM_Mode == FM_MODE_OFF || gSettings.FmStandby) &&
 #endif
 		gRadioMode != RADIO_MODE_TX && !gSaveMode && SCHEDULER_CheckTask(TASK_CHECK_INCOMING) &&  gIncomingTimer == 0) {
-		bool bGotLink;
+		bool bSQLOpen;
 
 		SCHEDULER_ClearTask(TASK_CHECK_INCOMING);
 
 #if 1
-		bGotLink = BK4819_CheckSquelchStat();
+		bSQLOpen = BK4819_CheckSquelchStat();
 #else
 		// Very simple RSSI squelch
 		int16_t sig=BK4819_GetRSSI_DBM();
-		int16_t thres=-130+((int16_t)gSettings.Squelch*10);
-		if(sig>thres || gMonitorMode)
-		   bGotLink=1;
+		//sig+=(gSettings.Squelch*2);
+		if( (sig>(int16_t)-90) || gMonitorMode )
+		   bSQLOpen=1;
 		else
-		   bGotLink=0;
+		   bSQLOpen=0;
 #endif		
-		if (!bGotLink || gRadioMode != RADIO_MODE_QUIET) {
-			if (bGotLink || gRadioMode == RADIO_MODE_QUIET) {
+		if (!bSQLOpen || gRadioMode != RADIO_MODE_QUIET) {
+			if (bSQLOpen || gRadioMode == RADIO_MODE_QUIET) {
 				gRxLinkCounter = 0;
 			} 
 			else if (gRxLinkCounter++ > 5) {
