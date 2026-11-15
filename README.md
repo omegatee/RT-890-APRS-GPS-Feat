@@ -27,6 +27,8 @@ There is no "free radio" but FRS, PMR446... but this devices do not comply with 
     - Menu comes from MENU key long press
 - Improved GNSS precision
 - Corrected APRS Beacon timeouts
+<img width="565" height="478" alt="image" src="https://github.com/user-attachments/assets/d4852c91-04fc-4e4f-9edf-0c01d8216bbc" />
+
   
 ## First Commit
 - All OEFW features plus:
