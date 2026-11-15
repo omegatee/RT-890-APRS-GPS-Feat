@@ -59,10 +59,12 @@ There is no "free radio" but FRS, PMR446... but this devices do not comply with 
     - Keyaction for "Modulation" and others set to "roll-on" instead of calling menu
 
 ## GPS Receiver HW Implementation
-
-![image](https://github.com/user-attachments/assets/ff4816d5-8ab2-4709-805b-d65616095407)
+<img width="565" height="478" alt="image" src="https://github.com/user-attachments/assets/ff4816d5-8ab2-4709-805b-d65616095407" />
 
 Do it as you can.
+My option is to install the module on top, with a small hole for the wires:
+<img width="447" height="424" alt="image" src="https://github.com/user-attachments/assets/c12338fb-fee0-4279-bf1d-1e88a7bddaca" />
+
 [NOTE:] GPS board baudrate is fixed on FW. Trim line 203 in radio/hardware.c as your need.
 
 
