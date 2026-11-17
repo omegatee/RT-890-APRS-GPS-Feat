@@ -46,13 +46,21 @@ IFDBG UART_printf(1,"%d-->AGC\r\n",cmd[4]-0x30);
 }
 
 void SCPI_ProcessAPRS(char * cmd){
-	if(strncmp(cmd,"APRS:SEND POS",5)==0){
-		KeypressAction(ACTION_APRS_SEND_PACK);
+	if(strncmp(cmd,"SEND POS",8)==0){
+		KeypressAction(ACTION_APRS_SEND_PACK_0);
+		return;
+	}
+	if(strncmp(cmd,"SEND STS",8)==0){
+		KeypressAction(ACTION_APRS_SEND_PACK_1);
+		return;
+	}
+	if(strncmp(cmd,"SEND MSG",8)==0){
+		KeypressAction(ACTION_APRS_SEND_PACK_2);
 		return;
 	}
 }
 
-void SCPI_ProcessGPS(char * cmd){
+void SCPI_ProcessGNSS(char * cmd){
 
 	if(strncmp(cmd,"TIME?",5)==0){
 		UART_printf(1,"%s\r\n",gTime);
@@ -146,8 +154,8 @@ char group[16];
 		return;
 	}
 	
-	if(strncmp(group,"GPS",3)==0){
-		SCPI_ProcessGPS(&buffer[cnt]);
+	if(strncmp(group,"GNSS",4)==0){
+		SCPI_ProcessGNSS(&buffer[cnt]);
 		return;
 	}
 	

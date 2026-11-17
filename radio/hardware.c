@@ -200,8 +200,8 @@ void HARDWARE_Init(void)
 	InitGPIO();
 	SCHEDULER_Init();
 	UART_Init(1,115200);	// for command shell & program
-	UART_Init(2,38400);		// for BZ-121 GPS Receiver
-	//UART_Init(2,9600);	// for ATGM336H GPS Receiver
+	UART_Init(2,38400);		// for BZ-121 GNSS Receiver
+	//UART_Init(2,9600);	// for ATGM336H GNSS Receiver
 	BATTERY_Init();
 	PWM_Init();
 	

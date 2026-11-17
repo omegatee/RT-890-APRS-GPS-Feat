@@ -200,7 +200,7 @@ bool bNeg;
 	
 	FrameBUFF[pFrameBUFF++]='!';
 	
-	// gLatY/gLonX only ever hold values validated by the GPS driver
+	// gLatY/gLonX only ever hold values validated by the GNSS driver
 	// (at least "ddmm.hh" / "dddmm.hh"). Truncate to APRS precision.
 	for(cnt=0;cnt<7;cnt++)
 		FrameBUFF[pFrameBUFF++]=gLatY[cnt];
@@ -282,11 +282,12 @@ uint8_t vv;
 uint8_t d;
 uint8_t u;
 
-	if(Type==1 && gGNSS_Fix==0){
+	if(Type==0 && gGNSS_Fix==0){
 		gAPRSCounter=ONE_MIN/4;		// no fix yet: look again in 15 s
 		return false;
 	}
 	
+
 	// set APRS frequency first
 	//gVfoState[gSettings.CurrentDial]=gAPRSDefaultChannels[0];	// load fixed channel template
 	if(MEM_LoadToDial(898, gSettings.CurrentDial)){		// Load channel number - 1
@@ -295,9 +296,9 @@ uint8_t u;
 		APRS_RestoreDial();
 		return true;					// retrying cannot help, use the normal interval
 	}
+	RADIO_Tune(gSettings.CurrentDial);
 
 	// check if APRS channel is free
-	RADIO_Tune(gSettings.CurrentDial);
 	if ((gRadioMode != RADIO_MODE_QUIET) || (gScreenMode == SCREEN_MENU)){
 		APRS_RestoreDial();
 		if(Type==1)
@@ -305,6 +306,7 @@ uint8_t u;
 		return false;
 	}
 
+SCREEN_TurnOn();
 	BK4819_SetAfGain(0xB32A);
 	BK4819_EnableTone1(true);
 //SPEAKER_TurnOn(SPEAKER_OWNER_SYSTEM);
@@ -314,36 +316,36 @@ uint8_t u;
 	pFrameBUFF=0;
 	// compose header -----------------
 	// DEST
-	APRS_add_Address(dest,destssid,0);
+	APRS_add_Address(dest,destssid,0); // [APRS-0]
 	// SOURCE
-	APRS_add_Address(myCALL,myssid,0);
+	APRS_add_Address(myCALL,myssid,0); // [myID-7]
 	// DIGI
-	APRS_add_Address(digi,digissid,1); // 1=last Address
+	APRS_add_Address(digi,digissid,1); // [WIDE-2] // 1=last Address
 	// CTRL
 	APRS_add_CTRL();
 
 	// compose payload -----------------
 	switch(Type){
-		case 0: // ================================================ STATUS PACKET
+		case 1: // ================================================ 1-STATUS PACKET
 			vv = BATTERY_GetVoltage();
-				d = vv/10;// trick to avoid atof
+				d = vv/10;		// trick to avoid atof
 				u = vv-(d*10);
 			snprintf(msg,sizeof(msg),"RT-890 FW:%s Freq:%d Batt:%d.%d",FW_VERSION,gVfoState[gSettings.CurrentDial].RX.Frequency*10,d,u);
 			APRS_add_Status(msg);
 			break;
-		case 1: // ============================================== POSITION PACKET
-			APRS_add_Pos();
-			break;
-		case 2: // ============================================== MESSAGE PACKET
-			/// TBCoded...
-			snprintf(msg,sizeof(msg),"HELLO. RT-890 APRS Test. Copy?");
+		case 2: // ============================================== 2-MESSAGE PACKET
+			/// TO_DO: add a way to set the destination call sign and SSID, instead of hardcoding it here.
+			snprintf(msg,sizeof(msg),"PA_NA. RT-890 APRS Test. Copy?");
 			APRS_add_Msg("EA1FAQ-7 ",msg); // NOTE: destination must be 9 chars, space padded
+			break;
+		case 0: // ============================================== 0-POSITION PACKET
+			APRS_add_Pos();
 			break;
 	}
 	
 	/* ================================================================== Start Sending  */
 	RADIO_StartTX(0);	
-	// send flag -----------------
+	// send start flag -----------------
 	APRS_send_Flag(48);
 
 	crc=0xFFFF;
@@ -353,7 +355,7 @@ uint8_t u;
 	// send CRC -----------------
 	APRS_send_FCS();
 	
-	// send flag -----------------
+	// send end flag -----------------
 	APRS_send_Flag(4);
 	
 	BK4819_EnableTone1(false);

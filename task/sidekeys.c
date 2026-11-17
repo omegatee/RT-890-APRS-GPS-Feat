@@ -43,11 +43,7 @@ void Task_CheckSideKeys(void)
 	// ??? Such a specific number
 	gSlot = 6;
 
-	if ( !gpio_input_data_bit_read(GPIOF, BOARD_GPIOF_KEY_SIDE1) && !gpio_input_data_bit_read(GPIOA, BOARD_GPIOA_KEY_SIDE2) ){
-		// BOTH sidekeys pressed ?
-		gSlot = 4;
-	}
-	else if (!gpio_input_data_bit_read(GPIOF, BOARD_GPIOF_KEY_SIDE1) && KEY_Side1Counter > 1000) {
+	if (!gpio_input_data_bit_read(GPIOF, BOARD_GPIOF_KEY_SIDE1) && KEY_Side1Counter > 1000) {
 		KEY_SideKeyLongPressed = true;
 		KEY_Side1Counter = 0;
 		gSlot = 0;//Sidekey1 long

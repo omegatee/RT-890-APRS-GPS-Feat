@@ -6,8 +6,8 @@
 
 // Require a valid NMEA "*hh" checksum on every sentence (recommended).
 // Set to 0 only for a receiver that is known not to send checksums.
-#ifndef GPS_REQUIRE_CHECKSUM
-#define GPS_REQUIRE_CHECKSUM	1
+#ifndef GNSS_REQUIRE_CHECKSUM
+#define GNSS_REQUIRE_CHECKSUM	1
 #endif
 
 extern char gTime[16];		// "hhmmss.sss" (UTC), zero filled when unknown

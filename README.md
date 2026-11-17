@@ -2,7 +2,9 @@
 
 This project is an effort to improve the firmware of the Radtel RT-890 in terms of features and radio performance.
 
-It is based on [DualTachyon's OEFW](https://github.com/OEFW-community/radtel-rt-890-oefw) which is reversed from the original Radtel 1.34 firmware.  
+Modifications are oriented to improve hand-held use in the field. So, no register showing, spectrum, screen gadgets, etc. are managed.
+
+It is based on [DualTachyon's OEFW] (https://github.com/OEFW-community/radtel-rt-890-oefw) which is reversed from the original Radtel 1.34 firmware.  
 Thanks to him for making this possible!
 
 ## Disclaimer
@@ -27,12 +29,16 @@ There is no "free radio" but FRS, PMR446... but this devices do not comply with 
     - Menu comes from MENU key long press
 - Improved GNSS precision
 - Corrected APRS Beacon timeouts
+- Added SCPI commands:
+    - APRS:SEND POS
+    - APRS:SEND MSG
+    - APRS:SEND STS
 <img width="565" height="478" alt="image" src="https://github.com/user-attachments/assets/d4852c91-04fc-4e4f-9edf-0c01d8216bbc" />
 
   
 ## First Commit
 - All OEFW features plus:
-    - Full rewrite of UART code to support the new command shell and the GPS Receiver
+    - Full rewrite of UART code to support the new command shell and the GNSS Receiver
 	- Added functions to manage APRS and AFSK modulation.
     - Added channel templates for standard APRS frequencies on EUR and USA
     - New keyaction to send Test Message by APRS
@@ -40,14 +46,14 @@ There is no "free radio" but FRS, PMR446... but this devices do not comply with 
     - Personal ID (editable with CHIRP) used as "myCALL" for APRS. SSID is fixed to 7
 	- Channel 899 used for APRS operation
     - Startup Label (editable with CHIRP) used as Device Serial Number
-    - GPS Time shown on display
+    - GNSS Time shown on display
 	- Four TX power levels, 6W, 2.5W, 500mW and zero.
 	- Three bandwith values, 12.5k, 25k and 125k (125k only on TX yet)
 	- Improved AM Fix algorithm, faster, smaller and not altering RSSI indication
 	- Added "1" for frequencies higher than 999 MHz
 	- Removed "0" for frequencies lower than 100 MHz
 	- Added live decode of incoming CTCSS
-	- Added decoding of incoming FSK GPS Position frames
+	- Added decoding of incoming FSK GNSS Position frames
 	- RSSI indicator operates on RX even if no incoming signal detected
 
 - Removed / unbugged:
@@ -63,14 +69,14 @@ Recommended flashing tools:
 - https://github.com/OEFW-community/radtel-rt-890-flasher/releases/tag/first-release
 - https://github.com/omegatee/RT-4D_Flasher/releases/tag/v2.1.0-beta
 
-## GPS Receiver HW Implementation
+## GNSS Receiver HW Implementation
 <img width="565" height="478" alt="image" src="https://github.com/user-attachments/assets/ff4816d5-8ab2-4709-805b-d65616095407" />
 
 Do it as you can.
 My option is to install the module on top, with a small hole for the wires:
 <img width="447" height="424" alt="image" src="https://github.com/user-attachments/assets/c12338fb-fee0-4279-bf1d-1e88a7bddaca" />
 
-[NOTE:] GPS board baudrate is fixed on FW. Trim line 203 in radio/hardware.c as your need.
+[NOTE:] GNSS board baudrate is fixed on FW. Trim line 203 in radio/hardware.c as your need.
 
 
 ## Command Shell
@@ -87,9 +93,9 @@ Implemented commands:
 - RADIO:TX 0             Puts the device on RX
 - RADIO:AGC n            Sets AGC to level n (0=auto)
 - APRS:SEND POS          Sends APRS Position Packet
-- GPS:TIME?              Returns GPS Time
-- GPS:LAT?               Returns GPS Latitude
-- GPS:LON?               Returns GPS Longitude
+- GNSS:TIME?             Returns GNSS Time
+- GNSS:LAT?              Returns GNSS Latitude
+- GNSS:LON?              Returns GNSS Longitude
 - REG XX?                Return XX register value (in hex, zero-padded)
 - REG XX YYYY            Writes YYYY in register XX (in hex, zero-padded)
 - EXIT                   Exits Shell mode
@@ -98,9 +104,11 @@ Implemented commands:
 ## Telegram group
 If you want to discuss this project, you can join the [Telegram group](https://t.me/RT890_OEFW).
 
+## Other recommended FW for RT-890
+https://github.com/M7OCM/mono890
 
----
-_Original OEFW readme_
+==============================================================================================================
+# _Original DualTachyon OEFW readme_
 
 # Support
 

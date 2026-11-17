@@ -17,9 +17,9 @@ void Task_APRSBeacon(void){
 			return;
 		}
 				
-		// false = deferred (no GPS fix / channel busy): APRS_send_Packet has
+		// false = deferred (no GNSS fix / channel busy): APRS_send_Packet has
 		// already set a short retry time, so the interval must not be applied.
-		if(!APRS_send_Packet(1))
+		if(!APRS_send_Packet(0))
 			return;
 		
 		switch(gAPRSInterval){

@@ -59,10 +59,11 @@ void SetDefaultKeyShortcuts(uint8_t IncludeSideKeys) {
 
 	// sidekey actions -----------------------------------------------------
 	if (IncludeSideKeys) {
-		gSettings.Actions[0] = ACTION_APRS_SEND_PACK;			//Side 1 long
+		gSettings.Actions[0] = ACTION_APRS_SEND_PACK_0;			//Side 1 long
 		gSettings.Actions[1] = ACTION_MONITOR;					//Side 1 short
-		gSettings.Actions[2] = ACTION_REMOTE_ALARM;				//Side 2 long
+		gSettings.Actions[2] = ACTION_APRS_SEND_PACK_1;			//Side 2 long
 		gSettings.Actions[3] = ACTION_REPEATER_MODE;			//Side 2 short
+		// SPECIAL CASE gSettings.Actions[4] = ACTION_REMOTE_ALARM;	//Both Side long ???
 	}
 
 	// long-press key actions ----------------------------------------------
@@ -103,7 +104,8 @@ void KeypressAction(uint8_t Action) {
 	if (gScannerMode) {
 		if (Action == ACTION_SCAN && DIAL_CurrentIsMemMode()) {
 			Next_ScanList();
-		} else {
+		} 
+		else {
 			SETTINGS_SaveState();
 			BEEP_Play(440, 4, 80,0);
 		}
@@ -155,7 +157,8 @@ void KeypressAction(uint8_t Action) {
 				UI_DrawRepeaterMode();
 				if (gSettings.DualDisplay == 0) {
 					UI_DrawDial(gSettings.CurrentDial);
-				} else {
+				} 
+				else {
 					UI_DrawDial(0);
 					UI_DrawDial(1);
 				}
@@ -169,7 +172,8 @@ void KeypressAction(uint8_t Action) {
 					uint8_t Slot = (gSlot < 4 ? gSlot : 0);
 					if (MEM_LoadToDial(gSettings.PresetChannels[Slot], gSettings.CurrentDial)) {
 						MEM_LoadToDial(gSettings.VfoChNo[gSettings.CurrentDial], gSettings.CurrentDial);
-					} else {
+					} 
+					else {
 						gSettings.VfoChNo[gSettings.CurrentDial] = gSettings.PresetChannels[Slot];
 						RADIO_Tune(gSettings.CurrentDial);
 						UI_DrawDial(gSettings.CurrentDial);
@@ -178,12 +182,16 @@ void KeypressAction(uint8_t Action) {
 				}
 				break;
 
-			case ACTION_APRS_SEND_PACK:
+			case ACTION_APRS_SEND_PACK_1: // Status Packet
 				if (gRadioMode != RADIO_MODE_QUIET)
 					break;
-				
-				APRS_send_Packet(0);
+				APRS_send_Packet(1); // 0=POSITION, 1=STATUS, 2=MESSAGE
+				break;
 
+			case ACTION_APRS_SEND_PACK_2: // Message Packet
+				if (gRadioMode != RADIO_MODE_QUIET)
+					break;
+				APRS_send_Packet(2); // 0=POSITION, 1=STATUS, 2=MESSAGE
 				break;
 
 			case ACTION_REMOTE_ALARM:

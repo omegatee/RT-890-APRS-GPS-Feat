@@ -12,7 +12,7 @@
  *
  *  - GNSS_PushByte() runs in the USART2 interrupt: it only assembles one line
  *    and hands it over. Nothing is parsed there.
- *  - GPS_Task() runs in the main loop and parses the line, so the position
+ *  - GNSS_Task() runs in the main loop and parses the line, so the position
  *    globals are only ever written from the same context that reads them
  *    when building an APRS packet.
  *  - Every sentence must pass the checksum, every field is validated, and the
@@ -113,7 +113,7 @@ static bool CheckChecksum(char *Line)
 		Sum ^= (uint8_t)*p++;
 	}
 	if (*p != '*') {
-		return !GPS_REQUIRE_CHECKSUM;
+		return !GNSS_REQUIRE_CHECKSUM;
 	}
 	Hi = HexVal(p[1]);
 	if (Hi < 0) return false;

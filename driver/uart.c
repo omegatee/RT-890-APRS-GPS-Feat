@@ -112,7 +112,7 @@ void HandlerUSART2(void)
 
 	if (USART2->ctrl1_bit.rdbfien && USART2->sts & USART_RDBF_FLAG) {
 
-		// Only collect the byte here; the sentence is parsed by GPS_Task()
+		// Only collect the byte here; the sentence is parsed by GNSS_Task()
 		// from the main loop.
 		GNSS_PushByte((uint8_t)USART2->dt);
 	}
